@@ -1,5 +1,5 @@
 %% Standalone test stub — provides the three predicates fsm.pl depends on.
-%% In the DataGrout runtime this module is loaded from priv/swipl/logic_cell.pl.
+%% In the DataGrout runtime this module is loaded from logic_cell.pl.
 %% This copy lives alongside fsm.pl so the module can be tested independently.
 
 :- module(logic_cell, [relation/3, attribute/3, lc_flex_match/2]).
