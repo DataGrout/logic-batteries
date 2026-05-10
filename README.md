@@ -60,8 +60,6 @@ The `batteries.*` toolsuite lets agents search, install, and manage batteries di
 
 Installation state is tracked directly in the LC: `attribute('_batteries', battery_id, version)`. This makes `batteries.installed` a plain `lc.query` call and keeps state co-located with the rules.
 
-Toolsuite spec: [`tools/batteries.json`](./tools/batteries.json)
-
 ## Install
 
 ### Tether (Luau / Roblox)

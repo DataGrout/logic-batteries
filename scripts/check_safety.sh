@@ -52,7 +52,7 @@ while IFS= read -r -d '' file; do
   line_num=0
 
   while IFS= read -r line; do
-    ((line_num++))
+    ((line_num++)) || true
 
     # Skip comments
     [[ "$line" =~ ^[[:space:]]*% ]] && continue
@@ -66,7 +66,7 @@ while IFS= read -r -d '' file; do
     for pattern in "${DANGEROUS_PATTERNS[@]}"; do
       if [[ "$code" == *"$pattern"* ]]; then
         echo "UNSAFE  modules/$rel:$line_num — '$pattern' is not permitted in battery rules"
-        ((VIOLATIONS++))
+        ((VIOLATIONS++)) || true
         break
       fi
     done
