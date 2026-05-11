@@ -4,12 +4,23 @@ General-purpose finite state machine reasoning library for DataGrout Logic Cells
 
 ## Install
 
-```json
-{ "tool": "lc.packages.install", "module": "fsm", "namespace": "my-namespace" }
+
+**MCP** (Claude Code, Conduit SDK, any MCP client):
+
+```python
+client.perform("data-grout@1/batteries.install_many@1", {
+    "ids": ["fsm"],
+    "namespace": "my-namespace"
+})
 ```
 
-For Lua / Roblox access, use [Tether](https://github.com/datagrout/tether).
+**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
 
+```lua
+dg:batteries().install("fsm", "my-game", function(result)
+  print("Installed " .. result.predicate_count .. " predicates")
+end)
+```
 ## Exported Predicates
 
 ### State Queries

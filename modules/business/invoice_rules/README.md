@@ -4,8 +4,15 @@ Overdue detection, days-overdue calculation, late fee computation, escalation le
 
 ## Install
 
-Add to your DataGrout logic cell via the Hub, or load the raw Prolog directly.
 
+**MCP** (Claude Code, Conduit SDK, any MCP client):
+
+```python
+client.perform("data-grout@1/batteries.install_many@1", {
+    "ids": ["invoice-rules"],
+    "namespace": "my-namespace"
+})
+```
 ## Exported Predicates
 
 | Predicate | Description |

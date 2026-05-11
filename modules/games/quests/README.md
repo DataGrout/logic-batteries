@@ -4,14 +4,23 @@ Quest availability, prerequisites, objective tracking, and completion logic.
 
 ## Install
 
+
+**MCP** (Claude Code, Conduit SDK, any MCP client):
+
+```python
+client.perform("data-grout@1/batteries.install_many@1", {
+    "ids": ["quests"],
+    "namespace": "my-namespace"
+})
+```
+
+**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+
 ```lua
 dg:batteries().install("quests", "my-game", function(result)
   print("Installed " .. result.predicate_count .. " predicates")
 end)
 ```
-
-> Lua examples use [Tether](https://github.com/datagrout/tether), the Lua client for DataGrout.
-
 ## Exported Predicates
 
 | Predicate | Description |

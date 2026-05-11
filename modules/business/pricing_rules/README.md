@@ -4,8 +4,15 @@ Customer tier pricing, percentage and flat discounts, tier-gated discounts, bulk
 
 ## Install
 
-Add to your DataGrout logic cell via the Hub, or load the raw Prolog directly.
 
+**MCP** (Claude Code, Conduit SDK, any MCP client):
+
+```python
+client.perform("data-grout@1/batteries.install_many@1", {
+    "ids": ["pricing-rules"],
+    "namespace": "my-namespace"
+})
+```
 ## Exported Predicates
 
 | Predicate | Description |

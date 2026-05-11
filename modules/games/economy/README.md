@@ -4,14 +4,23 @@ Crafting recipes, material tracking, buy/sell pricing, and supply-demand adjustm
 
 ## Install
 
+
+**MCP** (Claude Code, Conduit SDK, any MCP client):
+
+```python
+client.perform("data-grout@1/batteries.install_many@1", {
+    "ids": ["economy"],
+    "namespace": "my-namespace"
+})
+```
+
+**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+
 ```lua
 dg:batteries().install("economy", "my-game", function(result)
   print("Installed " .. result.predicate_count .. " predicates")
 end)
 ```
-
-> Lua examples use [Tether](https://github.com/datagrout/tether), the Lua client for DataGrout.
-
 ## Exported Predicates
 
 | Predicate | Description |

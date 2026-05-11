@@ -4,14 +4,23 @@ State-based puzzle logic: transitions, win condition detection, hint generation,
 
 ## Install
 
+
+**MCP** (Claude Code, Conduit SDK, any MCP client):
+
+```python
+client.perform("data-grout@1/batteries.install_many@1", {
+    "ids": ["puzzle-fsm"],
+    "namespace": "my-namespace"
+})
+```
+
+**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+
 ```lua
 dg:batteries().install("puzzle-fsm", "my-game", function(result)
   print("Installed " .. result.predicate_count .. " predicates")
 end)
 ```
-
-> Lua examples use [Tether](https://github.com/datagrout/tether), the Lua client for DataGrout.
-
 ## Exported Predicates
 
 | Predicate | Description |

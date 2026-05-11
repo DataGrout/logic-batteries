@@ -4,8 +4,15 @@ Lifetime points accumulation, tier derivation, reduced redemption costs at highe
 
 ## Install
 
-Add to your DataGrout logic cell via the Hub, or load the raw Prolog directly.
 
+**MCP** (Claude Code, Conduit SDK, any MCP client):
+
+```python
+client.perform("data-grout@1/batteries.install_many@1", {
+    "ids": ["loyalty"],
+    "namespace": "my-namespace"
+})
+```
 ## Exported Predicates
 
 | Predicate | Description |
