@@ -50,7 +50,7 @@ permission_granted(Entity, Permission) :-
     role_grants(Role, Permission).
 
 %% can_access(+Entity, +Resource)
-can_access(Entity, Resource) :-
+can_access(_Entity, Resource) :-
     attribute(Resource, public, true), !.
 can_access(Entity, Resource) :-
     is_owner(Entity, Resource), !.

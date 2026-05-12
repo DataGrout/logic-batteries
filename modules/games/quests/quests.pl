@@ -35,7 +35,7 @@ quest_complete(Player, Quest) :-
 %%   { type:"attribute", entity:"slay_dragon", attribute:"requires_level", value:10 }
 %%   { type:"attribute", entity:"slay_dragon", attribute:"requires_item", value:"dragon_bane" }
 
-prerequisite_met(Player, Quest) :-
+prerequisite_met(_Player, Quest) :-
     \+ attribute(Quest, requires_quest, _),
     \+ attribute(Quest, requires_level, _),
     \+ attribute(Quest, requires_item, _).

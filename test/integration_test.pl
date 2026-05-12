@@ -312,7 +312,7 @@ setup_heist_scenario :-
 
 :- begin_tests(integration_combat_detection).
 
-test(dark_world_lowers_detection, [setup(setup_heist_scenario), cleanup(clear_facts)]) :-
+test(dark_world_lowers_detection, [nondet, setup(setup_heist_scenario), cleanup(clear_facts)]) :-
     detection_probability(guard, rogue, P),
     assertion(P < 0.60).   %% base would be ~0.78 active mid-perception, dark halves it
 

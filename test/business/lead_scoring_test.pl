@@ -76,25 +76,25 @@ test(clean_lead_not_disqualified, [setup(setup_enterprise_lead), cleanup(clear_f
 
 :- begin_tests(lead_scoring_factors).
 
-test(enterprise_factor, [setup(setup_enterprise_lead), cleanup(clear_facts)]) :-
+test(enterprise_factor, [nondet, setup(setup_enterprise_lead), cleanup(clear_facts)]) :-
     scoring_factor(lead_001, company_size_enterprise, P), assertion(P == 30).
 
-test(mid_market_factor, [setup(setup_mid_market_lead), cleanup(clear_facts)]) :-
+test(mid_market_factor, [nondet, setup(setup_mid_market_lead), cleanup(clear_facts)]) :-
     scoring_factor(lead_001, company_size_mid_market, P), assertion(P == 15).
 
-test(budget_factor, [setup(setup_budget_confirmed), cleanup(clear_facts)]) :-
+test(budget_factor, [nondet, setup(setup_budget_confirmed), cleanup(clear_facts)]) :-
     scoring_factor(lead_001, budget_confirmed, P), assertion(P == 25).
 
-test(decision_maker_factor, [setup(setup_decision_maker), cleanup(clear_facts)]) :-
+test(decision_maker_factor, [nondet, setup(setup_decision_maker), cleanup(clear_facts)]) :-
     scoring_factor(lead_001, decision_maker, P), assertion(P == 20).
 
-test(high_engagement_factor, [setup(setup_high_engagement), cleanup(clear_facts)]) :-
+test(high_engagement_factor, [nondet, setup(setup_high_engagement), cleanup(clear_facts)]) :-
     scoring_factor(lead_001, high_engagement, P), assertion(P == 15).
 
-test(med_engagement_factor, [setup(setup_med_engagement), cleanup(clear_facts)]) :-
+test(med_engagement_factor, [nondet, setup(setup_med_engagement), cleanup(clear_facts)]) :-
     scoring_factor(lead_001, medium_engagement, P), assertion(P == 8).
 
-test(q1_timeline_factor, [setup(setup_q1_timeline), cleanup(clear_facts)]) :-
+test(q1_timeline_factor, [nondet, setup(setup_q1_timeline), cleanup(clear_facts)]) :-
     scoring_factor(lead_001, q1_timeline, P), assertion(P == 10).
 
 test(q2_timeline_factor, [setup(setup_q2_timeline), cleanup(clear_facts)]) :-

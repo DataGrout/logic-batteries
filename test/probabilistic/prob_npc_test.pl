@@ -16,11 +16,11 @@ setup_merchant_exalted :-
     assertz(attribute(merchant, faction, traders_guild)),
     assertz(attribute(alice_traders_guild, score, 25000)).   %% exalted (>= 21000)
 
-setup_merchant_friendly :-
+setup_prob_merchant_friendly :-
     assertz(attribute(merchant, faction, traders_guild)),
     assertz(attribute(bob_traders_guild, score, 5000)).      %% friendly (>= 3000)
 
-setup_merchant_hostile :-
+setup_prob_merchant_hostile :-
     assertz(attribute(merchant, faction, traders_guild)),
     assertz(attribute(eve_traders_guild, score, -8000)).     %% hostile (< -6000)
 
@@ -28,16 +28,16 @@ setup_no_faction_npc :-
     assertz(attribute(stranger, disposition, neutral)).
 
 setup_relationship_boost :-
-    setup_merchant_friendly,
+    setup_prob_merchant_friendly,
     assertz(attribute(merchant_bob, score, 250)).           %% relationship score
 
 setup_friendly_merchant_bob :-
-    setup_merchant_friendly,
+    setup_prob_merchant_friendly,
     assertz(attribute(merchant, disposition, friendly)),
     assertz(attribute(bob, relationship, merchant)).
 
 setup_hostile_merchant_eve :-
-    setup_merchant_hostile,
+    setup_prob_merchant_hostile,
     assertz(attribute(merchant, disposition, hostile)).
 
 %% ── trust_probability/3 ──────────────────────────────────────────────────────
@@ -49,12 +49,12 @@ test(exalted_standing_high_trust, [setup(setup_merchant_exalted), cleanup(clear_
     assertion(P >= 0.88),
     assertion(P =< 0.99).
 
-test(friendly_standing_mid_trust, [setup(setup_merchant_friendly), cleanup(clear_facts)]) :-
+test(friendly_standing_mid_trust, [setup(setup_prob_merchant_friendly), cleanup(clear_facts)]) :-
     trust_probability(merchant, bob, P),
     assertion(P >= 0.50),
     assertion(P < 0.70).
 
-test(hostile_standing_low_trust, [setup(setup_merchant_hostile), cleanup(clear_facts)]) :-
+test(hostile_standing_low_trust, [setup(setup_prob_merchant_hostile), cleanup(clear_facts)]) :-
     trust_probability(merchant, eve, P),
     assertion(P >= 0.01),
     assertion(P < 0.10).
@@ -92,11 +92,11 @@ test(trusted_player_gets_discount, [setup(setup_merchant_exalted), cleanup(clear
     npc_price_modifier(merchant, alice, Mod),
     assertion(Mod < 1.0).
 
-test(hostile_player_gets_markup, [setup(setup_merchant_hostile), cleanup(clear_facts)]) :-
+test(hostile_player_gets_markup, [setup(setup_prob_merchant_hostile), cleanup(clear_facts)]) :-
     npc_price_modifier(merchant, eve, Mod),
     assertion(Mod > 1.0).
 
-test(friendly_player_near_baseline, [setup(setup_merchant_friendly), cleanup(clear_facts)]) :-
+test(friendly_player_near_baseline, [setup(setup_prob_merchant_friendly), cleanup(clear_facts)]) :-
     npc_price_modifier(merchant, bob, Mod),
     assertion(Mod >= 0.70),
     assertion(Mod =< 1.30).
@@ -122,7 +122,7 @@ test(hostile_npc_penalises_disposition, [setup(setup_hostile_merchant_eve), clea
     trust_probability(merchant, eve, TrustP),
     assertion(P =< TrustP).
 
-test(disposition_clamped_to_valid_range, [setup(setup_merchant_friendly), cleanup(clear_facts)]) :-
+test(disposition_clamped_to_valid_range, [setup(setup_prob_merchant_friendly), cleanup(clear_facts)]) :-
     disposition_probability(merchant, bob, P),
     assertion(P >= 0.01),
     assertion(P =< 0.99).

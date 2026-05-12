@@ -122,11 +122,11 @@ test(duration_zero_for_same_time, [setup(setup_same_timestamp), cleanup(clear_fa
 
 :- begin_tests(temporal_gap).
 
-test(positive_gap_between_non_overlapping, [setup(setup_interval_events), cleanup(clear_facts)]) :-
+test(positive_gap_between_non_overlapping, [nondet, setup(setup_interval_events), cleanup(clear_facts)]) :-
     gap_between(meeting, after_meeting, Gap),
     assertion(Gap =:= 100).
 
-test(negative_gap_means_overlap, [setup(setup_interval_events), cleanup(clear_facts)]) :-
+test(negative_gap_means_overlap, [nondet, setup(setup_interval_events), cleanup(clear_facts)]) :-
     gap_between(meeting, call, Gap),
     assertion(Gap < 0).
 

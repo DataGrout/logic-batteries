@@ -172,19 +172,19 @@ test(not_available_unmet_item_prereq, [
 :- begin_tests(quest_blocked).
 
 test(blocked_already_complete, [
-        setup((setup_quest(easy_quest), set_complete(alice, easy_quest))),
+        nondet, setup((setup_quest(easy_quest), set_complete(alice, easy_quest))),
         cleanup(clear_facts)]) :-
     quest_blocked_by(alice, easy_quest, Reason),
     assertion(Reason == 'already complete').
 
 test(blocked_requires_quest, [
-        setup(setup_slay_dragon_requires_sword),
+        nondet, setup(setup_slay_dragon_requires_sword),
         cleanup(clear_facts)]) :-
     quest_blocked_by(alice, slay_dragon, Reason),
     assertion(Reason == requires_quest(find_sword)).
 
 test(blocked_requires_level, [
-        setup(setup_hard_quest_high_requirement),
+        nondet, setup(setup_hard_quest_high_requirement),
         cleanup(clear_facts)]) :-
     quest_blocked_by(alice, hard_quest, Reason),
     assertion(Reason == requires_level(20)).
@@ -202,7 +202,7 @@ test(blocked_requires_item, [
 :- begin_tests(quest_objectives).
 
 test(first_objective_when_none_complete, [
-        setup(setup_quest_with_objectives),
+        nondet, setup(setup_quest_with_objectives),
         cleanup(clear_facts)]) :-
     next_objective(alice, slay_dragon, Obj),
     assertion(Obj == obj1).

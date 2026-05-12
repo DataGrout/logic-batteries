@@ -140,11 +140,11 @@ test(state_membership, [setup(setup_linear), cleanup(clear_facts)]) :-
     assertion(fsm_state("m", "complete")),
     assertion(\+ fsm_state("m", "nonexistent")).
 
-test(initial_state, [setup(setup_linear), cleanup(clear_facts)]) :-
+test(initial_state, [nondet, setup(setup_linear), cleanup(clear_facts)]) :-
     fsm_initial_state("m", S),
     assertion(S == "idle").
 
-test(terminal_state, [setup(setup_linear), cleanup(clear_facts)]) :-
+test(terminal_state, [nondet, setup(setup_linear), cleanup(clear_facts)]) :-
     fsm_terminal_state("m", S),
     assertion(S == "complete").
 
@@ -153,7 +153,7 @@ test(multiple_terminals, [setup(setup_branching), cleanup(clear_facts)]) :-
     sort(Ts, Sorted),
     assertion(Sorted == ["approved", "rejected"]).
 
-test(current_state, [setup(setup_linear_running), cleanup(clear_facts)]) :-
+test(current_state, [nondet, setup(setup_linear_running), cleanup(clear_facts)]) :-
     fsm_current_state("m", S),
     assertion(S == "running").
 
@@ -163,11 +163,11 @@ test(current_state, [setup(setup_linear_running), cleanup(clear_facts)]) :-
 
 :- begin_tests(fsm_transitions).
 
-test(transition_with_event, [setup(setup_linear), cleanup(clear_facts)]) :-
+test(transition_with_event, [nondet, setup(setup_linear), cleanup(clear_facts)]) :-
     fsm_transition("m", "idle", Event, "running"),
     assertion(Event == "start_lap").
 
-test(transition_without_event, [setup(setup_eventless_machine), cleanup(clear_facts)]) :-
+test(transition_without_event, [nondet, setup(setup_eventless_machine), cleanup(clear_facts)]) :-
     fsm_transition("m", "s1", Event, "s2"),
     assertion(Event == unspecified).
 
@@ -191,12 +191,12 @@ test(transitive_reachable, [setup(setup_linear), cleanup(clear_facts)]) :-
 test(not_reachable_backwards, [setup(setup_linear), cleanup(clear_facts)]) :-
     assertion(\+ fsm_reachable("m", "complete", "idle")).
 
-test(reachable_states_from_initial, [setup(setup_linear), cleanup(clear_facts)]) :-
+test(reachable_states_from_initial, [nondet, setup(setup_linear), cleanup(clear_facts)]) :-
     fsm_reachable_states("m", States),
     sort(States, Sorted),
     assertion(Sorted == ["complete", "idle", "running"]).
 
-test(branching_all_reachable, [setup(setup_branching), cleanup(clear_facts)]) :-
+test(branching_all_reachable, [nondet, setup(setup_branching), cleanup(clear_facts)]) :-
     fsm_reachable_states("wf", States),
     sort(States, Sorted),
     assertion(Sorted == ["approved", "draft", "rejected", "review"]).
@@ -210,12 +210,12 @@ test(branching_all_reachable, [setup(setup_branching), cleanup(clear_facts)]) :-
 test(deterministic_linear, [setup(setup_linear), cleanup(clear_facts)]) :-
     assertion(fsm_deterministic("m")).
 
-test(nondeterministic_detected, [setup(setup_nondeterministic), cleanup(clear_facts)]) :-
+test(nondeterministic_detected, [nondet, setup(setup_nondeterministic), cleanup(clear_facts)]) :-
     assertion(\+ fsm_deterministic("nd")),
     fsm_nondeterministic_state("nd", State, _Event),
     assertion(State == "s1").
 
-test(dead_state_detected, [setup(setup_defective), cleanup(clear_facts)]) :-
+test(dead_state_detected, [nondet, setup(setup_defective), cleanup(clear_facts)]) :-
     fsm_dead_state("bad", Dead),
     assertion(Dead == "s3").
 
@@ -242,7 +242,7 @@ test(complete_when_at_terminal, [setup(setup_linear_complete), cleanup(clear_fac
 test(not_complete_mid_run, [setup(setup_linear_running), cleanup(clear_facts)]) :-
     assertion(\+ fsm_complete("m")).
 
-test(stuck_at_dead_end, [setup(setup_defective_stuck), cleanup(clear_facts)]) :-
+test(stuck_at_dead_end, [nondet, setup(setup_defective_stuck), cleanup(clear_facts)]) :-
     assertion(fsm_stuck("bad")),
     fsm_stuck_at("bad", S),
     assertion(S == "s3").
@@ -281,7 +281,7 @@ test(cycle_detected, [setup(setup_cyclic), cleanup(clear_facts)]) :-
 test(no_cycle_in_linear, [setup(setup_linear), cleanup(clear_facts)]) :-
     assertion(\+ fsm_cycle("m", _)).
 
-test(shortest_path, [setup(setup_linear), cleanup(clear_facts)]) :-
+test(shortest_path, [nondet, setup(setup_linear), cleanup(clear_facts)]) :-
     fsm_shortest_path("m", "idle", "complete", Path),
     assertion(Path == ["idle", "running", "complete"]).
 

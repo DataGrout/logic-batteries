@@ -43,10 +43,10 @@ npc_says(NPC, Player, Topic, Line) :-
     ; attribute(Topic, line, Line) -> true
     ; Line = "" ).
 
-npc_says_contextual(NPC, Player, Topic, Line) :-
+npc_says_contextual(NPC, _Player, Topic, Line) :-
     attribute(NPC, always_friendly, true),
     attribute(Topic, line_friendly, Line), !.
-npc_says_contextual(NPC, Player, Topic, Line) :-
+npc_says_contextual(NPC, _Player, Topic, Line) :-
     attribute(NPC, always_hostile, true),
     attribute(Topic, line_hostile, Line), !.
 npc_says_contextual(NPC, Player, Topic, Line) :-

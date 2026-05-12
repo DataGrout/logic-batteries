@@ -135,7 +135,7 @@ test(single_move_solution, [setup(setup_simple_puzzle), cleanup(clear_facts)]) :
     valid_sequence(chest, Moves),
     assertion(Moves == [use_key]).
 
-test(two_move_solution, [setup(setup_two_step_puzzle), cleanup(clear_facts)]) :-
+test(two_move_solution, [nondet, setup(setup_two_step_puzzle), cleanup(clear_facts)]) :-
     valid_sequence(gate, Moves),
     assertion(Moves == [lift_bar, push_open]).
 
@@ -149,11 +149,11 @@ test(solution_with_item_present, [setup(setup_missing_item_puzzle_with_note), cl
     valid_sequence(safe, Moves),
     assertion(Moves == [dial_combo]).
 
-test(multi_solve_state_finds_a_path, [setup(setup_multi_solve_puzzle), cleanup(clear_facts)]) :-
+test(multi_solve_state_finds_a_path, [nondet, setup(setup_multi_solve_puzzle), cleanup(clear_facts)]) :-
     valid_sequence(door, Moves),
     assertion(Moves \= []).
 
-test(multi_solve_state_path_is_length_one, [setup(setup_multi_solve_puzzle), cleanup(clear_facts)]) :-
+test(multi_solve_state_path_is_length_one, [nondet, setup(setup_multi_solve_puzzle), cleanup(clear_facts)]) :-
     valid_sequence(door, Moves),
     assertion(length(Moves, 1)).
 
