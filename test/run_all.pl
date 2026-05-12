@@ -32,6 +32,14 @@
     'business/loyalty_test',
     'business/scheduling_test',
     'business/compliance_test',
+    %% Reasoning
+    'reasoning/taxonomy_test',
+    'reasoning/temporal_test',
+    %% Probabilistic
+    'probabilistic/prob_loot_test',
+    'probabilistic/prob_npc_test',
+    'probabilistic/prob_detection_test',
+    'probabilistic/prob_economy_test',
     %% Integration
     'integration_test'
 ], [relative_to('.')]).

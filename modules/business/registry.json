@@ -1,0 +1,201 @@
+{
+  "version": "1",
+  "updated_at": "2026-05-11",
+  "category": "business",
+  "modules": [
+    {
+      "id": "lead-scoring",
+      "version": "1.0.0",
+      "title": "Lead Scoring",
+      "description": "Weighted scoring across company size, budget, decision-maker status, engagement, and timeline. Automatic disqualification for competitors and students. Hot/warm/cold tier derivation with configurable thresholds.",
+      "category": "business",
+      "tags": [
+        "sales",
+        "crm",
+        "leads",
+        "scoring",
+        "business"
+      ],
+      "predicates": [
+        "lead_score/2",
+        "lead_qualified/1",
+        "lead_tier/2",
+        "disqualified/2",
+        "scoring_factor/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/lead_scoring/lead_scoring.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/lead_scoring",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "invoice-rules",
+      "version": "1.0.0",
+      "title": "Invoice Rules",
+      "description": "Overdue detection, days-overdue calculation, late fee computation (flat or percentage with cap), escalation levels (reminder/warning/collections), and total amount due.",
+      "category": "business",
+      "tags": [
+        "invoicing",
+        "billing",
+        "finance",
+        "business"
+      ],
+      "predicates": [
+        "invoice_overdue/1",
+        "days_overdue/2",
+        "late_fee/2",
+        "escalation_level/2",
+        "payment_due_amount/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/invoice_rules/invoice_rules.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/invoice_rules",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "approval-chains",
+      "version": "1.0.0",
+      "title": "Approval Chains",
+      "description": "Multi-step approval workflows with delegation, rejection tracking, and automatic amount-based approver escalation. Finds next pending approver, checks full approval, and surfaces blocking reasons.",
+      "category": "business",
+      "tags": [
+        "approvals",
+        "workflow",
+        "finance",
+        "business"
+      ],
+      "predicates": [
+        "approval_required/2",
+        "approval_granted/2",
+        "fully_approved/1",
+        "next_approver/2",
+        "approval_blocked/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/approval_chains/approval_chains.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/approval_chains",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "inventory-mgmt",
+      "version": "1.0.0",
+      "title": "Inventory Management",
+      "description": "Stock level classification (adequate/low/critical/stockout), reorder triggers, order quantity calculation, preferred supplier selection, and days-of-stock forecasting.",
+      "category": "business",
+      "tags": [
+        "inventory",
+        "supply-chain",
+        "operations",
+        "business"
+      ],
+      "predicates": [
+        "needs_reorder/1",
+        "reorder_quantity/2",
+        "stock_level/2",
+        "preferred_supplier/2",
+        "days_of_stock/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/inventory_mgmt/inventory_mgmt.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/inventory_mgmt",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "pricing-rules",
+      "version": "1.0.0",
+      "title": "Pricing Rules",
+      "description": "Customer tier pricing, percentage and flat discounts, tier-gated discounts, bulk quantity breaks, floor/ceiling clamping, and final effective price calculation.",
+      "category": "business",
+      "tags": [
+        "pricing",
+        "discounts",
+        "ecommerce",
+        "business"
+      ],
+      "predicates": [
+        "effective_price/3",
+        "discount_applicable/2",
+        "bulk_discount/3",
+        "price_tier/3",
+        "price_capped/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/pricing_rules/pricing_rules.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/pricing_rules",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "loyalty",
+      "version": "1.0.0",
+      "title": "Loyalty Program",
+      "description": "Lifetime points accumulation, tier derivation (bronze/silver/gold/platinum), reduced redemption costs at higher tiers, reward eligibility, and inherited tier benefits.",
+      "category": "business",
+      "tags": [
+        "loyalty",
+        "rewards",
+        "retention",
+        "business"
+      ],
+      "predicates": [
+        "loyalty_tier/2",
+        "points_balance/2",
+        "reward_eligible/2",
+        "points_to_redeem/3",
+        "tier_benefit/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/loyalty/loyalty.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/loyalty",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "scheduling",
+      "version": "1.0.0",
+      "title": "Scheduling",
+      "description": "Time slot availability, booking conflict detection, advance window enforcement, role-gated booking prerequisites, and resource utilization percentage.",
+      "category": "business",
+      "tags": [
+        "scheduling",
+        "calendar",
+        "booking",
+        "business"
+      ],
+      "predicates": [
+        "slot_available/3",
+        "booking_conflict/3",
+        "can_book/4",
+        "next_available_slot/3",
+        "resource_utilization/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/scheduling/scheduling.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/scheduling",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "compliance",
+      "version": "1.0.0",
+      "title": "Compliance",
+      "description": "Policy compliance checks, violation surfacing by requirement, data retention window validation, consent type mapping to actions, and consent registry queries.",
+      "category": "business",
+      "tags": [
+        "compliance",
+        "gdpr",
+        "hipaa",
+        "policy",
+        "business"
+      ],
+      "predicates": [
+        "compliant/2",
+        "violation/3",
+        "data_retention_ok/2",
+        "consent_required/2",
+        "consent_given/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/compliance/compliance.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/compliance",
+      "install": "batteries.install_many",
+      "installs": 0
+    }
+  ]
+}

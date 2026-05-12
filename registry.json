@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-09",
+  "updated_at": "2026-05-11",
   "modules": [
     {
       "id": "fsm",
@@ -8,32 +8,122 @@
       "title": "Finite State Machine",
       "description": "General-purpose FSM reasoning library. Assert machine structure once; query reachability, determinism, dead states, shortest paths, and structural issues at zero token cost. Supports runtime trace recording and cycle detection.",
       "category": "reasoning",
-      "tags": ["fsm", "state-machine", "reasoning", "agents"],
-      "predicates": [
-        "fsm_state/2", "fsm_current_state/2", "fsm_initial_state/2", "fsm_terminal_state/2",
-        "fsm_transition/4", "fsm_reachable/3", "fsm_reachable_states/2",
-        "fsm_deterministic/1", "fsm_nondeterministic_state/3",
-        "fsm_dead_state/2", "fsm_unreachable_state/2",
-        "fsm_complete/1", "fsm_stuck/1", "fsm_stuck_at/2",
-        "fsm_visited/2", "fsm_trace/4", "fsm_trace_length/2",
-        "fsm_cycle/2", "fsm_shortest_path/4", "fsm_all_paths/4",
-        "fsm_machines/1", "fsm_validate/2"
+      "tags": [
+        "fsm",
+        "state-machine",
+        "reasoning",
+        "agents"
       ],
-      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/fsm/fsm.pl",
-      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/fsm",
+      "predicates": [
+        "fsm_state/2",
+        "fsm_current_state/2",
+        "fsm_initial_state/2",
+        "fsm_terminal_state/2",
+        "fsm_transition/4",
+        "fsm_reachable/3",
+        "fsm_reachable_states/2",
+        "fsm_deterministic/1",
+        "fsm_nondeterministic_state/3",
+        "fsm_dead_state/2",
+        "fsm_unreachable_state/2",
+        "fsm_complete/1",
+        "fsm_stuck/1",
+        "fsm_stuck_at/2",
+        "fsm_visited/2",
+        "fsm_trace/4",
+        "fsm_trace_length/2",
+        "fsm_cycle/2",
+        "fsm_shortest_path/4",
+        "fsm_all_paths/4",
+        "fsm_machines/1",
+        "fsm_validate/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fsm/fsm.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fsm",
       "install": "platform",
+      "installs": 0
+    },
+    {
+      "id": "temporal",
+      "version": "1.0.0",
+      "title": "Temporal Reasoning",
+      "description": "Ordering, overlap, gap, and deadline reasoning over timestamped facts. Assert timestamps and intervals as attributes; query event ordering, concurrency, sequence validity, and imminent deadlines at zero token cost. Domain-agnostic.",
+      "category": "reasoning",
+      "tags": [
+        "temporal",
+        "time",
+        "deadlines",
+        "events",
+        "reasoning"
+      ],
+      "predicates": [
+        "event_before/2",
+        "event_after/2",
+        "event_within/3",
+        "event_concurrent/2",
+        "deadline_passed/2",
+        "deadline_imminent/3",
+        "duration_between/3",
+        "gap_between/3",
+        "events_in_order/1",
+        "next_event/3",
+        "latest_event/2",
+        "earliest_event/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/temporal/temporal.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/temporal",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "taxonomy",
+      "version": "1.0.0",
+      "title": "Taxonomy & Classification",
+      "description": "Hierarchical classification with transitive membership and property inheritance. Assert is_a relations between entities and classes; query ancestors, siblings, subclass trees, and inherited attributes at zero token cost. Works for monster types, product categories, capability trees, or any knowledge hierarchy.",
+      "category": "reasoning",
+      "tags": [
+        "taxonomy",
+        "classification",
+        "hierarchy",
+        "inheritance",
+        "reasoning"
+      ],
+      "predicates": [
+        "isa/2",
+        "inherits_property/3",
+        "most_specific_class/2",
+        "common_ancestor/3",
+        "siblings/2",
+        "subclasses/2",
+        "class_members/2",
+        "depth_in_hierarchy/2",
+        "compatible_types/2",
+        "root_class/1"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/taxonomy/taxonomy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
+      "install": "batteries.install_many",
       "installs": 0
     },
     {
       "id": "inventory",
       "version": "1.0.0",
       "title": "Inventory System",
-      "description": "Item carrying, weight limits, and slot constraints. Works out of the box with sensible defaults — override per-player or per-item by asserting attribute facts.",
+      "description": "Item carrying, weight limits, and slot constraints. Works out of the box with sensible defaults \u2014 override per-player or per-item by asserting attribute facts.",
       "category": "games",
-      "tags": ["items", "rpg", "games"],
+      "tags": [
+        "items",
+        "rpg",
+        "games"
+      ],
       "predicates": [
-        "can_carry/2", "inventory_full/1", "carrying_weight/2",
-        "item_count/2", "has_item/2", "item_in_slot/3", "slot_available/2"
+        "can_carry/2",
+        "inventory_full/1",
+        "carrying_weight/2",
+        "item_count/2",
+        "has_item/2",
+        "item_in_slot/3",
+        "slot_available/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/inventory/inventory.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/inventory",
@@ -46,10 +136,20 @@
       "title": "Loot Tables",
       "description": "Rarity tiers, condition-gated drops, and drop chance calculation. Supports time-of-day, weather, moon phase, player level, and item prerequisites as conditions.",
       "category": "games",
-      "tags": ["items", "drops", "rpg", "roguelike", "games"],
+      "tags": [
+        "items",
+        "drops",
+        "rpg",
+        "roguelike",
+        "games"
+      ],
       "predicates": [
-        "drops/2", "drops_at/3", "eligible_loot/2",
-        "rarity_tier/2", "condition_met/2", "loot_chance/3"
+        "drops/2",
+        "drops_at/3",
+        "eligible_loot/2",
+        "rarity_tier/2",
+        "condition_met/2",
+        "loot_chance/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/loot-tables/loot_tables.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/loot-tables",
@@ -62,10 +162,20 @@
       "title": "Quest System",
       "description": "Quest availability, prerequisite chains, ordered objective tracking, and turn-in detection. Supports level requirements, item requirements, and quest dependencies.",
       "category": "games",
-      "tags": ["quests", "rpg", "progression", "narrative", "games"],
+      "tags": [
+        "quests",
+        "rpg",
+        "progression",
+        "narrative",
+        "games"
+      ],
       "predicates": [
-        "quest_available/2", "quest_in_progress/2", "quest_complete/2",
-        "next_objective/3", "quest_blocked_by/3", "can_turn_in/2"
+        "quest_available/2",
+        "quest_in_progress/2",
+        "quest_complete/2",
+        "next_objective/3",
+        "quest_blocked_by/3",
+        "can_turn_in/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/quests/quests.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/quests",
@@ -78,10 +188,19 @@
       "title": "Combat System",
       "description": "Damage calculation, resistances, weaknesses, status effects, and turn order. Supports elemental types, armor classes, and buff/debuff stacking.",
       "category": "games",
-      "tags": ["combat", "rpg", "action", "games"],
+      "tags": [
+        "combat",
+        "rpg",
+        "action",
+        "games"
+      ],
       "predicates": [
-        "effective_damage/4", "can_attack/2", "status_effect_active/2",
-        "turn_order/2", "is_defeated/1", "resistance/3"
+        "effective_damage/4",
+        "can_attack/2",
+        "status_effect_active/2",
+        "turn_order/2",
+        "is_defeated/1",
+        "resistance/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/combat/combat.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/combat",
@@ -92,12 +211,21 @@
       "id": "progression",
       "version": "1.0.0",
       "title": "Progression & Leveling",
-      "description": "XP thresholds, level-up triggers, stat unlocks, and prestige conditions. Configurable XP curve — linear, exponential, or custom breakpoints.",
+      "description": "XP thresholds, level-up triggers, stat unlocks, and prestige conditions. Configurable XP curve \u2014 linear, exponential, or custom breakpoints.",
       "category": "games",
-      "tags": ["progression", "rpg", "xp", "levels", "games"],
+      "tags": [
+        "progression",
+        "rpg",
+        "xp",
+        "levels",
+        "games"
+      ],
       "predicates": [
-        "level_for_xp/2", "xp_to_next_level/2", "stat_at_level/3",
-        "unlock_available/2", "can_prestige/1"
+        "level_for_xp/2",
+        "xp_to_next_level/2",
+        "stat_at_level/3",
+        "unlock_available/2",
+        "can_prestige/1"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/progression/progression.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/progression",
@@ -110,10 +238,19 @@
       "title": "Economy & Crafting",
       "description": "Crafting recipes, buy/sell pricing, supply-demand adjustments, and trade validation. Supports material substitutions and quality tiers.",
       "category": "games",
-      "tags": ["economy", "crafting", "trading", "simulation", "games"],
+      "tags": [
+        "economy",
+        "crafting",
+        "trading",
+        "simulation",
+        "games"
+      ],
       "predicates": [
-        "can_craft/2", "craft_cost/2", "buy_price/2",
-        "sell_price/2", "missing_materials/3"
+        "can_craft/2",
+        "craft_cost/2",
+        "buy_price/2",
+        "sell_price/2",
+        "missing_materials/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/economy/economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/economy",
@@ -126,10 +263,19 @@
       "title": "NPC State & Dialogue",
       "description": "Relationship tracking, faction membership, dialogue prerequisites, and NPC disposition.",
       "category": "games",
-      "tags": ["npc", "dialogue", "narrative", "rpg", "games"],
+      "tags": [
+        "npc",
+        "dialogue",
+        "narrative",
+        "rpg",
+        "games"
+      ],
       "predicates": [
-        "npc_friendly/2", "npc_hostile/2", "dialogue_available/3",
-        "faction_member/2", "relationship_level/3"
+        "npc_friendly/2",
+        "npc_hostile/2",
+        "dialogue_available/3",
+        "faction_member/2",
+        "relationship_level/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/npc-state/npc_state.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/npc-state",
@@ -142,10 +288,18 @@
       "title": "Puzzle & FSM",
       "description": "Finite state machine transitions, win/loss condition detection, hint generation, and sequence validation.",
       "category": "games",
-      "tags": ["puzzle", "fsm", "logic", "games"],
+      "tags": [
+        "puzzle",
+        "fsm",
+        "logic",
+        "games"
+      ],
       "predicates": [
-        "can_transition/3", "puzzle_solved/1", "valid_sequence/2",
-        "hint_for/2", "blocked_by/2"
+        "can_transition/3",
+        "puzzle_solved/1",
+        "valid_sequence/2",
+        "hint_for/2",
+        "blocked_by/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/puzzle-fsm/puzzle_fsm.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/puzzle-fsm",
@@ -158,10 +312,19 @@
       "title": "World State",
       "description": "Time of day, weather, season, and moon phase reasoning. Assert world conditions once; all other batteries (loot tables, NPC dialogue, spawning) can branch on them automatically.",
       "category": "games",
-      "tags": ["world", "environment", "rpg", "games"],
+      "tags": [
+        "world",
+        "environment",
+        "rpg",
+        "games"
+      ],
       "predicates": [
-        "world_time/1", "world_weather/1", "world_season/1",
-        "world_moon/1", "is_daytime/0", "is_nighttime/0"
+        "world_time/1",
+        "world_weather/1",
+        "world_season/1",
+        "world_moon/1",
+        "is_daytime/0",
+        "is_nighttime/0"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/world/world.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/world",
@@ -174,10 +337,18 @@
       "title": "Faction System",
       "description": "Numeric reputation tracking, standing tier derivation, faction alliances, wars, and area access gating. Standing tiers from hostile to exalted with configurable thresholds.",
       "category": "games",
-      "tags": ["faction", "reputation", "rpg", "games"],
+      "tags": [
+        "faction",
+        "reputation",
+        "rpg",
+        "games"
+      ],
       "predicates": [
-        "faction_reputation/3", "faction_standing/3", "faction_allied/2",
-        "faction_at_war/2", "faction_access/2"
+        "faction_reputation/3",
+        "faction_standing/3",
+        "faction_allied/2",
+        "faction_at_war/2",
+        "faction_access/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/faction/faction.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/faction",
@@ -190,10 +361,19 @@
       "title": "Dialogue System",
       "description": "Context-aware NPC line selection, player choice filtering with prerequisites, topic navigation, and conversation memory. Pairs naturally with npc-state for relationship-gated dialogue.",
       "category": "games",
-      "tags": ["dialogue", "npc", "narrative", "rpg", "games"],
+      "tags": [
+        "dialogue",
+        "npc",
+        "narrative",
+        "rpg",
+        "games"
+      ],
       "predicates": [
-        "npc_says/4", "player_choices/4", "choice_leads_to/3",
-        "npc_remembers/3", "dialogue_complete/3"
+        "npc_says/4",
+        "player_choices/4",
+        "choice_leads_to/3",
+        "npc_remembers/3",
+        "dialogue_complete/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/dialogue/dialogue.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/dialogue",
@@ -206,10 +386,18 @@
       "title": "Crafting System",
       "description": "Recipe knowledge, skill requirements, automatic discovery via level/quest/item, and craftability checks. Supports direct recipes, starter recipes, and discoverable recipes.",
       "category": "games",
-      "tags": ["crafting", "skills", "rpg", "games"],
+      "tags": [
+        "crafting",
+        "skills",
+        "rpg",
+        "games"
+      ],
       "predicates": [
-        "recipe_known/2", "can_craft_skilled/2", "crafting_skill/3",
-        "skill_requirement/3", "recipe_discoverable/2"
+        "recipe_known/2",
+        "can_craft_skilled/2",
+        "crafting_skill/3",
+        "skill_requirement/3",
+        "recipe_discoverable/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/crafting/crafting.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/crafting",
@@ -222,10 +410,18 @@
       "title": "Permissions",
       "description": "Role-based access control with inheritance, ownership checks, and public resource handling. Roles inherit permissions from parent roles; ownership always grants access.",
       "category": "games",
-      "tags": ["permissions", "roles", "access-control", "games"],
+      "tags": [
+        "permissions",
+        "roles",
+        "access-control",
+        "games"
+      ],
       "predicates": [
-        "has_role/2", "role_grants/2", "is_owner/2",
-        "permission_granted/2", "can_access/2"
+        "has_role/2",
+        "role_grants/2",
+        "is_owner/2",
+        "permission_granted/2",
+        "can_access/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/permissions/permissions.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/permissions",
@@ -238,10 +434,19 @@
       "title": "AI Director",
       "description": "Dynamic difficulty and pacing for games. Derives pacing state (calm/building/tense/peak/recovery) from zone threat levels, adjusts difficulty multipliers, controls enemy spawning windows, and fires director events.",
       "category": "games",
-      "tags": ["ai", "difficulty", "spawning", "pacing", "games"],
+      "tags": [
+        "ai",
+        "difficulty",
+        "spawning",
+        "pacing",
+        "games"
+      ],
       "predicates": [
-        "spawn_eligible/2", "difficulty_modifier/2", "pacing_state/2",
-        "threat_level/2", "director_event/2"
+        "spawn_eligible/2",
+        "difficulty_modifier/2",
+        "pacing_state/2",
+        "threat_level/2",
+        "director_event/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/ai_director/ai_director.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/ai_director",
@@ -254,13 +459,45 @@
       "title": "Dungeon Navigation",
       "description": "Room connectivity, key-locked access, DFS pathfinding through accessible rooms, clearance tracking, and dungeon completion detection.",
       "category": "games",
-      "tags": ["dungeon", "navigation", "rooms", "rpg", "games"],
+      "tags": [
+        "dungeon",
+        "navigation",
+        "rooms",
+        "rpg",
+        "games"
+      ],
       "predicates": [
-        "room_connected/2", "room_accessible/2", "dungeon_path/3",
-        "room_cleared/2", "dungeon_complete/2"
+        "room_connected/2",
+        "room_accessible/2",
+        "dungeon_path/3",
+        "room_cleared/2",
+        "dungeon_complete/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/dungeon/dungeon.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/dungeon",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "risk-assessment",
+      "version": "1.0.0",
+      "title": "Risk Assessment",
+      "description": "Combat risk analysis \u2014 survival probability, fight-or-flee recommendations, and encounter breakdowns. Works with the combat battery and base HP/damage attributes. Requires combat in the same namespace.",
+      "category": "games",
+      "tags": [
+        "combat",
+        "rpg",
+        "risk",
+        "games"
+      ],
+      "predicates": [
+        "survival_probability/4",
+        "recommended_action/3",
+        "kills_to_exhaust/4",
+        "fight_outcome_summary/5"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/risk-assessment/risk_assessment.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/risk-assessment",
       "install": "batteries.install_many",
       "installs": 0
     },
@@ -270,10 +507,19 @@
       "title": "Lead Scoring",
       "description": "Weighted scoring across company size, budget, decision-maker status, engagement, and timeline. Automatic disqualification for competitors and students. Hot/warm/cold tier derivation with configurable thresholds.",
       "category": "business",
-      "tags": ["sales", "crm", "leads", "scoring", "business"],
+      "tags": [
+        "sales",
+        "crm",
+        "leads",
+        "scoring",
+        "business"
+      ],
       "predicates": [
-        "lead_score/2", "lead_qualified/1", "lead_tier/2",
-        "disqualified/2", "scoring_factor/3"
+        "lead_score/2",
+        "lead_qualified/1",
+        "lead_tier/2",
+        "disqualified/2",
+        "scoring_factor/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/lead_scoring/lead_scoring.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/lead_scoring",
@@ -286,10 +532,18 @@
       "title": "Invoice Rules",
       "description": "Overdue detection, days-overdue calculation, late fee computation (flat or percentage with cap), escalation levels (reminder/warning/collections), and total amount due.",
       "category": "business",
-      "tags": ["invoicing", "billing", "finance", "business"],
+      "tags": [
+        "invoicing",
+        "billing",
+        "finance",
+        "business"
+      ],
       "predicates": [
-        "invoice_overdue/1", "days_overdue/2", "late_fee/2",
-        "escalation_level/2", "payment_due_amount/2"
+        "invoice_overdue/1",
+        "days_overdue/2",
+        "late_fee/2",
+        "escalation_level/2",
+        "payment_due_amount/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/invoice_rules/invoice_rules.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/invoice_rules",
@@ -302,10 +556,18 @@
       "title": "Approval Chains",
       "description": "Multi-step approval workflows with delegation, rejection tracking, and automatic amount-based approver escalation. Finds next pending approver, checks full approval, and surfaces blocking reasons.",
       "category": "business",
-      "tags": ["approvals", "workflow", "finance", "business"],
+      "tags": [
+        "approvals",
+        "workflow",
+        "finance",
+        "business"
+      ],
       "predicates": [
-        "approval_required/2", "approval_granted/2", "fully_approved/1",
-        "next_approver/2", "approval_blocked/2"
+        "approval_required/2",
+        "approval_granted/2",
+        "fully_approved/1",
+        "next_approver/2",
+        "approval_blocked/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/approval_chains/approval_chains.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/approval_chains",
@@ -318,10 +580,18 @@
       "title": "Inventory Management",
       "description": "Stock level classification (adequate/low/critical/stockout), reorder triggers, order quantity calculation, preferred supplier selection, and days-of-stock forecasting.",
       "category": "business",
-      "tags": ["inventory", "supply-chain", "operations", "business"],
+      "tags": [
+        "inventory",
+        "supply-chain",
+        "operations",
+        "business"
+      ],
       "predicates": [
-        "needs_reorder/1", "reorder_quantity/2", "stock_level/2",
-        "preferred_supplier/2", "days_of_stock/2"
+        "needs_reorder/1",
+        "reorder_quantity/2",
+        "stock_level/2",
+        "preferred_supplier/2",
+        "days_of_stock/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/inventory_mgmt/inventory_mgmt.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/inventory_mgmt",
@@ -334,10 +604,18 @@
       "title": "Pricing Rules",
       "description": "Customer tier pricing, percentage and flat discounts, tier-gated discounts, bulk quantity breaks, floor/ceiling clamping, and final effective price calculation.",
       "category": "business",
-      "tags": ["pricing", "discounts", "ecommerce", "business"],
+      "tags": [
+        "pricing",
+        "discounts",
+        "ecommerce",
+        "business"
+      ],
       "predicates": [
-        "effective_price/3", "discount_applicable/2", "bulk_discount/3",
-        "price_tier/3", "price_capped/3"
+        "effective_price/3",
+        "discount_applicable/2",
+        "bulk_discount/3",
+        "price_tier/3",
+        "price_capped/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/pricing_rules/pricing_rules.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/pricing_rules",
@@ -350,10 +628,18 @@
       "title": "Loyalty Program",
       "description": "Lifetime points accumulation, tier derivation (bronze/silver/gold/platinum), reduced redemption costs at higher tiers, reward eligibility, and inherited tier benefits.",
       "category": "business",
-      "tags": ["loyalty", "rewards", "retention", "business"],
+      "tags": [
+        "loyalty",
+        "rewards",
+        "retention",
+        "business"
+      ],
       "predicates": [
-        "loyalty_tier/2", "points_balance/2", "reward_eligible/2",
-        "points_to_redeem/3", "tier_benefit/3"
+        "loyalty_tier/2",
+        "points_balance/2",
+        "reward_eligible/2",
+        "points_to_redeem/3",
+        "tier_benefit/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/loyalty/loyalty.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/loyalty",
@@ -366,10 +652,18 @@
       "title": "Scheduling",
       "description": "Time slot availability, booking conflict detection, advance window enforcement, role-gated booking prerequisites, and resource utilization percentage.",
       "category": "business",
-      "tags": ["scheduling", "calendar", "booking", "business"],
+      "tags": [
+        "scheduling",
+        "calendar",
+        "booking",
+        "business"
+      ],
       "predicates": [
-        "slot_available/3", "booking_conflict/3", "can_book/4",
-        "next_available_slot/3", "resource_utilization/3"
+        "slot_available/3",
+        "booking_conflict/3",
+        "can_book/4",
+        "next_available_slot/3",
+        "resource_utilization/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/scheduling/scheduling.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/scheduling",
@@ -382,13 +676,122 @@
       "title": "Compliance",
       "description": "Policy compliance checks, violation surfacing by requirement, data retention window validation, consent type mapping to actions, and consent registry queries.",
       "category": "business",
-      "tags": ["compliance", "gdpr", "hipaa", "policy", "business"],
+      "tags": [
+        "compliance",
+        "gdpr",
+        "hipaa",
+        "policy",
+        "business"
+      ],
       "predicates": [
-        "compliant/2", "violation/3", "data_retention_ok/2",
-        "consent_required/2", "consent_given/2"
+        "compliant/2",
+        "violation/3",
+        "data_retention_ok/2",
+        "consent_required/2",
+        "consent_given/2"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/compliance/compliance.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/compliance",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-loot",
+      "version": "1.0.0",
+      "title": "Probabilistic Loot",
+      "description": "ProbLog-annotated drop probabilities layered on top of loot-tables. Query the exact probability an item drops, compute expected yields, and build drop-rate UIs without any LLM calls. Requires loot-tables in the same namespace.",
+      "category": "probabilistic",
+      "tags": [
+        "loot",
+        "probability",
+        "rpg",
+        "problog",
+        "games"
+      ],
+      "predicates": [
+        "drop_occurs/2",
+        "drop_probability/3",
+        "expected_drops/4"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-loot/prob_loot.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-loot",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-detection",
+      "version": "1.0.0",
+      "title": "Probabilistic Detection",
+      "description": "Guard perception and stealth probability. Annotates detection likelihood based on perception tier, alert state, environmental conditions (light, weather, noise), and player stealth bonus. Requires combat in the same namespace.",
+      "category": "probabilistic",
+      "tags": [
+        "stealth",
+        "detection",
+        "probability",
+        "rpg",
+        "problog",
+        "games"
+      ],
+      "predicates": [
+        "detected/2",
+        "detection_probability/3",
+        "stealth_success/2",
+        "environmental_detection_factor/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-detection/prob_detection.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-detection",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-economy",
+      "version": "1.0.0",
+      "title": "Probabilistic Economy",
+      "description": "Market uncertainty for simulation games. Models supply disruption and demand spike probabilities from world state (weather, seasons, conflict), then derives price ranges and expected prices. Requires economy in the same namespace.",
+      "category": "probabilistic",
+      "tags": [
+        "economy",
+        "market",
+        "probability",
+        "simulation",
+        "problog",
+        "games"
+      ],
+      "predicates": [
+        "supply_disruption/2",
+        "demand_spike/2",
+        "price_range/4",
+        "market_volatility/3",
+        "expected_price/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-economy/prob_economy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-economy",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-npc",
+      "version": "1.0.0",
+      "title": "Probabilistic NPC Trust",
+      "description": "NPC belief and trust probability based on faction standing and relationship score. Query the likelihood an NPC will share information, assist with tasks, or offer a price discount. Requires npc-state and faction in the same namespace.",
+      "category": "probabilistic",
+      "tags": [
+        "npc",
+        "trust",
+        "probability",
+        "rpg",
+        "problog",
+        "games"
+      ],
+      "predicates": [
+        "trust_probability/3",
+        "will_share_info/3",
+        "will_assist/3",
+        "npc_price_modifier/3",
+        "disposition_probability/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-npc/prob_npc.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
       "install": "batteries.install_many",
       "installs": 0
     }

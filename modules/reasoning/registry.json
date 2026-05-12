@@ -1,0 +1,110 @@
+{
+  "version": "1",
+  "updated_at": "2026-05-11",
+  "category": "reasoning",
+  "modules": [
+    {
+      "id": "fsm",
+      "version": "1.0.0",
+      "title": "Finite State Machine",
+      "description": "General-purpose FSM reasoning library. Assert machine structure once; query reachability, determinism, dead states, shortest paths, and structural issues at zero token cost. Supports runtime trace recording and cycle detection.",
+      "category": "reasoning",
+      "tags": [
+        "fsm",
+        "state-machine",
+        "reasoning",
+        "agents"
+      ],
+      "predicates": [
+        "fsm_state/2",
+        "fsm_current_state/2",
+        "fsm_initial_state/2",
+        "fsm_terminal_state/2",
+        "fsm_transition/4",
+        "fsm_reachable/3",
+        "fsm_reachable_states/2",
+        "fsm_deterministic/1",
+        "fsm_nondeterministic_state/3",
+        "fsm_dead_state/2",
+        "fsm_unreachable_state/2",
+        "fsm_complete/1",
+        "fsm_stuck/1",
+        "fsm_stuck_at/2",
+        "fsm_visited/2",
+        "fsm_trace/4",
+        "fsm_trace_length/2",
+        "fsm_cycle/2",
+        "fsm_shortest_path/4",
+        "fsm_all_paths/4",
+        "fsm_machines/1",
+        "fsm_validate/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fsm/fsm.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fsm",
+      "install": "platform",
+      "installs": 0
+    },
+    {
+      "id": "temporal",
+      "version": "1.0.0",
+      "title": "Temporal Reasoning",
+      "description": "Ordering, overlap, gap, and deadline reasoning over timestamped facts. Assert timestamps and intervals as attributes; query event ordering, concurrency, sequence validity, and imminent deadlines at zero token cost. Domain-agnostic.",
+      "category": "reasoning",
+      "tags": [
+        "temporal",
+        "time",
+        "deadlines",
+        "events",
+        "reasoning"
+      ],
+      "predicates": [
+        "event_before/2",
+        "event_after/2",
+        "event_within/3",
+        "event_concurrent/2",
+        "deadline_passed/2",
+        "deadline_imminent/3",
+        "duration_between/3",
+        "gap_between/3",
+        "events_in_order/1",
+        "next_event/3",
+        "latest_event/2",
+        "earliest_event/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/temporal/temporal.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/temporal",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "taxonomy",
+      "version": "1.0.0",
+      "title": "Taxonomy & Classification",
+      "description": "Hierarchical classification with transitive membership and property inheritance. Assert is_a relations between entities and classes; query ancestors, siblings, subclass trees, and inherited attributes at zero token cost. Works for monster types, product categories, capability trees, or any knowledge hierarchy.",
+      "category": "reasoning",
+      "tags": [
+        "taxonomy",
+        "classification",
+        "hierarchy",
+        "inheritance",
+        "reasoning"
+      ],
+      "predicates": [
+        "isa/2",
+        "inherits_property/3",
+        "most_specific_class/2",
+        "common_ancestor/3",
+        "siblings/2",
+        "subclasses/2",
+        "class_members/2",
+        "depth_in_hierarchy/2",
+        "compatible_types/2",
+        "root_class/1"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/taxonomy/taxonomy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
+      "install": "batteries.install_many",
+      "installs": 0
+    }
+  ]
+}

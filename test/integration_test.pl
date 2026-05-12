@@ -19,6 +19,11 @@
 :- consult('../modules/business/compliance/compliance').
 :- consult('../modules/business/inventory_mgmt/inventory_mgmt').
 :- consult('../modules/business/loyalty/loyalty').
+:- consult('../modules/reasoning/taxonomy/taxonomy').
+:- consult('../modules/reasoning/temporal/temporal').
+:- consult('../modules/probabilistic/prob-loot/prob_loot').
+:- consult('../modules/probabilistic/prob-detection/prob_detection').
+:- consult('../modules/probabilistic/prob-economy/prob_economy').
 
 %% ─────────────────────────────────────────────────────────────────────────────
 %% world + loot_tables: night drops only spawn at night
@@ -222,3 +227,124 @@ test(days_of_stock_computable, [setup(setup_stock_and_loyalty), cleanup(clear_fa
     assertion(D == 3).
 
 :- end_tests(integration_inventory_loyalty).
+
+%% ─────────────────────────────────────────────────────────────────────────────
+%% taxonomy + temporal: class hierarchy with timed events
+%% A creature's faction membership is inherited from its parent class.
+%% Temporal reasoning confirms events occurred during the creature's active period.
+%% ─────────────────────────────────────────────────────────────────────────────
+
+setup_creature_events :-
+    %% Taxonomy: wolf → beast → creature
+    assertz(relation(wolf,    is_a, beast)),
+    assertz(relation(beast,   is_a, creature)),
+    assertz(attribute(beast,  faction, wilds)),
+    assertz(attribute(creature, sentient, false)),
+    %% Temporal: wolf_encounter happened before the safe_window closes
+    assertz(attribute(wolf_encounter, timestamp, 1200)),
+    assertz(attribute(safe_window_open,  timestamp, 1000)),
+    assertz(attribute(safe_window_close, timestamp, 2000)).
+
+:- begin_tests(integration_taxonomy_temporal).
+
+test(wolf_inherits_faction_from_beast, [setup(setup_creature_events), cleanup(clear_facts)]) :-
+    assertion(inherits_property(wolf, faction, wilds)).
+
+test(wolf_inherits_non_sentient, [setup(setup_creature_events), cleanup(clear_facts)]) :-
+    assertion(inherits_property(wolf, sentient, false)).
+
+test(encounter_within_safe_window, [setup(setup_creature_events), cleanup(clear_facts)]) :-
+    assertion(event_within(wolf_encounter, 1000, 2000)).
+
+test(encounter_after_window_open, [setup(setup_creature_events), cleanup(clear_facts)]) :-
+    assertion(event_after(wolf_encounter, safe_window_open)).
+
+test(encounter_before_window_close, [setup(setup_creature_events), cleanup(clear_facts)]) :-
+    assertion(event_before(wolf_encounter, safe_window_close)).
+
+:- end_tests(integration_taxonomy_temporal).
+
+%% ─────────────────────────────────────────────────────────────────────────────
+%% loot-tables + prob-loot: drop probability tracks rarity tier
+%% Validates that drop_probability/3 correctly reads loot_chance via rarity_tier.
+%% ─────────────────────────────────────────────────────────────────────────────
+
+setup_boss_loot :-
+    assertz(relation(dragon, can_drop, gold_ingot)),
+    assertz(attribute(gold_ingot, rarity, rare)),
+    assertz(relation(dragon, can_drop, dragon_heart)),
+    assertz(attribute(dragon_heart, rarity, legendary)),
+    assertz(relation(goblin, can_drop, copper_coin)),
+    assertz(attribute(copper_coin, rarity, common)).
+
+:- begin_tests(integration_loot_probability).
+
+test(rare_item_drop_probability, [setup(setup_boss_loot), cleanup(clear_facts)]) :-
+    drop_probability(dragon, gold_ingot, P),
+    assertion(P =:= 0.10).       %% rare tier: loot_chance = 10 → 10/100
+
+test(legendary_item_drop_probability, [setup(setup_boss_loot), cleanup(clear_facts)]) :-
+    drop_probability(dragon, dragon_heart, P),
+    assertion(P =:= 0.01).       %% legendary tier: loot_chance = 1 → 1/100
+
+test(common_item_drop_probability, [setup(setup_boss_loot), cleanup(clear_facts)]) :-
+    drop_probability(goblin, copper_coin, P),
+    assertion(P =:= 0.70).       %% common tier: loot_chance = 70 → 70/100
+
+test(expected_drops_over_many_kills, [setup(setup_boss_loot), cleanup(clear_facts)]) :-
+    expected_drops(dragon, dragon_heart, 1000, E),
+    assertion(E =:= 10.0).       %% 1000 * 0.01
+
+:- end_tests(integration_loot_probability).
+
+%% ─────────────────────────────────────────────────────────────────────────────
+%% combat + prob-detection: stealth viability against guards with world state
+%% ─────────────────────────────────────────────────────────────────────────────
+
+setup_heist_scenario :-
+    %% Guard can attack the player (in range, both alive)
+    assertz(attribute(guard, perception, 6)),
+    assertz(attribute(guard, alert_state, active)),
+    %% Dark world reduces detection
+    assertz(attribute(world, light_level, dark)),
+    %% Player has stealth gear
+    assertz(attribute(rogue, stealth_bonus, 5)).
+
+:- begin_tests(integration_combat_detection).
+
+test(dark_world_lowers_detection, [setup(setup_heist_scenario), cleanup(clear_facts)]) :-
+    detection_probability(guard, rogue, P),
+    assertion(P < 0.60).   %% base would be ~0.78 active mid-perception, dark halves it
+
+test(stealth_success_in_dark, [setup(setup_heist_scenario), cleanup(clear_facts)]) :-
+    %% base 0.78 * dark 0.5 * stealth(5) = 0.78 * 0.5 * 0.65 ≈ 0.253 < 0.5
+    assertion(stealth_success(guard, rogue)).
+
+:- end_tests(integration_combat_detection).
+
+%% ─────────────────────────────────────────────────────────────────────────────
+%% economy + prob-economy: price range widens under conflict
+%% ─────────────────────────────────────────────────────────────────────────────
+
+setup_wartime_economy :-
+    assertz(attribute(healing_potion, category, healing)),
+    assertz(attribute(healing_potion, base_price, 40)),
+    assertz(attribute(world, recent_conflict, true)),
+    assertz(attribute(world, threat_rising,   true)).
+
+:- begin_tests(integration_economy_prob).
+
+test(demand_spike_raises_expected_price, [setup(setup_wartime_economy), cleanup(clear_facts)]) :-
+    expected_price(healing_potion, Price),
+    buy_price(healing_potion, Base),
+    assertion(Price > Base).
+
+test(high_demand_probability_in_conflict, [setup(setup_wartime_economy), cleanup(clear_facts)]) :-
+    demand_spike(healing_potion, Pd),
+    assertion(Pd =:= 0.75).    %% healing + recent_conflict is the highest rule
+
+test(price_ceiling_above_base, [setup(setup_wartime_economy), cleanup(clear_facts)]) :-
+    price_range(healing_potion, Base, _Low, High),
+    assertion(High > Base).
+
+:- end_tests(integration_economy_prob).

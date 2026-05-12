@@ -1,0 +1,86 @@
+{
+  "version": "1",
+  "updated_at": "2026-05-12",
+  "category": "probabilistic",
+  "modules": [
+    {
+      "id": "prob-loot",
+      "version": "1.0.0",
+      "title": "Probabilistic Loot",
+      "description": "ProbLog-annotated drop probabilities layered on top of loot-tables. Query the exact probability an item drops, compute expected yields, and build drop-rate UIs without any LLM calls. Requires loot-tables in the same namespace.",
+      "category": "probabilistic",
+      "tags": [
+        "loot",
+        "probability",
+        "rpg",
+        "problog",
+        "games"
+      ],
+      "predicates": [
+        "drop_occurs/2",
+        "drop_probability/3",
+        "expected_drops/4"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-loot/prob_loot.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-loot",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-detection",
+      "version": "1.0.0",
+      "title": "Probabilistic Detection",
+      "description": "Guard perception and stealth probability. Annotates detection likelihood based on perception tier, alert state, environmental conditions (light, weather, noise), and player stealth bonus. Requires combat in the same namespace.",
+      "category": "probabilistic",
+      "tags": ["stealth", "detection", "probability", "rpg", "problog", "games"],
+      "predicates": [
+        "detected/2",
+        "detection_probability/3",
+        "stealth_success/2",
+        "environmental_detection_factor/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-detection/prob_detection.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-detection",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-economy",
+      "version": "1.0.0",
+      "title": "Probabilistic Economy",
+      "description": "Market uncertainty for simulation games. Models supply disruption and demand spike probabilities from world state (weather, seasons, conflict), then derives price ranges and expected prices. Requires economy in the same namespace.",
+      "category": "probabilistic",
+      "tags": ["economy", "market", "probability", "simulation", "problog", "games"],
+      "predicates": [
+        "supply_disruption/2",
+        "demand_spike/2",
+        "price_range/4",
+        "market_volatility/3",
+        "expected_price/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-economy/prob_economy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-economy",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-npc",
+      "version": "1.0.0",
+      "title": "Probabilistic NPC Trust",
+      "description": "NPC belief and trust probability based on faction standing and relationship score. Query the likelihood an NPC will share information, assist with tasks, or offer a price discount. Requires npc-state and faction in the same namespace.",
+      "category": "probabilistic",
+      "tags": ["npc", "trust", "probability", "rpg", "problog", "games"],
+      "predicates": [
+        "trust_probability/3",
+        "will_share_info/3",
+        "will_assist/3",
+        "npc_price_modifier/3",
+        "disposition_probability/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-npc/prob_npc.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
+      "install": "batteries.install_many",
+      "installs": 0
+    }
+  ]
+}

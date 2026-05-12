@@ -1,5 +1,5 @@
 :- use_module(library(plunit)).
-:- use_module('../modules/fsm/fsm').
+:- use_module('../modules/reasoning/fsm/fsm').
 
 %% (clear_facts/0 is in test/support/test_helpers.pl)
 %%

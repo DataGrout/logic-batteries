@@ -1,6 +1,9 @@
 %% Shared test helpers — loaded before all test files by run_all.pl.
 %% Provides clear_facts/0 once so per-file definitions don't clobber each other.
 
+%% Needed for probabilistic battery files that use ProbLog annotated disjunction syntax.
+:- op(1100, xfx, ::).
+
 :- dynamic relation/3.
 :- dynamic attribute/3.
 
