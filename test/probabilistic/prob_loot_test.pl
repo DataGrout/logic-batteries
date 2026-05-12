@@ -8,7 +8,7 @@
 %% NOTE: The annotated drop_occurs/2 rules (0.90::drop_occurs(...) :- ...) are
 %% compiled into probabilistic clauses only within the DataGrout LC runtime.
 %% Standalone tests cover the deterministic exports: drop_probability/3,
-%% expected_drops/4, and the guaranteed-drop (drop_chance >= 100) override.
+%% expected_drops/4, and guaranteed_drop/2 (drop_chance >= 100).
 %% Noisy-OR probability queries are exercised in problog_battery_test.exs.
 
 setup_loot_table :-
@@ -71,20 +71,26 @@ test(expected_drops_fractional, [setup(setup_loot_table), cleanup(clear_facts)])
 
 :- end_tests(prob_loot_expected_drops).
 
-%% ── guaranteed drop override (deterministic clause) ──────────────────────────
-%% drop_occurs/2 has a non-annotated clause: fires when drop_chance >= 100.
+%% ── guaranteed_drop/2 (deterministic predicate, separate from drop_occurs/2) ─
+%% Use guaranteed_drop/2 for items with drop_chance >= 100. Kept separate from
+%% drop_occurs/2 because ProbLog mis-evaluates unannotated co-clauses, inflating
+%% noisy-OR results for legendary/rare items that should not be guaranteed.
 
 :- begin_tests(prob_loot_guaranteed_drop).
 
 test(guaranteed_drop_at_100pct, [setup(setup_guaranteed_drop), cleanup(clear_facts)]) :-
-    assertion(drop_occurs(quest_chest, quest_item)).
+    assertion(guaranteed_drop(quest_chest, quest_item)).
 
 test(guaranteed_drop_above_100pct, [setup(setup_high_chance_drop), cleanup(clear_facts)]) :-
-    assertion(drop_occurs(barrel, apple)).
+    assertion(guaranteed_drop(barrel, apple)).
 
-test(non_guaranteed_chance_does_not_fire_deterministic_clause, [setup(setup_custom_chance), cleanup(clear_facts)]) :-
-    %% 50% drop_chance < 100: deterministic override clause does not fire.
-    %% (Annotated rule would fire probabilistically in LC runtime.)
-    assertion(\+ drop_occurs(boss, trophy)).
+test(non_guaranteed_chance_below_100_does_not_fire, [setup(setup_custom_chance), cleanup(clear_facts)]) :-
+    %% 50% drop_chance < 100: guaranteed_drop fails (use drop_probability/3 instead).
+    assertion(\+ guaranteed_drop(boss, trophy)).
+
+test(no_drop_chance_attribute_does_not_fire, [setup(setup_loot_table), cleanup(clear_facts)]) :-
+    %% Items with only rarity_tier (no drop_chance) are not guaranteed drops.
+    assertion(\+ guaranteed_drop(dragon, dragon_scale)),
+    assertion(\+ guaranteed_drop(goblin, gold_coin)).
 
 :- end_tests(prob_loot_guaranteed_drop).

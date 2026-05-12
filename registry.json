@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-11",
+  "updated_at": "2026-05-12",
   "modules": [
     {
       "id": "fsm",
@@ -697,7 +697,7 @@
     },
     {
       "id": "prob-loot",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Probabilistic Loot",
       "description": "ProbLog-annotated drop probabilities layered on top of loot-tables. Query the exact probability an item drops, compute expected yields, and build drop-rate UIs without any LLM calls. Requires loot-tables in the same namespace.",
       "category": "probabilistic",
@@ -710,6 +710,7 @@
       ],
       "predicates": [
         "drop_occurs/2",
+        "guaranteed_drop/2",
         "drop_probability/3",
         "expected_drops/4"
       ],

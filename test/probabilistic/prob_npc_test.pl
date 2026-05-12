@@ -66,6 +66,43 @@ test(no_faction_defaults_to_neutral_base, [setup(setup_no_faction_npc), cleanup(
 
 :- end_tests(prob_npc_trust_probability).
 
+%% ── Regression: two NPCs with different factions return different probabilities
+%%
+%% Reproduces a scenario from the ProbLog testing doc where two NPCs returned the
+%% same trust probability despite the player having different faction standings.
+%% This test confirms the deterministic accessor handles distinct NPCs correctly
+%% when reputation keys are formed as `player_faction` (faction battery convention).
+%% If both NPCs return 0.35 in user-facing tests, the bug is in test setup
+%% (likely wrong reputation key shape), not in this battery.
+
+setup_two_npcs_distinct_factions :-
+    assertz(attribute(merchant_gorn, faction, warriors_guild)),
+    assertz(attribute(shadow_dealer, faction, thieves_guild)),
+    %% Player has positive standing with warriors_guild, negative with thieves_guild.
+    %% Faction battery requires key = atom_concat(Player, '_', Faction).
+    assertz(attribute(hero_warriors_guild, score, 10000)),     %% honored (>= 9000)
+    assertz(attribute(hero_thieves_guild,  score, -8000)).     %% hostile (< -6000)
+
+:- begin_tests(prob_npc_trust_distinct_factions).
+
+test(positive_faction_gives_high_trust, [setup(setup_two_npcs_distinct_factions), cleanup(clear_facts)]) :-
+    trust_probability(merchant_gorn, hero, P),
+    assertion(P >= 0.60),
+    assertion(P =< 0.99).
+
+test(negative_faction_gives_low_trust, [setup(setup_two_npcs_distinct_factions), cleanup(clear_facts)]) :-
+    trust_probability(shadow_dealer, hero, P),
+    assertion(P >= 0.01),
+    assertion(P =< 0.10).
+
+test(different_factions_yield_different_probabilities, [setup(setup_two_npcs_distinct_factions), cleanup(clear_facts)]) :-
+    trust_probability(merchant_gorn, hero, PHigh),
+    trust_probability(shadow_dealer, hero, PLow),
+    assertion(PHigh > PLow),
+    assertion(PHigh - PLow > 0.5).
+
+:- end_tests(prob_npc_trust_distinct_factions).
+
 %% ── standing_trust_base/2 ────────────────────────────────────────────────────
 
 :- begin_tests(prob_npc_standing_trust_base).

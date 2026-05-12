@@ -1,11 +1,13 @@
-%% Tether Module: prob-loot v1.0.0
+%% Tether Module: prob-loot v1.0.1
 %% Requires: loot-tables
-%% Exports: drop_occurs/2, drop_probability/3, expected_drops/4
+%% Exports: drop_occurs/2, guaranteed_drop/2, drop_probability/3, expected_drops/4
 
-tether_module('prob-loot', '1.0.0', auto).
+tether_module('prob-loot', '1.0.1', auto).
 
 tether_export('prob-loot', 'drop_occurs/2',
     'drop_occurs(Source, Item) — probabilistic: Item drops from Source based on rarity tier').
+tether_export('prob-loot', 'guaranteed_drop/2',
+    'guaranteed_drop(Source, Item) — deterministic: Item is guaranteed to drop (drop_chance attribute >= 100)').
 tether_export('prob-loot', 'drop_probability/3',
     'drop_probability(Source, Item, P) — P is probability 0.0–1.0 that Item drops from Source').
 tether_export('prob-loot', 'expected_drops/4',
@@ -13,8 +15,15 @@ tether_export('prob-loot', 'expected_drops/4',
 
 %% ── Probabilistic drop rules ───────────────────────────────────────────────
 %% Install loot-tables in the same namespace first.
-%% Rarity tiers map to default drop probabilities.
-%% Override per-item with: { type:"attribute", entity:"sword", attribute:"drop_chance", value:15 }
+%% Rarity tiers map to default drop probabilities. ProbLog interprets each
+%% annotated clause as an independent probabilistic event; results combine
+%% via noisy-OR across clauses whose bodies succeed for the same (Source, Item).
+%%
+%% Note: prior versions co-located an unannotated guaranteed-drop clause here.
+%% ProbLog treated the unannotated clause as P=1.0 with unreliable body
+%% evaluation, inflating noisy-OR results (e.g., 0.915 instead of 0.15 for a
+%% legendary item). The guaranteed-drop logic now lives in guaranteed_drop/2
+%% below so drop_occurs/2 is purely probabilistic.
 
 0.90::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, common).
 0.65::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, uncommon).
@@ -22,9 +31,12 @@ tether_export('prob-loot', 'expected_drops/4',
 0.10::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, epic).
 0.15::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, legendary).
 
-%% Explicit drop_chance attribute overrides rarity-based probability.
-%% Assert: { type:"attribute", entity:"boss_key", attribute:"drop_chance", value:25 }
-drop_occurs(Source, Item) :-
+%% ── Guaranteed drops (deterministic, separate from ProbLog inference) ──────
+%% Items with drop_chance >= 100 always drop. Query as a regular predicate;
+%% does not interfere with probability(drop_occurs(...), P).
+%% Assert: { type:"attribute", entity:"boss_key", attribute:"drop_chance", value:100 }
+
+guaranteed_drop(Source, Item) :-
     drops(Source, Item),
     attribute(Item, drop_chance, Pct),
     number(Pct), Pct >= 100.
