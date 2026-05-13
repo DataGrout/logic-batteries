@@ -12,7 +12,20 @@ Insert a battery into a logic cell and it has new capabilities immediately — n
 
 | Module | Predicates | Description |
 |---|---|---|
-| [fsm](./modules/fsm/) | 25 | General-purpose finite state machine |
+| [fsm](./modules/reasoning/fsm/) | 25 | General-purpose finite state machine — reachability, shortest paths, cycle detection |
+| [temporal](./modules/reasoning/temporal/) | 12 | Event ordering, overlap, gaps, and deadline reasoning over timestamped facts |
+| [taxonomy](./modules/reasoning/taxonomy/) | 10 | Hierarchical classification with transitive membership and property inheritance |
+
+### Probabilistic
+
+Requires ProbLog. Query exact probabilities instead of thresholds — zero LLM calls per tick.
+
+| Module | Predicates | Description |
+|---|---|---|
+| [prob-loot](./modules/probabilistic/prob-loot/) | 4 | Drop probabilities and expected yields — layered on `loot-tables` |
+| [prob-detection](./modules/probabilistic/prob-detection/) | 4 | Guard perception and stealth probability from environment and alert state — requires `combat` |
+| [prob-economy](./modules/probabilistic/prob-economy/) | 5 | Market uncertainty: supply disruption and demand spike probabilities — requires `economy` |
+| [prob-npc](./modules/probabilistic/prob-npc/) | 5 | NPC trust and disposition probability from faction standing — requires `npc-state` and `faction` |
 
 ### Games
 
