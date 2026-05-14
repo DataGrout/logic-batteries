@@ -9,7 +9,6 @@
 %% compiled into probabilistic clauses only within the DataGrout LC runtime.
 %% Standalone tests cover the deterministic exports: drop_probability/3,
 %% expected_drops/4, and guaranteed_drop/2 (drop_chance >= 100).
-%% Noisy-OR probability queries are exercised in problog_battery_test.exs.
 
 setup_loot_table :-
     assertz(relation(goblin, can_drop, gold_coin)),
@@ -94,3 +93,31 @@ test(no_drop_chance_attribute_does_not_fire, [setup(setup_loot_table), cleanup(c
     assertion(\+ guaranteed_drop(goblin, gold_coin)).
 
 :- end_tests(prob_loot_guaranteed_drop).
+
+%% ── rarity_tier/2 exclusivity (regression guard) ────────────────────
+%% rarity_tier/2 must be exclusive: an item with an explicit rarity must not
+%% also match any other tier via the common fallback.
+
+:- begin_tests(prob_loot_rarity_exclusivity).
+
+test(legendary_item_only_matches_legendary, [setup(setup_loot_table), cleanup(clear_facts)]) :-
+    assertion(rarity_tier(dragon_scale, legendary)),
+    assertion(\+ rarity_tier(dragon_scale, common)),
+    assertion(\+ rarity_tier(dragon_scale, uncommon)),
+    assertion(\+ rarity_tier(dragon_scale, rare)),
+    assertion(\+ rarity_tier(dragon_scale, epic)).
+
+test(common_item_only_matches_common, [setup(setup_loot_table), cleanup(clear_facts)]) :-
+    assertion(rarity_tier(gold_coin, common)),
+    assertion(\+ rarity_tier(gold_coin, uncommon)),
+    assertion(\+ rarity_tier(gold_coin, legendary)).
+
+test(item_without_rarity_defaults_to_common, [cleanup(clear_facts)]) :-
+    %% no rarity attribute asserted for unknown_item
+    assertion(rarity_tier(unknown_item, common)).
+
+test(item_without_rarity_does_not_match_other_tiers, [cleanup(clear_facts)]) :-
+    assertion(\+ rarity_tier(unknown_item, legendary)),
+    assertion(\+ rarity_tier(unknown_item, uncommon)).
+
+:- end_tests(prob_loot_rarity_exclusivity).

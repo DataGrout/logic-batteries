@@ -16,7 +16,8 @@ tether_export('loot-tables', 'loot_chance/3',     'loot_chance(Source, Item, Pct
 
 rarity_tier(Item, Tier) :-
     attribute(Item, rarity, Tier), !.
-rarity_tier(_, common).
+rarity_tier(Item, common) :-
+    \+ attribute(Item, rarity, _).
 
 %% ── Condition evaluation ─────────────────────────────────────────────────────
 %% Conditions are facts asserted into the world namespace:
