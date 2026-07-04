@@ -60,8 +60,6 @@ Verified live on a pinned-Scryer namespace (2026-07-04): three-rule noisy-or ret
 
 ## Auto-install flow (platform-side)
 
-Current ISO gate behavior: `N::Head` rules are **rejected** with *"requires SWI... fork the namespace"*. The intended replacement:
-
 1. Rule text arrives at `logic.constrain` / `logic.assert` / a battery install for an ISO-pinned cell.
 2. Reader parses with `op(600, xfx, '::')` (cplint-compatible priority).
 3. If any clause mentions `::`: ensure `prob-core-iso` is installed in the namespace (idempotent), rewrite each clause via `problog_transform/2`, assert the rewritten form.
@@ -77,10 +75,6 @@ Three different things can be meant by "the probability of a goal", and this mod
 - **`psuccess/2` (default): noisy-or under the independent-rules assumption.** Every weighted rule instance whose body succeeds is an independent trigger: `P = 1 - prod(1 - Pi)`. Exact when weighted rules don't share probabilistic antecedents; an approximation when they do.
 - **`pmax/2`: legacy semantics.** The earlier prob-* batteries aggregated with `max_list` — "strongest trigger wins". Kept for backward compatibility; useful for game-feel tuning where noisy-or stacks too fast.
 - **Exact ProbLog distribution semantics** (shared probabilistic facts deduplicated across proofs, computed over explanations/BDDs) is **not** in v1. It is planned as a v2 backed by host-side tabling with answer subsumption (PITA-style), where answers carry explanation structures merged on insert.
-
-### Consistency caveat (SWI vs ISO)
-
-If the SWI path evaluates `::` with different semantics than this battery, the same program can answer differently depending on the backend. Recommended: route **both** backends through this transform + runtime so `::` means the same thing everywhere, and treat exact semantics as an explicit opt-in when v2 lands.
 
 ## v1 limitations
 
