@@ -1,6 +1,7 @@
 # Logic Batteries
 
 [![CI](https://github.com/datagrout/logic-batteries/actions/workflows/ci.yml/badge.svg)](https://github.com/datagrout/logic-batteries/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/logic-batteries.svg)](https://crates.io/crates/logic-batteries)
 
 **Pre-built Prolog rule modules for DataGrout logic cells. The npm of living software.**
 
