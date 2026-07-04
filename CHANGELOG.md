@@ -1,6 +1,52 @@
 # Changelog
 
-## [1.0.0] -- 2026-05-09
+## 2026-07-04
+
+### Modules
+
+**Reasoning**
+- `explain` -- Provenance meta-interpreter: `why/2` returns the flat list of facts supporting any conclusion; `explain/2` returns full proof trees with alternative proofs on backtracking. Pure ISO -- runs on SWI and Scryer alike.
+
+**Probabilistic**
+- `prob-core-iso` -- ProbLog-lite runtime in pure ISO Prolog: noisy-or `psuccess/2`, legacy `pmax/2`, `pnot/2`, `pand/2`, `expected/3` over reified `prob_rule/2` clauses, plus the reference `::` -> `prob_rule` transform. Enables ProbLog notation on ISO-pinned (Scryer) cells with no SWI escalation. **Licensed Apache-2.0** (runtime carve-out; see License below).
+- `prob-decide` -- DTProbLog-lite decision layer over `prob-core-iso`: expected utility `eu/2` and `best_action/2` argmax across weighted outcomes.
+
+### `battery` CLI
+
+New Rust CLI (`cli/`, published to crates.io as [`logic-batteries`](https://crates.io/crates/logic-batteries), binary `battery`) for installing batteries into any SWI/Scryer Prolog project -- no DataGrout required:
+
+- `battery install <id>... [--dir D] [--repo R] [-f]` -- copies a battery's rule files into a project directory; refuses to clobber unrelated files without `-f`
+- Every installed file is content-hashed into `batteries.lock.json`; `battery remove` deletes only files whose checksum still matches install (modified files are kept and warned about unless `-f`)
+- `battery installed` lists a directory's batteries and flags modified ones; `battery list` shows the registry
+- `%% Requires:` manifest headers surface as dependency hints at install time
+
+### Manifest ABI rename
+
+- `tether_module/3` and `tether_export/3` are now `battery_module/3` and `battery_export/3` across every module -- the manifest ABI is named for the product, and stays neutral between installers (DataGrout, the CLI, or a bare consult). The DataGrout platform accepts both spellings, so batteries published before the rename keep installing and describing correctly.
+- New authoring convention: batteries declare their **input predicates** `:- dynamic(...)` so standalone (consult) users can assert facts after loading. DataGrout strips directives at install time, so cells are unaffected.
+
+### Licensing
+
+- Tiered licensing, documented in the README license table: content batteries remain Elastic License 2.0; `prob-core-iso` is carved out as Apache-2.0 (core runtime, embeddable anywhere); the `battery` CLI is MIT.
+- New `CONTRIBUTING.md` with the battery authoring guide and contribution terms (DCO sign-off + contribution license grant).
+- Registry entries may carry an explicit `license` field; absent means the repository default.
+
+## 2026-05-11
+
+### Modules
+
+**Reasoning**
+- `temporal` -- Event ordering, overlap, gaps, and deadline reasoning over timestamped facts
+- `taxonomy` -- Hierarchical classification with transitive membership and property inheritance
+- `fsm` moved from the repository root category into `reasoning/`
+
+**Probabilistic** (new category)
+- `prob-loot` -- Drop probabilities and expected yields, layered on `loot-tables`
+- `prob-detection` -- Guard perception and stealth probability from environment and alert state
+- `prob-economy` -- Market uncertainty: supply disruption and demand spike probabilities
+- `prob-npc` -- NPC trust and disposition probability from faction standing
+
+## 2026-05-09
 
 Initial public release.
 
