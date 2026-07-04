@@ -1,14 +1,14 @@
-%% Tether Module: npc-state v1.0.0
+%% Battery: npc-state v1.0.0
 %% Exports: npc_friendly/2, npc_hostile/2, dialogue_available/3,
 %%          faction_member/2, relationship_level/3
 
-tether_module('npc-state', '1.0.0', auto).
+battery_module('npc-state', '1.0.0', auto).
 
-tether_export('npc-state', 'npc_friendly/2',       'npc_friendly(NPC, Player) — NPC has a friendly disposition toward Player').
-tether_export('npc-state', 'npc_hostile/2',        'npc_hostile(NPC, Player) — NPC has a hostile disposition toward Player').
-tether_export('npc-state', 'dialogue_available/3', 'dialogue_available(NPC, Player, Topic) — Topic is an unlocked conversation option').
-tether_export('npc-state', 'faction_member/2',     'faction_member(Entity, Faction) — Entity belongs to Faction').
-tether_export('npc-state', 'relationship_level/3', 'relationship_level(NPC, Player, Level) — Level is the numeric relationship score').
+battery_export('npc-state', 'npc_friendly/2',       'npc_friendly(NPC, Player) — NPC has a friendly disposition toward Player').
+battery_export('npc-state', 'npc_hostile/2',        'npc_hostile(NPC, Player) — NPC has a hostile disposition toward Player').
+battery_export('npc-state', 'dialogue_available/3', 'dialogue_available(NPC, Player, Topic) — Topic is an unlocked conversation option').
+battery_export('npc-state', 'faction_member/2',     'faction_member(Entity, Faction) — Entity belongs to Faction').
+battery_export('npc-state', 'relationship_level/3', 'relationship_level(NPC, Player, Level) — Level is the numeric relationship score').
 
 %% ── Relationship Levels ──────────────────────────────────────────────────────
 %%

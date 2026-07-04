@@ -15,13 +15,16 @@ Insert a battery into a logic cell and it has new capabilities immediately — n
 | [fsm](./modules/reasoning/fsm/) | 25 | General-purpose finite state machine — reachability, shortest paths, cycle detection |
 | [temporal](./modules/reasoning/temporal/) | 12 | Event ordering, overlap, gaps, and deadline reasoning over timestamped facts |
 | [taxonomy](./modules/reasoning/taxonomy/) | 10 | Hierarchical classification with transitive membership and property inheritance |
+| [explain](./modules/reasoning/explain/) | 6 | Provenance meta-interpreter — `why/2` returns the facts supporting any conclusion; `explain/2` returns full proof trees |
 
 ### Probabilistic
 
-Requires ProbLog. Query exact probabilities instead of thresholds — zero LLM calls per tick.
+Query exact probabilities instead of thresholds — zero LLM calls per tick. Weighted rules use ProbLog `P::Head` notation; on ISO cells they are reified through `prob-core-iso`, so probabilistic reasoning runs on SWI **and** Scryer alike.
 
 | Module | Predicates | Description |
 |---|---|---|
+| [prob-core-iso](./modules/probabilistic/prob-core-iso/) | 6 | ProbLog-lite runtime in pure ISO — noisy-or `psuccess/2`, `pmax/2`, negation, conjunction, expected value over reified weighted rules |
+| [prob-decide](./modules/probabilistic/prob-decide/) | 4 | Decision theory over `prob-core-iso` — expected utility `eu/2` and `best_action/2` argmax across weighted outcomes |
 | [prob-loot](./modules/probabilistic/prob-loot/) | 4 | Drop probabilities and expected yields — layered on `loot-tables` |
 | [prob-detection](./modules/probabilistic/prob-detection/) | 4 | Guard perception and stealth probability from environment and alert state — requires `combat` |
 | [prob-economy](./modules/probabilistic/prob-economy/) | 5 | Market uncertainty: supply disruption and demand spike probabilities — requires `economy` |
@@ -75,6 +78,26 @@ Installation state is tracked directly in the LC: `attribute('_batteries', batte
 
 ## Install
 
+### `battery` CLI (any Prolog project — no DataGrout required)
+
+Batteries are plain ISO/SWI Prolog files, so they also work in bare `swipl` /
+`scryer-prolog` projects. The [`battery` CLI](./cli/) copies a battery's rule
+files into your project directory and content-hashes them into
+`batteries.lock.json`:
+
+```console
+$ battery install prob-core-iso prob-decide --dir my-app/
+✓ installed prob-core-iso 1.0.0 (2 files)
+✓ installed prob-decide 1.0.0 (1 file)
+$ battery remove prob-decide --dir my-app/
+```
+
+`remove` only deletes files whose checksum still matches what was installed —
+a battery you've modified is kept (and warned about) unless you pass `-f`.
+`battery installed` lists what's in a directory and flags modified entries;
+`battery list` shows the registry. Build with `cargo build --release` in
+[`cli/`](./cli/).
+
 ### Tether (Luau / Roblox)
 
 [Tether](https://github.com/datagrout/tether) is the Lua client for DataGrout. The `dg` object in module README examples is a Tether client instance.
@@ -107,10 +130,19 @@ These aren't examples or recipes. They're programs you load into a living reason
 
 ## Contributing Batteries
 
-Batteries must stay within the predicate whitelist provided by the LC runtime. Rules that call predicates outside this set — process execution, file I/O, networking, global mutable state, or runtime fact modification — are not permitted. This ensures batteries are safe to load in any environment, not just the managed runtime.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full authoring guide and contribution terms (DCO sign-off + contribution license grant).
 
-`make lint` runs a static check over all battery files and fails if any prohibited predicates are present. CI enforces this on every push.
+The short version: every battery declares a manifest in its rule file — `battery_module(Id, Version, Mode)` plus one `battery_export(Id, 'pred/arity', 'doc string')` per public predicate (read by `batteries.describe` and the CLI as authoritative documentation) — and declares its *input* predicates `:- dynamic(...)` so standalone (consult) users can assert facts after loading. Batteries must stay within the LC runtime's predicate whitelist: no process execution, file I/O, networking, global mutable state, or runtime fact modification. `make lint` enforces this on every push.
 
 ## License
 
-[Elastic License 2.0](./LICENSE) — free to use; cannot be used to provide a competing managed Logic Cell service.
+Three deliberate tiers — permissive tooling and runtime, protected content:
+
+| What | License | Why |
+|---|---|---|
+| Content batteries (default) | [Elastic License 2.0](./LICENSE) | Free to use — including vendored into your projects via the CLI — but can't seed a competing managed Logic Cell service |
+| [prob-core-iso](./modules/probabilistic/prob-core-iso/) | [Apache-2.0](./modules/probabilistic/prob-core-iso/LICENSE) | Core runtime, not content — embed it anywhere, no restrictions |
+| [`battery` CLI](./cli/) | [MIT](./cli/LICENSE) | Commodity tooling — the batteries it installs carry their own license |
+
+Registry entries may carry an explicit `license` field; when absent, the
+repository default (Elastic License 2.0) applies.

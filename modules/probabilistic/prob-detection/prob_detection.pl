@@ -1,17 +1,17 @@
-%% Tether Module: prob-detection v1.0.0
+%% Battery: prob-detection v1.0.0
 %% Requires: combat
 %% Exports: detected/2, detection_probability/3, stealth_success/2,
 %%          environmental_detection_factor/2
 
-tether_module('prob-detection', '1.0.0', auto).
+battery_module('prob-detection', '1.0.0', auto).
 
-tether_export('prob-detection', 'detected/2',
+battery_export('prob-detection', 'detected/2',
     'detected(Guard, Player) — probabilistic: Guard detects Player based on perception and alert state').
-tether_export('prob-detection', 'detection_probability/3',
+battery_export('prob-detection', 'detection_probability/3',
     'detection_probability(Guard, Player, P) — P is the probability (0.0–1.0) Guard detects Player').
-tether_export('prob-detection', 'stealth_success/2',
+battery_export('prob-detection', 'stealth_success/2',
     'stealth_success(Guard, Player) — true when Player is NOT detected (complement of detected/2)').
-tether_export('prob-detection', 'environmental_detection_factor/2',
+battery_export('prob-detection', 'environmental_detection_factor/2',
     'environmental_detection_factor(Condition, Factor) — Factor (0.0–1.0) multiplied into detection probability').
 
 %% ── Detection probability by perception tier and alert state ─────────────────

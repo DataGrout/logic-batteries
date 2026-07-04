@@ -1,19 +1,19 @@
-%% Tether Module: prob-npc v1.0.0
+%% Battery: prob-npc v1.0.0
 %% Requires: npc-state, faction
 %% Exports: trust_probability/3, will_share_info/3, will_assist/3,
 %%          npc_price_modifier/3, disposition_probability/3
 
-tether_module('prob-npc', '1.0.0', auto).
+battery_module('prob-npc', '1.0.0', auto).
 
-tether_export('prob-npc', 'trust_probability/3',
+battery_export('prob-npc', 'trust_probability/3',
     'trust_probability(NPC, Player, P) — P is probability (0.0–1.0) NPC trusts Player based on faction standing and relationship').
-tether_export('prob-npc', 'will_share_info/3',
+battery_export('prob-npc', 'will_share_info/3',
     'will_share_info(NPC, Player, Topic) — probabilistic: NPC shares Topic with Player').
-tether_export('prob-npc', 'will_assist/3',
+battery_export('prob-npc', 'will_assist/3',
     'will_assist(NPC, Player, Task) — probabilistic: NPC helps Player with Task').
-tether_export('prob-npc', 'npc_price_modifier/3',
+battery_export('prob-npc', 'npc_price_modifier/3',
     'npc_price_modifier(NPC, Player, Mod) — Mod is a price multiplier (0.7–1.3) based on trust; below 1.0 = discount').
-tether_export('prob-npc', 'disposition_probability/3',
+battery_export('prob-npc', 'disposition_probability/3',
     'disposition_probability(NPC, Player, P) — P is overall probability NPC responds positively to Player').
 
 %% ── Trust probability by faction standing ─────────────────────────────────

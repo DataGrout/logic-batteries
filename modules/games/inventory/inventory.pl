@@ -1,18 +1,18 @@
-%% Tether Module: inventory v1.0.0
+%% Battery: inventory v1.0.0
 %% Exports: can_carry/2, inventory_full/1, carrying_weight/2, item_count/2,
 %%          has_item/2, item_in_slot/3, slot_available/2
 
 %% ── Module manifest (queried by game_rules) ──────────────────────────────────
 
-tether_module(inventory, '1.0.0', auto).
+battery_module(inventory, '1.0.0', auto).
 
-tether_export(inventory, 'can_carry/2',       'can_carry(Player, Item) — true if Player can pick up Item').
-tether_export(inventory, 'inventory_full/1',  'inventory_full(Player) — true if Player has no carry capacity left').
-tether_export(inventory, 'carrying_weight/2', 'carrying_weight(Player, W) — W is total weight carried').
-tether_export(inventory, 'item_count/2',      'item_count(Player, N) — N is number of items carried').
-tether_export(inventory, 'has_item/2',        'has_item(Player, Item) — true if Player currently carries Item').
-tether_export(inventory, 'item_in_slot/3',    'item_in_slot(Player, Slot, Item) — Item is equipped in Slot').
-tether_export(inventory, 'slot_available/2',  'slot_available(Player, Slot) — Slot is empty for Player').
+battery_export(inventory, 'can_carry/2',       'can_carry(Player, Item) — true if Player can pick up Item').
+battery_export(inventory, 'inventory_full/1',  'inventory_full(Player) — true if Player has no carry capacity left').
+battery_export(inventory, 'carrying_weight/2', 'carrying_weight(Player, W) — W is total weight carried').
+battery_export(inventory, 'item_count/2',      'item_count(Player, N) — N is number of items carried').
+battery_export(inventory, 'has_item/2',        'has_item(Player, Item) — true if Player currently carries Item').
+battery_export(inventory, 'item_in_slot/3',    'item_in_slot(Player, Slot, Item) — Item is equipped in Slot').
+battery_export(inventory, 'slot_available/2',  'slot_available(Player, Slot) — Slot is empty for Player').
 
 %% ── Defaults (override by asserting attribute facts) ─────────────────────────
 

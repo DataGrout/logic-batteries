@@ -1,13 +1,13 @@
-%% Tether Module: permissions v1.0.0
+%% Battery: permissions v1.0.0
 %% Exports: has_role/2, role_grants/2, is_owner/2, permission_granted/2, can_access/2
 
-tether_module(permissions, '1.0.0', auto).
+battery_module(permissions, '1.0.0', auto).
 
-tether_export(permissions, 'has_role/2',           'has_role(Entity, Role) — Entity holds Role').
-tether_export(permissions, 'role_grants/2',        'role_grants(Role, Permission) — Role grants Permission (including inherited)').
-tether_export(permissions, 'is_owner/2',           'is_owner(Entity, Resource) — Entity owns Resource').
-tether_export(permissions, 'permission_granted/2', 'permission_granted(Entity, Permission) — Entity has Permission via role or ownership').
-tether_export(permissions, 'can_access/2',         'can_access(Entity, Resource) — Entity may access Resource').
+battery_export(permissions, 'has_role/2',           'has_role(Entity, Role) — Entity holds Role').
+battery_export(permissions, 'role_grants/2',        'role_grants(Role, Permission) — Role grants Permission (including inherited)').
+battery_export(permissions, 'is_owner/2',           'is_owner(Entity, Resource) — Entity owns Resource').
+battery_export(permissions, 'permission_granted/2', 'permission_granted(Entity, Permission) — Entity has Permission via role or ownership').
+battery_export(permissions, 'can_access/2',         'can_access(Entity, Resource) — Entity may access Resource').
 
 %% ── Permissions Data Model ────────────────────────────────────────────────────
 %%

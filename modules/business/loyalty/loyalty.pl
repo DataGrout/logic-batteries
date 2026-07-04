@@ -1,14 +1,14 @@
-%% Tether Module: loyalty v1.0.0
+%% Battery: loyalty v1.0.0
 %% Exports: loyalty_tier/2, points_balance/2, reward_eligible/2,
 %%          points_to_redeem/3, tier_benefit/3
 
-tether_module(loyalty, '1.0.0', auto).
+battery_module(loyalty, '1.0.0', auto).
 
-tether_export(loyalty, 'loyalty_tier/2',      'loyalty_tier(Customer, Tier) — Tier is bronze/silver/gold/platinum based on lifetime points').
-tether_export(loyalty, 'points_balance/2',    'points_balance(Customer, Points) — current redeemable points balance').
-tether_export(loyalty, 'reward_eligible/2',   'reward_eligible(Customer, Reward) — Customer has enough points for Reward').
-tether_export(loyalty, 'points_to_redeem/3',  'points_to_redeem(Customer, Reward, Points) — Points required to claim Reward, accounting for tier multiplier').
-tether_export(loyalty, 'tier_benefit/3',      'tier_benefit(Customer, Benefit, Value) — a named benefit the Customer receives at their tier').
+battery_export(loyalty, 'loyalty_tier/2',      'loyalty_tier(Customer, Tier) — Tier is bronze/silver/gold/platinum based on lifetime points').
+battery_export(loyalty, 'points_balance/2',    'points_balance(Customer, Points) — current redeemable points balance').
+battery_export(loyalty, 'reward_eligible/2',   'reward_eligible(Customer, Reward) — Customer has enough points for Reward').
+battery_export(loyalty, 'points_to_redeem/3',  'points_to_redeem(Customer, Reward, Points) — Points required to claim Reward, accounting for tier multiplier').
+battery_export(loyalty, 'tier_benefit/3',      'tier_benefit(Customer, Benefit, Value) — a named benefit the Customer receives at their tier').
 
 %% ── Loyalty Data Model ────────────────────────────────────────────────────────
 %%

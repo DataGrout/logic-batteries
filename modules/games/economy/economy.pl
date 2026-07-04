@@ -1,13 +1,13 @@
-%% Tether Module: economy v1.0.0
+%% Battery: economy v1.0.0
 %% Exports: can_craft/2, craft_cost/2, buy_price/2, sell_price/2, missing_materials/3
 
-tether_module(economy, '1.0.0', auto).
+battery_module(economy, '1.0.0', auto).
 
-tether_export(economy, 'can_craft/2',          'can_craft(Player, Item) — Player has all materials to craft Item').
-tether_export(economy, 'craft_cost/2',         'craft_cost(Item, Cost) — Cost is the total gold value of materials to craft Item').
-tether_export(economy, 'buy_price/2',          'buy_price(Item, Price) — Price to buy Item from a vendor').
-tether_export(economy, 'sell_price/2',         'sell_price(Item, Price) — Price a vendor pays for Item').
-tether_export(economy, 'missing_materials/3',  'missing_materials(Player, Item, Missing) — Missing is a list of {material, need, have} maps for shortfalls').
+battery_export(economy, 'can_craft/2',          'can_craft(Player, Item) — Player has all materials to craft Item').
+battery_export(economy, 'craft_cost/2',         'craft_cost(Item, Cost) — Cost is the total gold value of materials to craft Item').
+battery_export(economy, 'buy_price/2',          'buy_price(Item, Price) — Price to buy Item from a vendor').
+battery_export(economy, 'sell_price/2',         'sell_price(Item, Price) — Price a vendor pays for Item').
+battery_export(economy, 'missing_materials/3',  'missing_materials(Player, Item, Missing) — Missing is a list of {material, need, have} maps for shortfalls').
 
 %% ── Crafting Recipes ─────────────────────────────────────────────────────────
 %%

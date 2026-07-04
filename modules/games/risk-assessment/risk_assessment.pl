@@ -1,17 +1,17 @@
-%% Tether Module: risk-assessment v1.0.0
+%% Battery: risk-assessment v1.0.0
 %% Requires: combat
 %% Exports: survival_probability/4, recommended_action/3,
 %%          kills_to_exhaust/4, fight_outcome_summary/5
 
-tether_module('risk-assessment', '1.0.0', auto).
+battery_module('risk-assessment', '1.0.0', auto).
 
-tether_export('risk-assessment', 'survival_probability/4',
+battery_export('risk-assessment', 'survival_probability/4',
     'survival_probability(Player, Enemy, HP, P) — P is probability (0.0–1.0) Player survives a fight, HP is remaining health').
-tether_export('risk-assessment', 'recommended_action/3',
+battery_export('risk-assessment', 'recommended_action/3',
     'recommended_action(Player, Enemy, Action) — Action is fight or flee based on survival probability').
-tether_export('risk-assessment', 'kills_to_exhaust/4',
+battery_export('risk-assessment', 'kills_to_exhaust/4',
     'kills_to_exhaust(Player, Enemy, MaxHP, N) — N is expected kills before Player HP drops to 0').
-tether_export('risk-assessment', 'fight_outcome_summary/5',
+battery_export('risk-assessment', 'fight_outcome_summary/5',
     'fight_outcome_summary(Player, Enemy, TurnsToKill, DamageTaken, P) — full breakdown of a combat encounter').
 
 %% ── Survival probability ───────────────────────────────────────────────────

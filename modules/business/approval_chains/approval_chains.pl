@@ -1,14 +1,14 @@
-%% Tether Module: approval_chains v1.0.0
+%% Battery: approval_chains v1.0.0
 %% Exports: approval_required/2, approval_granted/2, fully_approved/1,
 %%          next_approver/2, approval_blocked/2
 
-tether_module(approval_chains, '1.0.0', auto).
+battery_module(approval_chains, '1.0.0', auto).
 
-tether_export(approval_chains, 'approval_required/2', 'approval_required(Request, Approver) — Approver must approve Request').
-tether_export(approval_chains, 'approval_granted/2',  'approval_granted(Request, Approver) — Approver has approved Request').
-tether_export(approval_chains, 'fully_approved/1',    'fully_approved(Request) — all required approvals have been received').
-tether_export(approval_chains, 'next_approver/2',     'next_approver(Request, Approver) — Approver is the next pending approver in sequence').
-tether_export(approval_chains, 'approval_blocked/2',  'approval_blocked(Request, Reason) — approval cannot proceed; Reason explains why').
+battery_export(approval_chains, 'approval_required/2', 'approval_required(Request, Approver) — Approver must approve Request').
+battery_export(approval_chains, 'approval_granted/2',  'approval_granted(Request, Approver) — Approver has approved Request').
+battery_export(approval_chains, 'fully_approved/1',    'fully_approved(Request) — all required approvals have been received').
+battery_export(approval_chains, 'next_approver/2',     'next_approver(Request, Approver) — Approver is the next pending approver in sequence').
+battery_export(approval_chains, 'approval_blocked/2',  'approval_blocked(Request, Reason) — approval cannot proceed; Reason explains why').
 
 %% ── Approval Chain Data Model ─────────────────────────────────────────────────
 %%

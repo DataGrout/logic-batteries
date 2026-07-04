@@ -1,29 +1,29 @@
-%% Tether Module: taxonomy v1.0.0
+%% Battery: taxonomy v1.0.0
 %% Exports: isa/2, inherits_property/3, most_specific_class/2,
 %%          common_ancestor/3, siblings/2, subclasses/2, class_members/2,
 %%          depth_in_hierarchy/2, compatible_types/2, root_class/1
 
-tether_module(taxonomy, '1.0.0', auto).
+battery_module(taxonomy, '1.0.0', auto).
 
-tether_export(taxonomy, 'isa/2',
+battery_export(taxonomy, 'isa/2',
     'isa(Entity, Class) — Entity is a Class (direct or transitive via is_a relations)').
-tether_export(taxonomy, 'inherits_property/3',
+battery_export(taxonomy, 'inherits_property/3',
     'inherits_property(Entity, Property, Value) — Entity has Property via direct attribute or ancestor chain').
-tether_export(taxonomy, 'most_specific_class/2',
+battery_export(taxonomy, 'most_specific_class/2',
     'most_specific_class(Entity, Class) — Class is the most specific is_a class Entity has').
-tether_export(taxonomy, 'common_ancestor/3',
+battery_export(taxonomy, 'common_ancestor/3',
     'common_ancestor(E1, E2, Ancestor) — Ancestor is a shared isa ancestor of E1 and E2').
-tether_export(taxonomy, 'siblings/2',
+battery_export(taxonomy, 'siblings/2',
     'siblings(E1, E2) — E1 and E2 share the same direct parent class').
-tether_export(taxonomy, 'subclasses/2',
+battery_export(taxonomy, 'subclasses/2',
     'subclasses(Class, Subs) — Subs is the list of all transitive subclasses of Class').
-tether_export(taxonomy, 'class_members/2',
+battery_export(taxonomy, 'class_members/2',
     'class_members(Class, Members) — Members is the list of entities that isa Class').
-tether_export(taxonomy, 'depth_in_hierarchy/2',
+battery_export(taxonomy, 'depth_in_hierarchy/2',
     'depth_in_hierarchy(Class, Depth) — Depth is the number of hops from Class to a root (no parent)').
-tether_export(taxonomy, 'compatible_types/2',
+battery_export(taxonomy, 'compatible_types/2',
     'compatible_types(E1, E2) — E1 and E2 share at least one common ancestor').
-tether_export(taxonomy, 'root_class/1',
+battery_export(taxonomy, 'root_class/1',
     'root_class(Class) — Class has no is_a parent').
 
 %% ── Core is-a hierarchy ──────────────────────────────────────────────────────

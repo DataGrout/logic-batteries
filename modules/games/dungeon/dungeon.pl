@@ -1,14 +1,14 @@
-%% Tether Module: dungeon v1.0.0
+%% Battery: dungeon v1.0.0
 %% Exports: room_connected/2, room_accessible/2, dungeon_path/3,
 %%          room_cleared/2, dungeon_complete/2
 
-tether_module(dungeon, '1.0.0', auto).
+battery_module(dungeon, '1.0.0', auto).
 
-tether_export(dungeon, 'room_connected/2',  'room_connected(Room1, Room2) — rooms share a passage (symmetric)').
-tether_export(dungeon, 'room_accessible/2', 'room_accessible(Player, Room) — Player can enter Room (unlocked or has key)').
-tether_export(dungeon, 'dungeon_path/3',    'dungeon_path(Player, From, Path) — Path is an accessible route from From through the dungeon').
-tether_export(dungeon, 'room_cleared/2',    'room_cleared(Player, Room) — Player has visited and cleared Room').
-tether_export(dungeon, 'dungeon_complete/2','dungeon_complete(Player, Dungeon) — Player has cleared all rooms in Dungeon').
+battery_export(dungeon, 'room_connected/2',  'room_connected(Room1, Room2) — rooms share a passage (symmetric)').
+battery_export(dungeon, 'room_accessible/2', 'room_accessible(Player, Room) — Player can enter Room (unlocked or has key)').
+battery_export(dungeon, 'dungeon_path/3',    'dungeon_path(Player, From, Path) — Path is an accessible route from From through the dungeon').
+battery_export(dungeon, 'room_cleared/2',    'room_cleared(Player, Room) — Player has visited and cleared Room').
+battery_export(dungeon, 'dungeon_complete/2','dungeon_complete(Player, Dungeon) — Player has cleared all rooms in Dungeon').
 
 %% ── Dungeon Data Model ────────────────────────────────────────────────────────
 %%

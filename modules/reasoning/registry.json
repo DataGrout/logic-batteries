@@ -105,6 +105,34 @@
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
       "install": "batteries.install_many",
       "installs": 0
+    },
+    {
+      "id": "explain",
+      "version": "1.0.0",
+      "title": "Explain / Provenance",
+      "description": "Proof-tree meta-interpreter for stored rules and facts: ask not just whether a goal holds but which facts made it true. why/2 gives a deterministic flat list of supporting base/stored facts (the everyday API); explain/2 gives full proof trees with alternatives on backtracking. Handles conjunction, disjunction, if-then-else, negation-as-failure, and whitelisted builtins. Pure ISO \u2014 runs on pinned (Scryer) cells.",
+      "category": "reasoning",
+      "tags": [
+        "provenance",
+        "explanation",
+        "proof-tree",
+        "meta-interpreter",
+        "audit",
+        "iso",
+        "scryer"
+      ],
+      "predicates": [
+        "why/2",
+        "explain/2",
+        "expl_prove/2",
+        "expl_leaves/3",
+        "expl_base/1",
+        "expl_builtin/1"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/explain/explain.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/explain",
+      "install": "batteries.install_many",
+      "installs": 0
     }
   ]
 }

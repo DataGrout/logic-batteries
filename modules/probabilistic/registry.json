@@ -82,6 +82,45 @@
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
       "install": "batteries.install_many",
       "installs": 0
+    },
+    {
+      "id": "prob-core-iso",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "title": "ProbLog Core (ISO)",
+      "description": "ProbLog-lite runtime for ISO-pinned (Scryer) cells. Weighted P::Head rules are rewritten to reified prob_rule(Head, P) clauses at install/assert time; this battery provides the pure-ISO combinators over them: noisy-or psuccess, legacy pmax, negation, conjunction, and expected value. Enables the other prob-* batteries on ISO namespaces without SWI escalation.",
+      "category": "probabilistic",
+      "tags": ["probability", "problog", "iso", "scryer", "runtime", "core"],
+      "predicates": [
+        "psuccess/2",
+        "pmax/2",
+        "pnot/2",
+        "pand/2",
+        "expected/3",
+        "prob_or/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-core-iso/prob_core_iso.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-core-iso",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "prob-decide",
+      "version": "1.0.0",
+      "title": "Decision Theory (DTProbLog-lite)",
+      "description": "Expected-utility decision layer over prob-core-iso. Declare action/1 candidates, weighted P::outcome(Action, Outcome) rules, and utility/2 values; eu/2 scores each action as sum(P*U) over its outcomes and best_action/2 picks the argmax. Pure ISO — runs on pinned (Scryer) cells.",
+      "category": "probabilistic",
+      "tags": ["probability", "decision-theory", "expected-utility", "dtproblog", "iso", "scryer"],
+      "predicates": [
+        "eu/2",
+        "eu_sum/3",
+        "best_action/2",
+        "best_pair/5"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-decide/prob_decide.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-decide",
+      "install": "batteries.install_many",
+      "installs": 0
     }
   ]
 }

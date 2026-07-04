@@ -35,11 +35,14 @@
     %% Reasoning
     'reasoning/taxonomy_test',
     'reasoning/temporal_test',
+    'reasoning/explain_test',
     %% Probabilistic
     'probabilistic/prob_loot_test',
     'probabilistic/prob_npc_test',
     'probabilistic/prob_detection_test',
     'probabilistic/prob_economy_test',
+    'probabilistic/prob_core_iso_test',
+    'probabilistic/prob_decide_test',
     %% Integration
     'integration_test'
 ], [relative_to('.')]).

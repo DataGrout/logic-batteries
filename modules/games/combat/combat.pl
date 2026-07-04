@@ -1,15 +1,15 @@
-%% Tether Module: combat v1.0.0
+%% Battery: combat v1.0.0
 %% Exports: effective_damage/4, can_attack/2, status_effect_active/2,
 %%          turn_order/2, is_defeated/1, resistance/3
 
-tether_module(combat, '1.0.0', auto).
+battery_module(combat, '1.0.0', auto).
 
-tether_export(combat, 'effective_damage/4',    'effective_damage(Attacker, Target, BaseAmt, FinalAmt) — FinalAmt after type interactions, armor, resistances, and buffs').
-tether_export(combat, 'can_attack/2',          'can_attack(Attacker, Target) — true if Attacker may act against Target this turn').
-tether_export(combat, 'status_effect_active/2','status_effect_active(Entity, Effect) — Entity currently has Effect applied').
-tether_export(combat, 'turn_order/2',          'turn_order(Combatants, Ordered) — Ordered is Combatants sorted by speed (desc), ties broken by entity name').
-tether_export(combat, 'is_defeated/1',         'is_defeated(Entity) — Entity has 0 or fewer HP').
-tether_export(combat, 'resistance/3',          'resistance(Entity, DamageType, Factor) — Factor (0.0–2.0) applied to DamageType against Entity').
+battery_export(combat, 'effective_damage/4',    'effective_damage(Attacker, Target, BaseAmt, FinalAmt) — FinalAmt after type interactions, armor, resistances, and buffs').
+battery_export(combat, 'can_attack/2',          'can_attack(Attacker, Target) — true if Attacker may act against Target this turn').
+battery_export(combat, 'status_effect_active/2','status_effect_active(Entity, Effect) — Entity currently has Effect applied').
+battery_export(combat, 'turn_order/2',          'turn_order(Combatants, Ordered) — Ordered is Combatants sorted by speed (desc), ties broken by entity name').
+battery_export(combat, 'is_defeated/1',         'is_defeated(Entity) — Entity has 0 or fewer HP').
+battery_export(combat, 'resistance/3',          'resistance(Entity, DamageType, Factor) — Factor (0.0–2.0) applied to DamageType against Entity').
 
 %% ── Damage Types ─────────────────────────────────────────────────────────────
 %%

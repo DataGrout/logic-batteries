@@ -1,14 +1,14 @@
-%% Tether Module: dialogue v1.0.0
+%% Battery: dialogue v1.0.0
 %% Exports: npc_says/4, player_choices/4, choice_leads_to/3,
 %%          npc_remembers/3, dialogue_complete/3
 
-tether_module(dialogue, '1.0.0', auto).
+battery_module(dialogue, '1.0.0', auto).
 
-tether_export(dialogue, 'npc_says/4',         'npc_says(NPC, Player, Topic, Line) — Line is what NPC says for Topic (context-aware)').
-tether_export(dialogue, 'player_choices/4',   'player_choices(NPC, Player, Topic, Choices) — Choices is the list of available player responses').
-tether_export(dialogue, 'choice_leads_to/3',  'choice_leads_to(Topic, Choice, NextTopic) — choosing Choice from Topic transitions to NextTopic').
-tether_export(dialogue, 'npc_remembers/3',    'npc_remembers(NPC, Player, Topic) — NPC has previously discussed Topic with Player').
-tether_export(dialogue, 'dialogue_complete/3','dialogue_complete(NPC, Player, Topic) — Topic has been fully exhausted (no further choices)').
+battery_export(dialogue, 'npc_says/4',         'npc_says(NPC, Player, Topic, Line) — Line is what NPC says for Topic (context-aware)').
+battery_export(dialogue, 'player_choices/4',   'player_choices(NPC, Player, Topic, Choices) — Choices is the list of available player responses').
+battery_export(dialogue, 'choice_leads_to/3',  'choice_leads_to(Topic, Choice, NextTopic) — choosing Choice from Topic transitions to NextTopic').
+battery_export(dialogue, 'npc_remembers/3',    'npc_remembers(NPC, Player, Topic) — NPC has previously discussed Topic with Player').
+battery_export(dialogue, 'dialogue_complete/3','dialogue_complete(NPC, Player, Topic) — Topic has been fully exhausted (no further choices)').
 
 %% ── Dialogue Data Model ───────────────────────────────────────────────────────
 %%

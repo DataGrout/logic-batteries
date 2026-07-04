@@ -1,14 +1,14 @@
-%% Tether Module: scheduling v1.0.0
+%% Battery: scheduling v1.0.0
 %% Exports: slot_available/3, booking_conflict/3, can_book/4,
 %%          next_available_slot/3, resource_utilization/3
 
-tether_module(scheduling, '1.0.0', auto).
+battery_module(scheduling, '1.0.0', auto).
 
-tether_export(scheduling, 'slot_available/3',        'slot_available(Resource, Date, Slot) — the time slot is open for booking').
-tether_export(scheduling, 'booking_conflict/3',      'booking_conflict(Resource, Date, Slot) — another booking blocks this slot').
-tether_export(scheduling, 'can_book/4',              'can_book(Customer, Resource, Date, Slot) — customer meets all booking prerequisites for the given date and slot').
-tether_export(scheduling, 'next_available_slot/3',   'next_available_slot(Resource, Date, Slot) — first open slot on or after Date').
-tether_export(scheduling, 'resource_utilization/3',  'resource_utilization(Resource, Date, Pct) — percentage of slots booked on Date').
+battery_export(scheduling, 'slot_available/3',        'slot_available(Resource, Date, Slot) — the time slot is open for booking').
+battery_export(scheduling, 'booking_conflict/3',      'booking_conflict(Resource, Date, Slot) — another booking blocks this slot').
+battery_export(scheduling, 'can_book/4',              'can_book(Customer, Resource, Date, Slot) — customer meets all booking prerequisites for the given date and slot').
+battery_export(scheduling, 'next_available_slot/3',   'next_available_slot(Resource, Date, Slot) — first open slot on or after Date').
+battery_export(scheduling, 'resource_utilization/3',  'resource_utilization(Resource, Date, Pct) — percentage of slots booked on Date').
 
 %% ── Scheduling Data Model ─────────────────────────────────────────────────────
 %%

@@ -1,16 +1,16 @@
-%% Tether Module: prob-loot v1.0.1
+%% Battery: prob-loot v1.0.1
 %% Requires: loot-tables
 %% Exports: drop_occurs/2, guaranteed_drop/2, drop_probability/3, expected_drops/4
 
-tether_module('prob-loot', '1.0.1', auto).
+battery_module('prob-loot', '1.0.1', auto).
 
-tether_export('prob-loot', 'drop_occurs/2',
+battery_export('prob-loot', 'drop_occurs/2',
     'drop_occurs(Source, Item) — probabilistic: Item drops from Source based on rarity tier').
-tether_export('prob-loot', 'guaranteed_drop/2',
+battery_export('prob-loot', 'guaranteed_drop/2',
     'guaranteed_drop(Source, Item) — deterministic: Item is guaranteed to drop (drop_chance attribute >= 100)').
-tether_export('prob-loot', 'drop_probability/3',
+battery_export('prob-loot', 'drop_probability/3',
     'drop_probability(Source, Item, P) — P is probability 0.0–1.0 that Item drops from Source').
-tether_export('prob-loot', 'expected_drops/4',
+battery_export('prob-loot', 'expected_drops/4',
     'expected_drops(Source, Item, N, Expected) — Expected number of Item drops from N kills of Source').
 
 %% ── Probabilistic drop rules ───────────────────────────────────────────────

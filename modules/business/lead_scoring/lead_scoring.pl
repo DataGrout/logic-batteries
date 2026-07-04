@@ -1,14 +1,14 @@
-%% Tether Module: lead_scoring v1.0.0
+%% Battery: lead_scoring v1.0.0
 %% Exports: lead_score/2, lead_qualified/1, lead_tier/2,
 %%          disqualified/2, scoring_factor/3
 
-tether_module(lead_scoring, '1.0.0', auto).
+battery_module(lead_scoring, '1.0.0', auto).
 
-tether_export(lead_scoring, 'lead_score/2',     'lead_score(Lead, Score) — computed numeric score for Lead').
-tether_export(lead_scoring, 'lead_qualified/1', 'lead_qualified(Lead) — Lead meets the qualification threshold').
-tether_export(lead_scoring, 'lead_tier/2',      'lead_tier(Lead, Tier) — Tier is hot/warm/cold based on score').
-tether_export(lead_scoring, 'disqualified/2',   'disqualified(Lead, Reason) — Lead is disqualified and Reason explains why').
-tether_export(lead_scoring, 'scoring_factor/3', 'scoring_factor(Lead, Factor, Points) — individual scoring contribution').
+battery_export(lead_scoring, 'lead_score/2',     'lead_score(Lead, Score) — computed numeric score for Lead').
+battery_export(lead_scoring, 'lead_qualified/1', 'lead_qualified(Lead) — Lead meets the qualification threshold').
+battery_export(lead_scoring, 'lead_tier/2',      'lead_tier(Lead, Tier) — Tier is hot/warm/cold based on score').
+battery_export(lead_scoring, 'disqualified/2',   'disqualified(Lead, Reason) — Lead is disqualified and Reason explains why').
+battery_export(lead_scoring, 'scoring_factor/3', 'scoring_factor(Lead, Factor, Points) — individual scoring contribution').
 
 %% ── Lead Scoring Data Model ───────────────────────────────────────────────────
 %%

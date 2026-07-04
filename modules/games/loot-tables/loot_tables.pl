@@ -1,15 +1,15 @@
-%% Tether Module: loot-tables v1.0.0
+%% Battery: loot-tables v1.0.0
 %% Exports: drops/2, drops_at/3, eligible_loot/2, rarity_tier/2,
 %%          condition_met/2, loot_chance/3
 
-tether_module('loot-tables', '1.0.0', auto).
+battery_module('loot-tables', '1.0.0', auto).
 
-tether_export('loot-tables', 'drops/2',          'drops(Source, Item) — Item can drop from Source under any conditions').
-tether_export('loot-tables', 'drops_at/3',        'drops_at(Source, Item, Conditions) — Item drops from Source when Conditions are met').
-tether_export('loot-tables', 'eligible_loot/2',   'eligible_loot(Source, Item) — Item is eligible to drop right now given current world state').
-tether_export('loot-tables', 'rarity_tier/2',     'rarity_tier(Item, Tier) — Tier is common/uncommon/rare/epic/legendary').
-tether_export('loot-tables', 'condition_met/2',   'condition_met(Condition, Context) — Condition is satisfied in Context').
-tether_export('loot-tables', 'loot_chance/3',     'loot_chance(Source, Item, Pct) — Pct is drop chance 0-100').
+battery_export('loot-tables', 'drops/2',          'drops(Source, Item) — Item can drop from Source under any conditions').
+battery_export('loot-tables', 'drops_at/3',        'drops_at(Source, Item, Conditions) — Item drops from Source when Conditions are met').
+battery_export('loot-tables', 'eligible_loot/2',   'eligible_loot(Source, Item) — Item is eligible to drop right now given current world state').
+battery_export('loot-tables', 'rarity_tier/2',     'rarity_tier(Item, Tier) — Tier is common/uncommon/rare/epic/legendary').
+battery_export('loot-tables', 'condition_met/2',   'condition_met(Condition, Context) — Condition is satisfied in Context').
+battery_export('loot-tables', 'loot_chance/3',     'loot_chance(Source, Item, Pct) — Pct is drop chance 0-100').
 
 %% ── Rarity tiers ─────────────────────────────────────────────────────────────
 %% Set by asserting: { type:"attribute", entity:"rare_gem", attribute:"rarity", value:"rare" }

@@ -1,14 +1,14 @@
-%% Tether Module: puzzle-fsm v1.0.0
+%% Battery: puzzle-fsm v1.0.0
 %% Exports: can_transition/3, puzzle_solved/1, valid_sequence/2,
 %%          hint_for/2, blocked_by/2
 
-tether_module('puzzle-fsm', '1.0.0', auto).
+battery_module('puzzle-fsm', '1.0.0', auto).
 
-tether_export('puzzle-fsm', 'can_transition/3', 'can_transition(Puzzle, Move, NextState) — Move is valid from current state, leading to NextState').
-tether_export('puzzle-fsm', 'puzzle_solved/1',  'puzzle_solved(Puzzle) — Puzzle is in a winning/solved state').
-tether_export('puzzle-fsm', 'valid_sequence/2', 'valid_sequence(Puzzle, Moves) — Moves is a list of moves that leads from initial to a solved state').
-tether_export('puzzle-fsm', 'hint_for/2',       'hint_for(Puzzle, Move) — Move is a valid next step toward solving Puzzle').
-tether_export('puzzle-fsm', 'blocked_by/2',     'blocked_by(Puzzle, Reason) — Reason explains why Puzzle cannot be solved from current state').
+battery_export('puzzle-fsm', 'can_transition/3', 'can_transition(Puzzle, Move, NextState) — Move is valid from current state, leading to NextState').
+battery_export('puzzle-fsm', 'puzzle_solved/1',  'puzzle_solved(Puzzle) — Puzzle is in a winning/solved state').
+battery_export('puzzle-fsm', 'valid_sequence/2', 'valid_sequence(Puzzle, Moves) — Moves is a list of moves that leads from initial to a solved state').
+battery_export('puzzle-fsm', 'hint_for/2',       'hint_for(Puzzle, Move) — Move is a valid next step toward solving Puzzle').
+battery_export('puzzle-fsm', 'blocked_by/2',     'blocked_by(Puzzle, Reason) — Reason explains why Puzzle cannot be solved from current state').
 
 %% ── Puzzle Data Model ────────────────────────────────────────────────────────
 %%

@@ -1,15 +1,15 @@
-%% Tether Module: world v1.0.0
+%% Battery: world v1.0.0
 %% Exports: world_time/1, world_weather/1, world_season/1, world_moon/1,
 %%          is_daytime/0, is_nighttime/0
 
-tether_module(world, '1.0.0', auto).
+battery_module(world, '1.0.0', auto).
 
-tether_export(world, 'world_time/1',    'world_time(Period) — current time period: dawn/day/dusk/night').
-tether_export(world, 'world_weather/1', 'world_weather(Condition) — current weather: clear/rain/storm/fog/snow').
-tether_export(world, 'world_season/1',  'world_season(Season) — current season: spring/summer/autumn/winter').
-tether_export(world, 'world_moon/1',    'world_moon(Phase) — current moon phase: new/crescent/quarter/gibbous/full').
-tether_export(world, 'is_daytime/0',    'is_daytime — succeeds during dawn and day periods').
-tether_export(world, 'is_nighttime/0',  'is_nighttime — succeeds during dusk and night periods').
+battery_export(world, 'world_time/1',    'world_time(Period) — current time period: dawn/day/dusk/night').
+battery_export(world, 'world_weather/1', 'world_weather(Condition) — current weather: clear/rain/storm/fog/snow').
+battery_export(world, 'world_season/1',  'world_season(Season) — current season: spring/summer/autumn/winter').
+battery_export(world, 'world_moon/1',    'world_moon(Phase) — current moon phase: new/crescent/quarter/gibbous/full').
+battery_export(world, 'is_daytime/0',    'is_daytime — succeeds during dawn and day periods').
+battery_export(world, 'is_nighttime/0',  'is_nighttime — succeeds during dusk and night periods').
 
 %% ── World State ──────────────────────────────────────────────────────────────
 %%

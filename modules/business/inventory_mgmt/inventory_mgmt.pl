@@ -1,14 +1,14 @@
-%% Tether Module: inventory_mgmt v1.0.0
+%% Battery: inventory_mgmt v1.0.0
 %% Exports: needs_reorder/1, reorder_quantity/2, stock_level/2,
 %%          preferred_supplier/2, days_of_stock/2
 
-tether_module(inventory_mgmt, '1.0.0', auto).
+battery_module(inventory_mgmt, '1.0.0', auto).
 
-tether_export(inventory_mgmt, 'needs_reorder/1',     'needs_reorder(Item) — Item is at or below its reorder threshold').
-tether_export(inventory_mgmt, 'reorder_quantity/2',  'reorder_quantity(Item, Qty) — Qty is the recommended order quantity').
-tether_export(inventory_mgmt, 'stock_level/2',       'stock_level(Item, Level) — Level is adequate/low/critical/stockout').
-tether_export(inventory_mgmt, 'preferred_supplier/2','preferred_supplier(Item, Supplier) — Supplier is the preferred source for Item').
-tether_export(inventory_mgmt, 'days_of_stock/2',     'days_of_stock(Item, Days) — estimated days until Item runs out at current usage rate').
+battery_export(inventory_mgmt, 'needs_reorder/1',     'needs_reorder(Item) — Item is at or below its reorder threshold').
+battery_export(inventory_mgmt, 'reorder_quantity/2',  'reorder_quantity(Item, Qty) — Qty is the recommended order quantity').
+battery_export(inventory_mgmt, 'stock_level/2',       'stock_level(Item, Level) — Level is adequate/low/critical/stockout').
+battery_export(inventory_mgmt, 'preferred_supplier/2','preferred_supplier(Item, Supplier) — Supplier is the preferred source for Item').
+battery_export(inventory_mgmt, 'days_of_stock/2',     'days_of_stock(Item, Days) — estimated days until Item runs out at current usage rate').
 
 %% ── Inventory Management Data Model ──────────────────────────────────────────
 %%

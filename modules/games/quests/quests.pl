@@ -1,15 +1,15 @@
-%% Tether Module: quests v1.0.0
+%% Battery: quests v1.0.0
 %% Exports: quest_available/2, quest_complete/2, quest_in_progress/2,
 %%          next_objective/3, quest_blocked_by/3, can_turn_in/2
 
-tether_module(quests, '1.0.0', auto).
+battery_module(quests, '1.0.0', auto).
 
-tether_export(quests, 'quest_available/2',   'quest_available(Player, Quest) — Quest is available for Player to accept').
-tether_export(quests, 'quest_complete/2',    'quest_complete(Player, Quest) — Player has completed Quest').
-tether_export(quests, 'quest_in_progress/2', 'quest_in_progress(Player, Quest) — Player has accepted but not completed Quest').
-tether_export(quests, 'next_objective/3',    'next_objective(Player, Quest, Obj) — Obj is the current unmet objective').
-tether_export(quests, 'quest_blocked_by/3',  'quest_blocked_by(Player, Quest, Reason) — Quest is not available due to Reason').
-tether_export(quests, 'can_turn_in/2',       'can_turn_in(Player, Quest) — all objectives met, ready to complete').
+battery_export(quests, 'quest_available/2',   'quest_available(Player, Quest) — Quest is available for Player to accept').
+battery_export(quests, 'quest_complete/2',    'quest_complete(Player, Quest) — Player has completed Quest').
+battery_export(quests, 'quest_in_progress/2', 'quest_in_progress(Player, Quest) — Player has accepted but not completed Quest').
+battery_export(quests, 'next_objective/3',    'next_objective(Player, Quest, Obj) — Obj is the current unmet objective').
+battery_export(quests, 'quest_blocked_by/3',  'quest_blocked_by(Player, Quest, Reason) — Quest is not available due to Reason').
+battery_export(quests, 'can_turn_in/2',       'can_turn_in(Player, Quest) — all objectives met, ready to complete').
 
 %% ── Quest state ──────────────────────────────────────────────────────────────
 %% Assert state facts as the player progresses:

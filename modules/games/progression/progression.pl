@@ -1,14 +1,14 @@
-%% Tether Module: progression v1.0.0
+%% Battery: progression v1.0.0
 %% Exports: level_for_xp/2, xp_to_next_level/2, stat_at_level/3,
 %%          unlock_available/2, can_prestige/1
 
-tether_module(progression, '1.0.0', auto).
+battery_module(progression, '1.0.0', auto).
 
-tether_export(progression, 'level_for_xp/2',     'level_for_xp(XP, Level) — Level reached with XP total experience').
-tether_export(progression, 'xp_to_next_level/2', 'xp_to_next_level(Player, Needed) — XP gap from Player''s current position to next level').
-tether_export(progression, 'stat_at_level/3',    'stat_at_level(Stat, Level, Value) — Value of Stat at Level').
-tether_export(progression, 'unlock_available/2', 'unlock_available(Player, Unlock) — Unlock is available to Player at their current level').
-tether_export(progression, 'can_prestige/1',     'can_prestige(Player) — Player meets all configured prestige conditions').
+battery_export(progression, 'level_for_xp/2',     'level_for_xp(XP, Level) — Level reached with XP total experience').
+battery_export(progression, 'xp_to_next_level/2', 'xp_to_next_level(Player, Needed) — XP gap from Player''s current position to next level').
+battery_export(progression, 'stat_at_level/3',    'stat_at_level(Stat, Level, Value) — Value of Stat at Level').
+battery_export(progression, 'unlock_available/2', 'unlock_available(Player, Unlock) — Unlock is available to Player at their current level').
+battery_export(progression, 'can_prestige/1',     'can_prestige(Player) — Player meets all configured prestige conditions').
 
 %% ── XP Curve Configuration ───────────────────────────────────────────────────
 %%

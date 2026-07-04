@@ -1,14 +1,14 @@
-%% Tether Module: crafting v1.0.0
+%% Battery: crafting v1.0.0
 %% Exports: recipe_known/2, can_craft_skilled/2, crafting_skill/3,
 %%          skill_requirement/3, recipe_discoverable/2
 
-tether_module(crafting, '1.0.0', auto).
+battery_module(crafting, '1.0.0', auto).
 
-tether_export(crafting, 'recipe_known/2',         'recipe_known(Player, Recipe) — Player has learned or discovered Recipe').
-tether_export(crafting, 'can_craft_skilled/2',    'can_craft_skilled(Player, Item) — Player knows the recipe and meets all skill requirements').
-tether_export(crafting, 'crafting_skill/3',       'crafting_skill(Player, Skill, Level) — Player''s level in a crafting skill').
-tether_export(crafting, 'skill_requirement/3',    'skill_requirement(Item, Skill, Level) — Item requires Skill at minimum Level to craft').
-tether_export(crafting, 'recipe_discoverable/2',  'recipe_discoverable(Player, Recipe) — Player meets the discovery conditions for Recipe').
+battery_export(crafting, 'recipe_known/2',         'recipe_known(Player, Recipe) — Player has learned or discovered Recipe').
+battery_export(crafting, 'can_craft_skilled/2',    'can_craft_skilled(Player, Item) — Player knows the recipe and meets all skill requirements').
+battery_export(crafting, 'crafting_skill/3',       'crafting_skill(Player, Skill, Level) — Player''s level in a crafting skill').
+battery_export(crafting, 'skill_requirement/3',    'skill_requirement(Item, Skill, Level) — Item requires Skill at minimum Level to craft').
+battery_export(crafting, 'recipe_discoverable/2',  'recipe_discoverable(Player, Recipe) — Player meets the discovery conditions for Recipe').
 
 %% ── Crafting Data Model ───────────────────────────────────────────────────────
 %%

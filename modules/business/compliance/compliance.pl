@@ -1,14 +1,14 @@
-%% Tether Module: compliance v1.0.0
+%% Battery: compliance v1.0.0
 %% Exports: compliant/2, violation/3, data_retention_ok/2,
 %%          consent_required/2, consent_given/2
 
-tether_module(compliance, '1.0.0', auto).
+battery_module(compliance, '1.0.0', auto).
 
-tether_export(compliance, 'compliant/2',          'compliant(Entity, Policy) — Entity satisfies all requirements of Policy').
-tether_export(compliance, 'violation/3',           'violation(Entity, Policy, Reason) — Entity violates Policy for Reason').
-tether_export(compliance, 'data_retention_ok/2',  'data_retention_ok(Record, Policy) — Record is within the retention window of Policy').
-tether_export(compliance, 'consent_required/2',   'consent_required(Action, ConsentType) — ConsentType must be obtained before performing Action').
-tether_export(compliance, 'consent_given/2',       'consent_given(Customer, ConsentType) — Customer has granted ConsentType consent').
+battery_export(compliance, 'compliant/2',          'compliant(Entity, Policy) — Entity satisfies all requirements of Policy').
+battery_export(compliance, 'violation/3',           'violation(Entity, Policy, Reason) — Entity violates Policy for Reason').
+battery_export(compliance, 'data_retention_ok/2',  'data_retention_ok(Record, Policy) — Record is within the retention window of Policy').
+battery_export(compliance, 'consent_required/2',   'consent_required(Action, ConsentType) — ConsentType must be obtained before performing Action').
+battery_export(compliance, 'consent_given/2',       'consent_given(Customer, ConsentType) — Customer has granted ConsentType consent').
 
 %% ── Compliance Data Model ─────────────────────────────────────────────────────
 %%

@@ -1,33 +1,33 @@
-%% Tether Module: temporal v1.0.0
+%% Battery: temporal v1.0.0
 %% Exports: event_before/2, event_after/2, event_within/3, event_concurrent/2,
 %%          deadline_passed/2, deadline_imminent/3, duration_between/3,
 %%          gap_between/3, events_in_order/1, next_event/3, latest_event/2, earliest_event/2
 
-tether_module(temporal, '1.0.0', auto).
+battery_module(temporal, '1.0.0', auto).
 
-tether_export(temporal, 'event_before/2',
+battery_export(temporal, 'event_before/2',
     'event_before(E1, E2) — E1 occurred before E2 (compares timestamp attributes)').
-tether_export(temporal, 'event_after/2',
+battery_export(temporal, 'event_after/2',
     'event_after(E1, E2) — E1 occurred after E2').
-tether_export(temporal, 'event_within/3',
+battery_export(temporal, 'event_within/3',
     'event_within(Event, Start, End) — Event timestamp falls in [Start, End]').
-tether_export(temporal, 'event_concurrent/2',
+battery_export(temporal, 'event_concurrent/2',
     'event_concurrent(E1, E2) — E1 and E2 overlap (using start/end attributes)').
-tether_export(temporal, 'deadline_passed/2',
+battery_export(temporal, 'deadline_passed/2',
     'deadline_passed(Entity, Now) — Entity deadline attribute < Now').
-tether_export(temporal, 'deadline_imminent/3',
+battery_export(temporal, 'deadline_imminent/3',
     'deadline_imminent(Entity, Now, Window) — deadline within Window time units').
-tether_export(temporal, 'duration_between/3',
+battery_export(temporal, 'duration_between/3',
     'duration_between(E1, E2, D) — D is |timestamp(E2) - timestamp(E1)|').
-tether_export(temporal, 'gap_between/3',
+battery_export(temporal, 'gap_between/3',
     'gap_between(E1, E2, Gap) — Gap is time between E1 end and E2 start (negative = overlap)').
-tether_export(temporal, 'events_in_order/1',
+battery_export(temporal, 'events_in_order/1',
     'events_in_order(Events) — Events list is non-decreasing by timestamp').
-tether_export(temporal, 'next_event/3',
+battery_export(temporal, 'next_event/3',
     'next_event(After, Events, Next) — Next is the earliest event in Events with timestamp > After').
-tether_export(temporal, 'latest_event/2',
+battery_export(temporal, 'latest_event/2',
     'latest_event(Events, Latest) — Latest has the highest timestamp in Events').
-tether_export(temporal, 'earliest_event/2',
+battery_export(temporal, 'earliest_event/2',
     'earliest_event(Events, Earliest) — Earliest has the lowest timestamp in Events').
 
 %% ── Ordering ─────────────────────────────────────────────────────────────────

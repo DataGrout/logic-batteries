@@ -1,19 +1,19 @@
-%% Tether Module: prob-economy v1.0.0
+%% Battery: prob-economy v1.0.0
 %% Requires: economy
 %% Exports: supply_disruption/2, demand_spike/2, price_range/4,
 %%          market_volatility/3, expected_price/2
 
-tether_module('prob-economy', '1.0.0', auto).
+battery_module('prob-economy', '1.0.0', auto).
 
-tether_export('prob-economy', 'supply_disruption/2',
+battery_export('prob-economy', 'supply_disruption/2',
     'supply_disruption(Item, P) — P is probability (0.0–1.0) supply is disrupted based on world state').
-tether_export('prob-economy', 'demand_spike/2',
+battery_export('prob-economy', 'demand_spike/2',
     'demand_spike(Item, P) — P is probability demand is elevated based on world events').
-tether_export('prob-economy', 'price_range/4',
+battery_export('prob-economy', 'price_range/4',
     'price_range(Item, Base, Low, High) — Low and High are the probable price bounds given supply/demand uncertainty').
-tether_export('prob-economy', 'market_volatility/3',
+battery_export('prob-economy', 'market_volatility/3',
     'market_volatility(Item, Ps, Pd) — Ps is supply disruption probability, Pd is demand spike probability').
-tether_export('prob-economy', 'expected_price/2',
+battery_export('prob-economy', 'expected_price/2',
     'expected_price(Item, Price) — expected buy price factoring in probable supply/demand shifts').
 
 %% ── Probabilistic supply disruption rules ─────────────────────────────────

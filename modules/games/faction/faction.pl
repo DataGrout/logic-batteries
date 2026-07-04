@@ -1,14 +1,14 @@
-%% Tether Module: faction v1.0.0
+%% Battery: faction v1.0.0
 %% Exports: faction_reputation/3, faction_standing/3, faction_allied/2,
 %%          faction_at_war/2, faction_access/2
 
-tether_module(faction, '1.0.0', auto).
+battery_module(faction, '1.0.0', auto).
 
-tether_export(faction, 'faction_reputation/3', 'faction_reputation(Player, Faction, Rep) — numeric reputation score').
-tether_export(faction, 'faction_standing/3',   'faction_standing(Player, Faction, Standing) — standing tier: hostile/unfriendly/neutral/friendly/honored/revered/exalted').
-tether_export(faction, 'faction_allied/2',     'faction_allied(F1, F2) — factions are allied (symmetric)').
-tether_export(faction, 'faction_at_war/2',     'faction_at_war(F1, F2) — factions are at war (symmetric)').
-tether_export(faction, 'faction_access/2',     'faction_access(Player, Area) — Player meets the standing requirement to enter Area').
+battery_export(faction, 'faction_reputation/3', 'faction_reputation(Player, Faction, Rep) — numeric reputation score').
+battery_export(faction, 'faction_standing/3',   'faction_standing(Player, Faction, Standing) — standing tier: hostile/unfriendly/neutral/friendly/honored/revered/exalted').
+battery_export(faction, 'faction_allied/2',     'faction_allied(F1, F2) — factions are allied (symmetric)').
+battery_export(faction, 'faction_at_war/2',     'faction_at_war(F1, F2) — factions are at war (symmetric)').
+battery_export(faction, 'faction_access/2',     'faction_access(Player, Area) — Player meets the standing requirement to enter Area').
 
 %% ── Reputation Data Model ─────────────────────────────────────────────────────
 %%

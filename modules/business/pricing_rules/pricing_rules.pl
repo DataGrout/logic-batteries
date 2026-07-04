@@ -1,14 +1,14 @@
-%% Tether Module: pricing_rules v1.0.0
+%% Battery: pricing_rules v1.0.0
 %% Exports: effective_price/3, discount_applicable/2, bulk_discount/3,
 %%          price_tier/3, price_capped/3
 
-tether_module(pricing_rules, '1.0.0', auto).
+battery_module(pricing_rules, '1.0.0', auto).
 
-tether_export(pricing_rules, 'effective_price/3',    'effective_price(Item, Customer, Price) — final price after all applicable discounts').
-tether_export(pricing_rules, 'discount_applicable/2','discount_applicable(Item, Discount) — Discount rule applies to Item').
-tether_export(pricing_rules, 'bulk_discount/3',      'bulk_discount(Item, Qty, PctOff) — percentage discount for purchasing Qty units').
-tether_export(pricing_rules, 'price_tier/3',         'price_tier(Item, Customer, Tier) — pricing tier: standard/member/vip').
-tether_export(pricing_rules, 'price_capped/3',       'price_capped(Item, Customer, Price) — effective price clipped to floor/ceiling').
+battery_export(pricing_rules, 'effective_price/3',    'effective_price(Item, Customer, Price) — final price after all applicable discounts').
+battery_export(pricing_rules, 'discount_applicable/2','discount_applicable(Item, Discount) — Discount rule applies to Item').
+battery_export(pricing_rules, 'bulk_discount/3',      'bulk_discount(Item, Qty, PctOff) — percentage discount for purchasing Qty units').
+battery_export(pricing_rules, 'price_tier/3',         'price_tier(Item, Customer, Tier) — pricing tier: standard/member/vip').
+battery_export(pricing_rules, 'price_capped/3',       'price_capped(Item, Customer, Price) — effective price clipped to floor/ceiling').
 
 %% ── Pricing Data Model ────────────────────────────────────────────────────────
 %%

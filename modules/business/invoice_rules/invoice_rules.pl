@@ -1,14 +1,14 @@
-%% Tether Module: invoice_rules v1.0.0
+%% Battery: invoice_rules v1.0.0
 %% Exports: invoice_overdue/1, days_overdue/2, late_fee/2,
 %%          escalation_level/2, payment_due_amount/2
 
-tether_module(invoice_rules, '1.0.0', auto).
+battery_module(invoice_rules, '1.0.0', auto).
 
-tether_export(invoice_rules, 'invoice_overdue/1',     'invoice_overdue(Invoice) — Invoice is past its due date').
-tether_export(invoice_rules, 'days_overdue/2',        'days_overdue(Invoice, Days) — Invoice is Days days past due (0 if not overdue)').
-tether_export(invoice_rules, 'late_fee/2',            'late_fee(Invoice, Fee) — Fee is the late charge added to Invoice''s balance').
-tether_export(invoice_rules, 'escalation_level/2',    'escalation_level(Invoice, Level) — Level is reminder/warning/collections based on days overdue').
-tether_export(invoice_rules, 'payment_due_amount/2',  'payment_due_amount(Invoice, Amount) — total amount now due including any late fee').
+battery_export(invoice_rules, 'invoice_overdue/1',     'invoice_overdue(Invoice) — Invoice is past its due date').
+battery_export(invoice_rules, 'days_overdue/2',        'days_overdue(Invoice, Days) — Invoice is Days days past due (0 if not overdue)').
+battery_export(invoice_rules, 'late_fee/2',            'late_fee(Invoice, Fee) — Fee is the late charge added to Invoice''s balance').
+battery_export(invoice_rules, 'escalation_level/2',    'escalation_level(Invoice, Level) — Level is reminder/warning/collections based on days overdue').
+battery_export(invoice_rules, 'payment_due_amount/2',  'payment_due_amount(Invoice, Amount) — total amount now due including any late fee').
 
 %% ── Invoice Data Model ────────────────────────────────────────────────────────
 %%

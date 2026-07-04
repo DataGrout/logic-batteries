@@ -1,14 +1,14 @@
-%% Tether Module: ai_director v1.0.0
+%% Battery: ai_director v1.0.0
 %% Exports: spawn_eligible/2, difficulty_modifier/2, pacing_state/2,
 %%          threat_level/2, director_event/2
 
-tether_module(ai_director, '1.0.0', auto).
+battery_module(ai_director, '1.0.0', auto).
 
-tether_export(ai_director, 'spawn_eligible/2',    'spawn_eligible(Enemy, Zone) — Enemy may spawn in Zone given current pacing and threat').
-tether_export(ai_director, 'difficulty_modifier/2','difficulty_modifier(Zone, Modifier) — numeric multiplier for challenge in Zone (1.0 = baseline)').
-tether_export(ai_director, 'pacing_state/2',      'pacing_state(Zone, State) — current pacing: calm/building/tense/peak/recovery').
-tether_export(ai_director, 'threat_level/2',      'threat_level(Zone, Level) — current threat score for Zone').
-tether_export(ai_director, 'director_event/2',    'director_event(Zone, Event) — Event is triggered by the director given current state').
+battery_export(ai_director, 'spawn_eligible/2',    'spawn_eligible(Enemy, Zone) — Enemy may spawn in Zone given current pacing and threat').
+battery_export(ai_director, 'difficulty_modifier/2','difficulty_modifier(Zone, Modifier) — numeric multiplier for challenge in Zone (1.0 = baseline)').
+battery_export(ai_director, 'pacing_state/2',      'pacing_state(Zone, State) — current pacing: calm/building/tense/peak/recovery').
+battery_export(ai_director, 'threat_level/2',      'threat_level(Zone, Level) — current threat score for Zone').
+battery_export(ai_director, 'director_event/2',    'director_event(Zone, Event) — Event is triggered by the director given current state').
 
 %% ── AI Director Data Model ────────────────────────────────────────────────────
 %%
