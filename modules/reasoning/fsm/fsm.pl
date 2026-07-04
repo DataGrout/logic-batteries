@@ -160,18 +160,38 @@ fsm_transition(Machine, From, Event, To) :-
 %% ── Reachability ─────────────────────────────────────────────────────────────
 
 %% fsm_reachable(+Machine, +From, ?To)
-%% To is reachable from From in Machine (transitive closure).
-:- table fsm_reachable/3.
+%% To is reachable from From in Machine (transitive closure, >= 1 step;
+%% fsm_reachable(M, S, S) holds iff S lies on a cycle).
+%%
+%% Computed as a bottom-up BFS fixpoint over the edge relation — the pure-ISO
+%% equivalent of what `:- table` gave the old recursive definition. The
+%% recursive version was only cycle-safe UNDER tabling, and tabling never
+%% reached logic cells (the installer strips directives on both engines) and
+%% does not exist on Scryer — so any machine with a cycle longer than a
+%% self-loop hung reachability queries until the watchdog. The fixpoint
+%% derives each reachable state exactly once and always terminates.
 fsm_reachable(Machine, From, To) :-
     fsm_has_state(Machine, From),
-    fsm_edge(From, To),
-    fsm_has_state(Machine, To).
-fsm_reachable(Machine, From, To) :-
-    fsm_has_state(Machine, From),
-    fsm_edge(From, Mid),
-    fsm_has_state(Machine, Mid),
-    From \== Mid,
-    fsm_reachable(Machine, Mid, To).
+    findall(N, ( fsm_edge(From, N), fsm_has_state(Machine, N) ), Succ0),
+    sort(Succ0, Frontier),
+    Frontier \== [],
+    fsm_reach_closure(Machine, Frontier, Frontier, Set),
+    member(To, Set).
+
+%% Internal: expand the frontier until no new states appear.
+fsm_reach_closure(Machine, Frontier, Acc, Set) :-
+    findall(Next,
+            ( member(S, Frontier),
+              fsm_edge(S, Next),
+              fsm_has_state(Machine, Next),
+              \+ member(Next, Acc) ),
+            New0),
+    sort(New0, New),
+    (   New == []
+    ->  Set = Acc
+    ;   append(Acc, New, Acc1),
+        fsm_reach_closure(Machine, New, Acc1, Set)
+    ).
 
 %% fsm_reachable_states(+Machine, -States)
 %% All states reachable from the initial state.

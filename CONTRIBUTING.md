@@ -27,6 +27,14 @@ A battery is a directory under `modules/<category>/<id>/` containing:
      DataGrout strips directives at install time, so cells are unaffected.
    - Prefer pure ISO Prolog. Batteries that avoid SWI-only constructs run on
      both engines, including ISO-pinned cells.
+   - **Never rely on directives for cell behavior** — the installer strips
+     ALL `:- ...` directives at cell install, by design (directives are
+     arbitrary goal execution at load time; stripping them is a security
+     boundary). In particular, do not rely on `:- table` for termination:
+     tabling never reaches cells and doesn't exist on Scryer — write
+     visited-set walks for paths and BFS fixpoints for closures instead.
+     `make lint` rejects `table`, `initialization`, and `set_prolog_flag`
+     directives outright.
 
 2. **A README** with an install snippet, an exported-predicates table, a
    worked example, and honest notes on semantics and scope.

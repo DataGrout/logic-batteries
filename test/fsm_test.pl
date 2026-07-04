@@ -278,6 +278,20 @@ test(cycle_detected, [setup(setup_cyclic), cleanup(clear_facts)]) :-
     assertion(fsm_cycle("cyc", "a")),
     assertion(fsm_cycle("cyc", "b")).
 
+%% Regression: without tabling (which never reaches logic cells — the
+%% installer strips directives — and doesn't exist on Scryer) the old
+%% recursive fsm_reachable looped forever on any cycle longer than a
+%% self-loop. The BFS-fixpoint rewrite must terminate and enumerate each
+%% reachable state exactly once, untabled.
+test(cyclic_reachability_terminates_untabled,
+     [setup(setup_cyclic), cleanup(clear_facts)]) :-
+    findall(To, fsm_reachable("cyc", "a", To), Raw),
+    msort(Raw, Sorted),
+    assertion(Sorted == ["a", "b"]),
+    % each state derived exactly once (tabling-equivalent semantics)
+    assertion(length(Raw, 2)),
+    assertion(fsm_reachable("cyc", "b", "b")).
+
 test(no_cycle_in_linear, [setup(setup_linear), cleanup(clear_facts)]) :-
     assertion(\+ fsm_cycle("m", _)).
 

@@ -25,6 +25,10 @@ New Rust CLI (`cli/`, published to crates.io as [`logic-batteries`](https://crat
 - `tether_module/3` and `tether_export/3` are now `battery_module/3` and `battery_export/3` across every module -- the manifest ABI is named for the product, and stays neutral between installers (DataGrout, the CLI, or a bare consult). The DataGrout platform accepts both spellings, so batteries published before the rename keep installing and describing correctly.
 - New authoring convention: batteries declare their **input predicates** `:- dynamic(...)` so standalone (consult) users can assert facts after loading. DataGrout strips directives at install time, so cells are unaffected.
 
+### Fixes
+
+- `fsm`: `fsm_reachable/3` rewritten as a bottom-up BFS fixpoint, dropping its `:- table` directive. The old recursive definition was only cycle-safe under tabling — which never reached logic cells (the installer strips directives on both engines) and does not exist on Scryer — so reachability and `fsm_cycle/2` queries on any machine with a cycle longer than a self-loop hung until the query watchdog. The fixpoint has tabling-equivalent semantics (each reachable state derived exactly once), always terminates, and runs in pure ISO on SWI and Scryer alike.
+
 ### Licensing
 
 - Tiered licensing, documented in the README license table: content batteries remain Elastic License 2.0; `prob-core-iso` is carved out as Apache-2.0 (core runtime, embeddable anywhere); the `battery` CLI is MIT.
