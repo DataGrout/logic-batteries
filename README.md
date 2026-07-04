@@ -95,7 +95,7 @@ $ battery remove prob-decide --dir my-app/
 `remove` only deletes files whose checksum still matches what was installed —
 a battery you've modified is kept (and warned about) unless you pass `-f`.
 `battery installed` lists what's in a directory and flags modified entries;
-`battery list` shows the registry. Build with `cargo build --release` in
+`battery list` shows the registry. Install with `cargo install logic-batteries`, or build from
 [`cli/`](./cli/).
 
 ### Tether (Luau / Roblox)
