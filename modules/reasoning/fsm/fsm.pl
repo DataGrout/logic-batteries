@@ -169,8 +169,9 @@ fsm_transition(Machine, From, Event, To) :-
 %% Computed as a bottom-up BFS fixpoint over the edge relation — the pure-ISO
 %% equivalent of what `:- table` gave the old recursive definition. The
 %% recursive version was only cycle-safe UNDER tabling, and tabling never
-%% reached logic cells (the installer strips directives on both engines) and
-%% does not exist on Scryer — so any machine with a cycle longer than a
+%% reached logic cells — both engines support it (SWI natively, Scryer via
+%% library(tabling)), but only through directives, which the installer
+%% strips — so any machine with a cycle longer than a
 %% self-loop hung reachability queries until the watchdog. The fixpoint
 %% derives each reachable state exactly once and always terminates.
 fsm_reachable(Machine, From, To) :-

@@ -31,8 +31,10 @@ A battery is a directory under `modules/<category>/<id>/` containing:
      ALL `:- ...` directives at cell install, by design (directives are
      arbitrary goal execution at load time; stripping them is a security
      boundary). In particular, do not rely on `:- table` for termination:
-     tabling never reaches cells and doesn't exist on Scryer — write
-     visited-set walks for paths and BFS fixpoints for closures instead.
+     both engines support tabling (SWI natively, Scryer via
+     `library(tabling)`), but the directive is stripped so it never reaches
+     cells — write visited-set walks for paths and BFS fixpoints for
+     closures instead.
      `make lint` rejects `table`, `initialization`, and `set_prolog_flag`
      directives outright.
 
@@ -52,6 +54,42 @@ Run `make lint` and the full test suite before opening a PR. Batteries must
 stay within the predicate whitelist provided by the LC runtime — no process
 execution, file I/O, networking, global mutable state, or runtime fact
 modification. This keeps batteries safe to load in any environment.
+
+## Why batteries aren't module libraries
+
+A fair question from anyone fluent in Prolog's module systems: why do
+batteries ship as flat clause files with `battery_module`/`battery_export`
+manifest facts and predicate-name prefixes, instead of `:- module(...)`
+libraries with proper export lists?
+
+Because the primary deployment target can't use modules — the flat form is a
+design decision, not an oversight:
+
+1. **Cells install by assertion into a shared namespace.** A logic cell
+   receives a battery clause by clause (`assertz`), not by consulting a
+   file, and every directive is stripped at install. A `:- module` header
+   wouldn't survive the pipeline.
+2. **Composition through shared facts is the point.** Batteries reason over
+   facts the user asserts into the same namespace, and over each other's
+   predicates (`prob-loot` over `loot-tables`, `prob-decide` over
+   `prob-core-iso`). Module encapsulation would break exactly this — a
+   module-scoped predicate can't see user facts without meta-qualification
+   on every call.
+3. **Modules are the least portable part of Prolog.** The ISO module
+   standard (13211-2) was never adopted — engines use Quintus-descended or
+   homegrown module systems instead, and SWI's and Scryer's differ in real
+   ways. Plain ISO clauses with prefix-based namespacing mean the same
+   thing on every engine.
+4. **Manifests as facts are queryable.** `battery_export/3` doc strings are
+   read by unification (`batteries.describe`, the CLI) — Prolog-native
+   introspection rather than a parallel metadata format.
+
+The cost is honest: standalone (consult) users get a battery's internal
+helpers in their namespace too, not just its public predicates. The
+`<battery>_`-prefix convention keeps that tolerable. If you're writing a
+library for standalone use only, a real module is the better tool — batteries
+are written for the cell substrate first, with bare consult as the secondary
+path.
 
 ## Licensing of contributions
 

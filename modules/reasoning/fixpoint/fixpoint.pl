@@ -1,11 +1,12 @@
-%% Battery: fixpoint v1.0.0
+%% Battery: fixpoint v1.0.1
 %% Requires: (nothing)
 %% Exports: fixpoint_solve/1, fixpoint_solve/2, fixpoint_answers/2, fixpoint_answers/3
 %%
 %% Bottom-up (Datalog-style) evaluation of stored rules: tabling's TERMINATION
 %% benefit without tabling. Pure ISO — runs on SWI and Scryer alike, including
-%% ISO-pinned cells, where `:- table` is unavailable by design (directives are
-%% stripped at cell install, and Scryer has no tabling).
+%% ISO-pinned cells, where `:- table` is unavailable by design: tabling is a
+%% directive-enabled extension on both engines (SWI natively, Scryer via
+%% library(tabling)), and directives are stripped at cell install.
 %%
 %% Instead of proving a recursive goal top-down (where left/cyclic recursion
 %% loops forever under plain SLD), fixpoint_solve/1 saturates: it derives every
@@ -23,9 +24,13 @@
 %% whose head values come from a finite domain (the constants in your facts).
 %% Rules that BUILD unboundedly new terms or numbers in heads (counters like
 %% `level(X, N1) :- edge(X, Y), level(Y, N), N1 is N + 1` on a cyclic graph)
-%% are outside that class and will not terminate here either. Negation (\+)
-%% is supported over BASE goals only; \+ over a derived (recursive) predicate
-%% throws a clear error rather than computing wrong answers. Answers are
+%% are outside that class and will not terminate here either. Negation (\+),
+%% forall/2, and aggregation (setof/bagof/findall) are supported over BASE
+%% goals only; over a derived (recursive) predicate they throw a clear error
+%% rather than computing wrong answers (mid-saturation the answer set is
+%% still growing — aggregate AFTER saturation via fixpoint_answers/2
+%% instead). call/N over a derived predicate is fine: it is unwrapped and
+%% looked up in the answer set like a plain derived subgoal. Answers are
 %% recomputed per call (no cross-query caching).
 
 %% Standalone (consult) use: manifest predicates accumulate across battery
@@ -33,7 +38,7 @@
 :- dynamic(battery_module/3).
 :- dynamic(battery_export/3).
 
-battery_module('fixpoint', '1.0.0', auto).
+battery_module('fixpoint', '1.0.1', auto).
 
 battery_export('fixpoint', 'fixpoint_solve/1',
     'fixpoint_solve(Goal) — prove Goal by bottom-up saturation of its rules; terminates on cyclic/left-recursive Datalog rules where plain resolution loops. Nondeterministic over the saturated answers.').
@@ -118,6 +123,26 @@ fp_body((A ; B), D, Acc) :- !,
     ( fp_body(A, D, Acc) ; fp_body(B, D, Acc) ).
 fp_body(\+ G, D, Acc) :- !,
     fp_negation(G, D, Acc).
+fp_body(forall(C, A), D, Acc) :- !,
+    fp_body(\+ (C, \+ A), D, Acc).
+fp_body(G, D, _Acc) :-
+    fp_agg_inner(G, Inner), !,
+    (   fp_mentions_derived(Inner, D)
+    ->  throw(error(representation_error(fixpoint_aggregation_over_derived_unsupported),
+                    fixpoint_solve/1))
+    ;   fp_call_base(G)
+    ).
+fp_body(CallG, D, Acc) :-
+    nonvar(CallG),
+    functor(CallG, call, N), N >= 1, !,
+    CallG =.. [call, G0 | Extra],
+    (   var(G0)
+    ->  fp_call_base(CallG)
+    ;   G0 =.. [F | As0],
+        append(As0, Extra, As),
+        G1 =.. [F | As],
+        fp_body(G1, D, Acc)
+    ).
 fp_body(G, D, Acc) :-
     fp_derived_goal(G, D), !,
     member(G, Acc).
@@ -126,12 +151,58 @@ fp_body(G, _, _) :-
 
 %% Negation over a derived predicate needs stratified evaluation, which v1
 %% does not do — refuse loudly instead of silently computing wrong answers.
+%% The check walks the WHOLE negated goal (conjunctions, disjunctions,
+%% call/N, aggregation subgoals), not just its top functor: `\+ (reach(X,Y),
+%% blocked(Y))` must be refused exactly like `\+ reach(X,Y)`.
 fp_negation(G, D, _Acc) :-
-    fp_derived_goal(G, D), !,
+    fp_mentions_derived(G, D), !,
     throw(error(representation_error(fixpoint_negation_over_derived_unsupported),
                 fixpoint_solve/1)).
 fp_negation(G, _, _) :-
     \+ fp_call_base(G).
+
+%% Aggregation (setof/bagof/findall) over a derived predicate is refused in
+%% v1: at body-evaluation time the answer set is still GROWING, so an
+%% aggregate computed mid-saturation can silently under-count — a
+%% wrong-answers failure mode, strictly worse than not terminating.
+%% Aggregate AFTER saturation instead:
+%%   fixpoint_answers(reach(a, X), As), length(As, N).
+%% Aggregation over base goals is fine and calls through natively.
+fp_agg_inner(setof(_, Q, _), G) :- !, fp_strip_qual(Q, G).
+fp_agg_inner(bagof(_, Q, _), G) :- !, fp_strip_qual(Q, G).
+fp_agg_inner(findall(_, Q, _), Q).
+
+%% Strip ^/2 existential qualifiers: `V^Goal` → Goal.
+fp_strip_qual(Q, G) :- nonvar(Q), Q = _^Q1, !, fp_strip_qual(Q1, G).
+fp_strip_qual(G, G).
+
+%% Does Goal mention any derived predicate anywhere in its structure —
+%% through conjunction/disjunction/if-then-else, negation, existential
+%% qualification, call/N, and aggregation subgoals? (A var mentions nothing;
+%% it cannot be checked, and the actual call will error at runtime if it
+%% resolves to something unsafe.)
+fp_mentions_derived(V, _) :- var(V), !, fail.
+fp_mentions_derived((A, B), D) :- !,
+    ( fp_mentions_derived(A, D) -> true ; fp_mentions_derived(B, D) ).
+fp_mentions_derived((A ; B), D) :- !,
+    ( fp_mentions_derived(A, D) -> true ; fp_mentions_derived(B, D) ).
+fp_mentions_derived((A -> B), D) :- !,
+    ( fp_mentions_derived(A, D) -> true ; fp_mentions_derived(B, D) ).
+fp_mentions_derived(\+ G, D) :- !, fp_mentions_derived(G, D).
+fp_mentions_derived(_^G, D) :- !, fp_mentions_derived(G, D).
+fp_mentions_derived(G, D) :-
+    fp_agg_inner(G, Inner), !,
+    fp_mentions_derived(Inner, D).
+fp_mentions_derived(CallG, D) :-
+    functor(CallG, call, N), N >= 1, !,
+    CallG =.. [call, G0 | Extra],
+    nonvar(G0),
+    G0 =.. [F | As0],
+    append(As0, Extra, As),
+    G1 =.. [F | As],
+    fp_mentions_derived(G1, D).
+fp_mentions_derived(G, D) :-
+    fp_derived_goal(G, D).
 
 fp_derived_goal(G, Derived) :-
     nonvar(G),
@@ -182,9 +253,26 @@ fp_cone_walk([P/A | Rest], Acc, Derived) :-
     ).
 
 %% The non-true rule bodies of P/A ([] for facts-only, base, or builtin preds).
+%%
+%% Built-in predicates are NEVER saturation targets, even when the engine
+%% exposes their clauses: SWI defines library builtins like length/2 in
+%% Prolog and its clause/2 is permissive, so without this gate a rule body
+%% calling length/2 would pull SWI's *implementation* of length into the
+%% derived cone and try to saturate it (instantiation errors, or worse).
+%% Strict ISO engines (Scryer) throw permission_error from clause/2 on
+%% built-ins — fp_clause already catches that — so this situation cannot
+%% arise there; the predicate_property/2 probe is a best-effort portability
+%% shim, catch-wrapped so engines without it degrade to the strict-ISO
+%% behavior rather than erroring.
 fp_pred_bodies(P/A, Bodies) :-
     functor(H, P, A),
-    findall(B, ( fp_clause(H, B), B \== true ), Bodies).
+    (   fp_builtin_pred(H)
+    ->  Bodies = []
+    ;   findall(B, ( fp_clause(H, B), B \== true ), Bodies)
+    ).
+
+fp_builtin_pred(H) :-
+    catch(predicate_property(H, built_in), _, fail).
 
 %% Predicate indicators of every positive literal in a list of bodies.
 fp_called_preds(Bodies, Called) :-
@@ -208,6 +296,31 @@ fp_body_preds((A -> B), Acc, Out) :- !,
     fp_body_preds(B, A1, Out).
 fp_body_preds(\+ G, Acc, Out) :- !,
     fp_body_preds(G, Acc, Out).
+%% Aggregation, qualification, forall, and call/N are transparent to the
+%% cone walk — a derived predicate referenced ONLY inside a setof/3 must
+%% still be detected as derived, or the aggregation guard in fp_body/3
+%% never fires and the goal would be re-proven natively (loops on cycles).
+fp_body_preds(_^G, Acc, Out) :- !,
+    fp_body_preds(G, Acc, Out).
+fp_body_preds(setof(_, Q, _), Acc, Out) :- !,
+    fp_body_preds(Q, Acc, Out).
+fp_body_preds(bagof(_, Q, _), Acc, Out) :- !,
+    fp_body_preds(Q, Acc, Out).
+fp_body_preds(findall(_, Q, _), Acc, Out) :- !,
+    fp_body_preds(Q, Acc, Out).
+fp_body_preds(forall(C, A), Acc, Out) :- !,
+    fp_body_preds((C, A), Acc, Out).
+fp_body_preds(CallG, Acc, Out) :-
+    nonvar(CallG),
+    functor(CallG, call, N), N >= 1, !,
+    CallG =.. [call, G0 | Extra],
+    (   var(G0)
+    ->  Out = Acc
+    ;   G0 =.. [F | As0],
+        append(As0, Extra, As),
+        G1 =.. [F | As],
+        fp_body_preds(G1, Acc, Out)
+    ).
 fp_body_preds(G, Acc, [P/A | Acc]) :-
     callable(G),
     functor(G, P, A),

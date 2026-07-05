@@ -15,6 +15,9 @@
 :- dynamic fp_t_ok/1.
 :- dynamic fp_t_flag/1.
 :- dynamic fp_t_clear/1.
+:- dynamic fp_t_count/1.
+:- dynamic fp_t_tags/1.
+:- dynamic fp_t_via/2.
 
 %% Cyclic graph: a -> b -> a, b -> c — with the VERBATIM textbook closure
 %% rules that loop forever under plain SLD resolution on cyclic data.
@@ -61,6 +64,32 @@ fp_setup_disjunction :-
     assertz(fp_t_flag(z)),
     assertz((fp_t_ok(N) :- ( fp_t_edge(N, _) ; fp_t_flag(N) ))).
 
+%% Aggregation over a DERIVED predicate inside a rule body — must be refused
+%% (mid-saturation the answer set is still growing; a setof here can silently
+%% under-count). Note the derived pred is referenced ONLY inside the setof —
+%% exercises the cone walk descending into aggregation subgoals.
+fp_setup_agg_derived :-
+    fp_setup_cycle,
+    assertz((fp_t_count(N) :- setof(Y, fp_t_reach(a, Y), Ys), length(Ys, N))).
+
+%% Aggregation over BASE goals is fine and calls through natively.
+fp_setup_agg_base :-
+    assertz(fp_t_edge(a, b)),
+    assertz(fp_t_edge(a, c)),
+    assertz((fp_t_tags(L) :- findall(Y, fp_t_edge(a, Y), L))).
+
+%% Compound negation MENTIONING a derived predicate — must be refused like
+%% direct \+ over derived (the guard walks the whole negated goal).
+fp_setup_compound_negation :-
+    fp_setup_left_recursive,
+    assertz((fp_t_ok(X) :- fp_t_parent(X, _), \+ (fp_t_anc(X, ann), fp_t_age(X, _)))).
+
+%% call/N over a derived predicate — unwrapped and looked up in the answer
+%% set, so it terminates on cyclic data like a plain derived subgoal.
+fp_setup_call_n :-
+    fp_setup_cycle,
+    assertz((fp_t_via(X, Y) :- fp_t_edge(X, _), call(fp_t_reach, X, Y))).
+
 cleanup_fp :-
     retractall(fp_t_edge(_, _)),
     retractall(fp_t_reach(_, _)),
@@ -71,7 +100,10 @@ cleanup_fp :-
     retractall(fp_t_path(_, _)),
     retractall(fp_t_ok(_)),
     retractall(fp_t_flag(_)),
-    retractall(fp_t_clear(_)).
+    retractall(fp_t_clear(_)),
+    retractall(fp_t_count(_)),
+    retractall(fp_t_tags(_)),
+    retractall(fp_t_via(_, _)).
 
 %% ── termination where SLD loops ─────────────────────────────────────────────
 
@@ -139,5 +171,24 @@ test(disjunction_in_bodies, [setup(fp_setup_disjunction), cleanup(cleanup_fp)]) 
 test(non_callable_goal_rejected,
      [throws(error(type_error(callable, _), _))]) :-
     fixpoint_solve(_).
+
+test(aggregation_over_derived_refused,
+     [setup(fp_setup_agg_derived), cleanup(cleanup_fp),
+      throws(error(representation_error(fixpoint_aggregation_over_derived_unsupported), _))]) :-
+    fixpoint_answers(fp_t_count(_), _).
+
+test(aggregation_over_base_ok, [setup(fp_setup_agg_base), cleanup(cleanup_fp)]) :-
+    fixpoint_answers(fp_t_tags(_), Answers),
+    assertion(Answers == [fp_t_tags([b, c])]).
+
+test(compound_negation_mentioning_derived_refused,
+     [setup(fp_setup_compound_negation), cleanup(cleanup_fp),
+      throws(error(representation_error(fixpoint_negation_over_derived_unsupported), _))]) :-
+    fixpoint_answers(fp_t_ok(_), _).
+
+test(call_n_over_derived_terminates, [setup(fp_setup_call_n), cleanup(cleanup_fp)]) :-
+    fixpoint_answers(fp_t_via(a, _), Answers),
+    msort(Answers, Sorted),
+    assertion(Sorted == [fp_t_via(a, a), fp_t_via(a, b), fp_t_via(a, c)]).
 
 :- end_tests(fixpoint_bodies).

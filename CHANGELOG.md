@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-05
+
+### Fixes
+
+- `fixpoint` **v1.0.1**: three guard holes closed, all variants of the same hazard — evaluating a goal against a still-growing answer set can silently produce wrong or incomplete results, which is strictly worse than not terminating:
+  - `setof`/`bagof`/`findall`/`forall` whose subgoal mentions a derived predicate now throw `fixpoint_aggregation_over_derived_unsupported` instead of natively re-proving the recursive predicate (which loops on cyclic data — the exact failure the battery exists to prevent). Aggregate after saturation via `fixpoint_answers/2` instead. Aggregation over base goals is unaffected.
+  - The negation guard now walks the whole negated goal: `\+ (reach(X, Y), blocked(Y))` is refused like `\+ reach(X, Y)` (previously slipped through to a native call).
+  - The auto-cone walk no longer classifies Prolog-defined *built-ins* as derived: SWI's permissive `clause/2` exposes the implementation of e.g. `length/2`, and a rule body calling it would previously pull that implementation into the saturation set (instantiation errors). Gated with a catch-wrapped `predicate_property/2` probe that degrades to strict-ISO behavior on engines without it.
+  - New: `call/N` over a derived predicate is unwrapped and looked up in the answer set (previously re-proven natively — same loop risk).
+
+### Docs
+
+- Corrected every claim that Scryer lacks tabling — it has had it for years via [`library(tabling)`](https://www.scryer.pl/tabling). Thanks to Markus Triska for the correction. The fixpoint battery's actual rationale is unchanged: directives are stripped at cell install on both engines, and `:- table` is an engine extension rather than part of ISO. The fixpoint README now points standalone (CLI) users at real engine tabling where it serves them better.
+
 ## 2026-07-04
 
 ### Modules
@@ -29,7 +43,7 @@ New Rust CLI (`cli/`, published to crates.io as [`logic-batteries`](https://crat
 ### Fixes
 
 - `prob-economy` **v1.0.1**: replaced the SWI-only `max_list/2` with a pure-ISO fold (internal `pe_max_list/3`), so the battery's `supply_disruption/2` and `demand_spike/2` run on Scryer/ISO-pinned cells (it installed there but those predicates failed at query time). No API change.
-- `fsm` **v1.0.1**: `fsm_reachable/3` rewritten as a bottom-up BFS fixpoint, dropping its `:- table` directive. The old recursive definition was only cycle-safe under tabling — which never reached logic cells (the installer strips directives on both engines) and does not exist on Scryer — so reachability and `fsm_cycle/2` queries on any machine with a cycle longer than a self-loop hung until the query watchdog. The fixpoint has tabling-equivalent semantics (each reachable state derived exactly once), always terminates, and runs in pure ISO on SWI and Scryer alike.
+- `fsm` **v1.0.1**: `fsm_reachable/3` rewritten as a bottom-up BFS fixpoint, dropping its `:- table` directive. The old recursive definition was only cycle-safe under tabling — which never reached logic cells, because the installer strips directives on both engines (SWI and Scryer each support tabling outside cells) — so reachability and `fsm_cycle/2` queries on any machine with a cycle longer than a self-loop hung until the query watchdog. The fixpoint has tabling-equivalent semantics (each reachable state derived exactly once), always terminates, and runs in pure ISO on SWI and Scryer alike.
 
 ### Licensing
 
