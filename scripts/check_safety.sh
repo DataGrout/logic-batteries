@@ -85,7 +85,7 @@ while IFS= read -r -d '' file; do
     # Forbidden directives (stripped at cell install — must not be relied on)
     for directive in "${FORBIDDEN_DIRECTIVES[@]}"; do
       if [[ "$code" =~ ^[[:space:]]*:-[[:space:]]*${directive}[\(\ ] ]]; then
-        echo "UNSAFE  modules/$rel:$line_num — ':- $directive' is stripped at cell install and must not be load-bearing"
+        echo "UNSAFE  modules/$rel:$line_num — ':- $directive' is stripped at cell install and must not be load-bearing (for tabling, use the fixpoint battery)"
         ((VIOLATIONS++)) || true
         break
       fi

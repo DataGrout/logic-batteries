@@ -1,9 +1,9 @@
-%% Battery: prob-economy v1.0.0
+%% Battery: prob-economy v1.0.1
 %% Requires: economy
 %% Exports: supply_disruption/2, demand_spike/2, price_range/4,
 %%          market_volatility/3, expected_price/2
 
-battery_module('prob-economy', '1.0.0', auto).
+battery_module('prob-economy', '1.0.1', auto).
 
 battery_export('prob-economy', 'supply_disruption/2',
     'supply_disruption(Item, P) — P is probability (0.0–1.0) supply is disrupted based on world state').
@@ -80,7 +80,7 @@ battery_export('prob-economy', 'expected_price/2',
 
 supply_disruption(Item, Ps) :-
     findall(P, supply_disruption_prob(Item, P), Probs),
-    ( Probs = [] -> Ps = 0.0 ; max_list(Probs, Ps) ).
+    pe_max_list(Probs, 0.0, Ps).
 
 supply_disruption_prob(Item, 0.65) :-
     attribute(Item, import_dependent, true),
@@ -100,7 +100,7 @@ supply_disruption_prob(Item, 0.30) :-
 
 demand_spike(Item, Pd) :-
     findall(P, demand_spike_prob(Item, P), Probs),
-    ( Probs = [] -> Pd = 0.0 ; max_list(Probs, Pd) ).
+    pe_max_list(Probs, 0.0, Pd).
 
 demand_spike_prob(Item, 0.75) :-
     attribute(Item, category, healing),
@@ -146,3 +146,9 @@ expected_price(Item, Price) :-
     supply_disruption(Item, Ps),
     demand_spike(Item, Pd),
     Price is round(Base * (1.0 - Ps * 0.2 + Pd * 0.3)).
+
+%% Pure-ISO max fold (max_list/2 is an SWI library predicate — unavailable on
+%% Scryer/ISO-pinned cells). Empty list yields the 0.0 accumulator.
+pe_max_list([], Acc, Acc).
+pe_max_list([P|Ps], Acc, Max) :-
+    ( P > Acc -> pe_max_list(Ps, P, Max) ; pe_max_list(Ps, Acc, Max) ).

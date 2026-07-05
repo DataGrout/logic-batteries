@@ -17,6 +17,7 @@ Insert a battery into a logic cell and it has new capabilities immediately — n
 | [temporal](./modules/reasoning/temporal/) | 12 | Event ordering, overlap, gaps, and deadline reasoning over timestamped facts |
 | [taxonomy](./modules/reasoning/taxonomy/) | 10 | Hierarchical classification with transitive membership and property inheritance |
 | [explain](./modules/reasoning/explain/) | 6 | Provenance meta-interpreter — `why/2` returns the facts supporting any conclusion; `explain/2` returns full proof trees |
+| [fixpoint](./modules/reasoning/fixpoint/) | 4 | Bottom-up Datalog saturation — tabling's termination benefit without tabling; cyclic/left-recursive rules work verbatim |
 
 ### Probabilistic
 

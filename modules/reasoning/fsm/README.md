@@ -1,4 +1,4 @@
-# Module: fsm v1.0.0
+# Module: fsm v1.0.1
 
 General-purpose finite state machine reasoning library for DataGrout Logic Cells. Assert machine structure once; query reachability, structural issues, runtime status, and paths at zero token cost.
 

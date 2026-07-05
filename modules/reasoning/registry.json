@@ -5,7 +5,7 @@
   "modules": [
     {
       "id": "fsm",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Finite State Machine",
       "description": "General-purpose FSM reasoning library. Assert machine structure once; query reachability, determinism, dead states, shortest paths, and structural issues at zero token cost. Supports runtime trace recording and cycle detection.",
       "category": "reasoning",
@@ -131,6 +131,32 @@
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/explain/explain.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/explain",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "fixpoint",
+      "version": "1.0.0",
+      "title": "Fixpoint Evaluation",
+      "description": "Bottom-up (Datalog-style) saturation of stored rules: tabling's termination benefit without tabling. Textbook recursive rules \u2014 transitive closure, left-recursive ancestry \u2014 work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Pure ISO \u2014 runs on SWI and Scryer alike, including ISO-pinned cells where :- table is unavailable.",
+      "category": "reasoning",
+      "tags": [
+        "fixpoint",
+        "datalog",
+        "tabling",
+        "termination",
+        "recursion",
+        "iso",
+        "scryer"
+      ],
+      "predicates": [
+        "fixpoint_solve/1",
+        "fixpoint_solve/2",
+        "fixpoint_answers/2",
+        "fixpoint_answers/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fixpoint/fixpoint.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fixpoint",
       "install": "batteries.install_many",
       "installs": 0
     }

@@ -29,3 +29,21 @@ jobs:
 
       - name: Check for unsafe predicates
         run: ./scripts/check_safety.sh
+
+      - name: Check registry manifests
+        run: python3 scripts/build_registry.py --check
+
+  cli:
+    name: Battery CLI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cli
+
+      - name: Test CLI (installs real batteries from this checkout)
+        run: cargo test --manifest-path cli/Cargo.toml

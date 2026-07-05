@@ -1,4 +1,4 @@
-# Module: prob-economy v1.0.0
+# Module: prob-economy v1.0.1
 
 Market uncertainty for simulation games. Models supply disruption and demand spike probabilities driven by world state, then derives price ranges and expected prices. Agents can query "what is the probable price range for iron ingots given an incoming storm?" without any LLM calls.
 

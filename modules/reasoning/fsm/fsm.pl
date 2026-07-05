@@ -76,6 +76,9 @@
 
 :- use_module(logic_cell, [relation/3, attribute/3, lc_flex_match/2]).
 
+%% Manifest (version tracked here, in the registry, and in the README).
+battery_module('fsm', '1.0.1', auto).
+
 %% ── Bridge Predicates ────────────────────────────────────────────────────────
 %%
 %% Agents may assert raw Prolog or structured JSON facts. Both are handled.

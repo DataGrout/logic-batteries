@@ -36,6 +36,7 @@
     'reasoning/taxonomy_test',
     'reasoning/temporal_test',
     'reasoning/explain_test',
+    'reasoning/fixpoint_test',
     %% Probabilistic
     'probabilistic/prob_loot_test',
     'probabilistic/prob_npc_test',

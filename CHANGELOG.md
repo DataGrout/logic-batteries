@@ -6,6 +6,7 @@
 
 **Reasoning**
 - `explain` -- Provenance meta-interpreter: `why/2` returns the flat list of facts supporting any conclusion; `explain/2` returns full proof trees with alternative proofs on backtracking. Pure ISO -- runs on SWI and Scryer alike.
+- `fixpoint` -- Bottom-up Datalog-style saturation of stored rules: tabling's termination benefit without tabling. Textbook recursive rules (transitive closure, left-recursive ancestry) work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Negation over derived predicates is refused with a clear error (stratification is future work). Pure ISO; the sanctioned alternative the `:- table` lint error now points at.
 
 **Probabilistic**
 - `prob-core-iso` -- ProbLog-lite runtime in pure ISO Prolog: noisy-or `psuccess/2`, legacy `pmax/2`, `pnot/2`, `pand/2`, `expected/3` over reified `prob_rule/2` clauses, plus the reference `::` -> `prob_rule` transform. Enables ProbLog notation on ISO-pinned (Scryer) cells with no SWI escalation. **Licensed Apache-2.0** (runtime carve-out; see License below).
@@ -27,7 +28,8 @@ New Rust CLI (`cli/`, published to crates.io as [`logic-batteries`](https://crat
 
 ### Fixes
 
-- `fsm`: `fsm_reachable/3` rewritten as a bottom-up BFS fixpoint, dropping its `:- table` directive. The old recursive definition was only cycle-safe under tabling — which never reached logic cells (the installer strips directives on both engines) and does not exist on Scryer — so reachability and `fsm_cycle/2` queries on any machine with a cycle longer than a self-loop hung until the query watchdog. The fixpoint has tabling-equivalent semantics (each reachable state derived exactly once), always terminates, and runs in pure ISO on SWI and Scryer alike.
+- `prob-economy` **v1.0.1**: replaced the SWI-only `max_list/2` with a pure-ISO fold (internal `pe_max_list/3`), so the battery's `supply_disruption/2` and `demand_spike/2` run on Scryer/ISO-pinned cells (it installed there but those predicates failed at query time). No API change.
+- `fsm` **v1.0.1**: `fsm_reachable/3` rewritten as a bottom-up BFS fixpoint, dropping its `:- table` directive. The old recursive definition was only cycle-safe under tabling — which never reached logic cells (the installer strips directives on both engines) and does not exist on Scryer — so reachability and `fsm_cycle/2` queries on any machine with a cycle longer than a self-loop hung until the query watchdog. The fixpoint has tabling-equivalent semantics (each reachable state derived exactly once), always terminates, and runs in pure ISO on SWI and Scryer alike.
 
 ### Licensing
 

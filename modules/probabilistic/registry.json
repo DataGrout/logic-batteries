@@ -47,7 +47,7 @@
     },
     {
       "id": "prob-economy",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Probabilistic Economy",
       "description": "Market uncertainty for simulation games. Models supply disruption and demand spike probabilities from world state (weather, seasons, conflict), then derives price ranges and expected prices. Requires economy in the same namespace.",
       "category": "probabilistic",
