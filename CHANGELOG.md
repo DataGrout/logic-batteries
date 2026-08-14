@@ -9,7 +9,7 @@
 - `d20-core` — ability modifiers (floored division, so a score of 7 is -2, not -1), proficiency by level, skills with proficiency/expertise and stat-block overrides, saving throws, passive perception, spell save DC, attack bonuses (finesse-aware, stat-block override first), checks/saves vs DC, and opposed contests with RAW tie semantics.
 - `d20-conditions` — all 15 conditions plus the six-level cumulative exhaustion table as queryable `condition_effect/3` data; action/reaction gating and condition-derived advantage.
 - `d20-combat` — AC derivation, natural 1/20 hit resolution, damage with resistance/immunity/vulnerability (physical category catches the three subtypes; halving rounds down per RAW), crits double dice only, initiative (descending, keysort-based), `d20_attack_roll_mode/3` resolving the full advantage/disadvantage matrix with RAW cancellation, death-save classification, and massive-damage instant death.
-- `d20-monsters` — 17 stat blocks CR 0–13 with full SRD attack profiles (`d20_monster_attack/5`: bonus, damage dice for the client to roll, flat damage bonus, type; Multiattack via `attacks_per_action`).
+- `d20-monsters` — 16 stat blocks CR 0–13 with full SRD attack profiles (`d20_monster_attack/5`: bonus, damage dice for the client to roll, flat damage bonus, type; Multiattack via `attacks_per_action`).
 - `d20-xp` — XP by CR (0–30), encounter thresholds for levels 1–20, action-economy multipliers, and name-based `party_encounter_difficulty/4`.
 
 Generic predicate names take the `d20_` prefix (`d20_resistance`, `d20_can_attack`, `d20_is_defeated`, `d20_initiative_order`, `d20_damage_category`) so the category composes alongside `combat` and `prob-detection` in one namespace — verified by loading everything in a single test process.

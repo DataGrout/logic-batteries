@@ -1,6 +1,6 @@
 # Module: d20-monsters v1.0.0
 
-SRD 5.1 monster stat blocks as attribute facts. 17 monsters from CR 0 to CR 13,
+SRD 5.1 monster stat blocks as attribute facts. 16 monsters from CR 0 to CR 13,
 ready to use with `d20-combat` and `d20-xp`. Override any attribute to customise
 for your campaign.
 

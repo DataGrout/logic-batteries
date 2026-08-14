@@ -111,7 +111,7 @@
       "id": "d20-monsters",
       "version": "1.0.0",
       "title": "d20 Monster Stat Blocks",
-      "description": "SRD 5.1 monster stat blocks as attribute facts \u2014 AC, HP, speed, ability scores, damage type, immunities, resistances, and vulnerabilities. Includes 17 monsters from CR 0 to CR 13: commoner, bandit, guard, goblin, skeleton, zombie, orc, shadow, ghoul, giant_spider, ogre, manticore, minotaur, troll, stone_golem, vampire. Override any attribute for custom variants.",
+      "description": "SRD 5.1 monster stat blocks as attribute facts \u2014 AC, HP, speed, ability scores, damage type, immunities, resistances, and vulnerabilities. Includes 16 monsters from CR 0 to CR 13: commoner, bandit, guard, goblin, skeleton, zombie, orc, shadow, ghoul, giant_spider, ogre, manticore, minotaur, troll, stone_golem, vampire. Override any attribute for custom variants.",
       "category": "d20",
       "tags": [
         "d20",
