@@ -44,6 +44,14 @@
     'probabilistic/prob_economy_test',
     'probabilistic/prob_core_iso_test',
     'probabilistic/prob_decide_test',
+    %% d20 (loads after integration would clobber nothing: all d20 exports are
+    %% d20_-prefixed or d20-specific, so order vs games/combat no longer matters)
+    'd20/d20_core_test',
+    'd20/d20_conditions_test',
+    'd20/d20_combat_test',
+    'd20/d20_monsters_test',
+    'd20/d20_xp_test',
+    'd20/d20_integration_test',
     %% Integration
     'integration_test'
 ], [relative_to('.')]).

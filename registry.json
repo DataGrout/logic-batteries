@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-07-05",
+  "updated_at": "2026-08-13",
   "modules": [
     {
       "id": "fsm",
@@ -900,6 +900,168 @@
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-decide/prob_decide.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-decide",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-core",
+      "version": "1.0.0",
+      "title": "d20 Core Rules",
+      "description": "Ability scores, ability modifiers, proficiency bonus by level, skill modifiers with proficiency/expertise, saving throws, passive perception, spell save DC, and attack bonus for melee/ranged/spell. The foundation battery \u2014 install this first; all other d20 batteries depend on it.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "rpg",
+        "ability-scores",
+        "proficiency"
+      ],
+      "predicates": [
+        "ability_modifier/2",
+        "proficiency_bonus/2",
+        "skill_modifier/3",
+        "saving_throw_modifier/3",
+        "passive_perception/2",
+        "spell_save_dc/2",
+        "attack_bonus/3",
+        "d20_check/4",
+        "d20_save/4",
+        "d20_contest/7"
+      ],
+      "requires": [],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-core/d20_core.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-core",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-combat",
+      "version": "1.0.0",
+      "title": "d20 Combat",
+      "description": "AC-based hit resolution (natural 1/20 rules), damage calculation with ability modifier, critical hits, physical damage subcategory grouping (slashing/piercing/bludgeoning \u2192 physical), resistance/immunity/vulnerability, initiative ordering via keysort, advantage/disadvantage derivation from conditions and terrain, and action gating.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "combat",
+        "rpg",
+        "initiative",
+        "armor-class"
+      ],
+      "predicates": [
+        "hits_ac/3",
+        "hits_ac/4",
+        "d20_damage/4",
+        "d20_crit_damage/4",
+        "d20_is_defeated/1",
+        "d20_initiative_order/2",
+        "d20_resistance/3",
+        "d20_damage_category/2",
+        "advantage_on_attack/2",
+        "disadvantage_on_attack/2",
+        "d20_can_attack/2",
+        "d20_attack_roll_mode/3",
+        "d20_death_save/2",
+        "d20_instant_death/2"
+      ],
+      "requires": [
+        "d20-core",
+        "d20-conditions"
+      ],
+      "recommends": [
+        "d20-conditions"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-combat/d20_combat.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-combat",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-conditions",
+      "version": "1.0.0",
+      "title": "d20 Conditions",
+      "description": "All 15 SRD conditions (blinded, charmed, deafened, frightened, grappled, incapacitated, invisible, paralyzed, petrified, poisoned, prone, restrained, stunned, unconscious) plus all 6 exhaustion levels. Each condition exposes its mechanical effects as queryable facts for UI, AI, and rule-engine use.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "conditions",
+        "status-effects",
+        "rpg"
+      ],
+      "predicates": [
+        "d20_condition_active/2",
+        "condition_effect/3",
+        "exhaustion_level/2",
+        "active_exhaustion_effect/3",
+        "condition_blocks_action/1",
+        "condition_blocks_reaction/1",
+        "condition_grants_advantage_on_attack/2",
+        "condition_imposes_disadvantage_on_attack/2"
+      ],
+      "requires": [],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-conditions/d20_conditions.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-conditions",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-monsters",
+      "version": "1.0.0",
+      "title": "d20 Monster Stat Blocks",
+      "description": "SRD 5.1 monster stat blocks as attribute facts \u2014 AC, HP, speed, ability scores, damage type, immunities, resistances, and vulnerabilities. Includes 17 monsters from CR 0 to CR 13: commoner, bandit, guard, goblin, skeleton, zombie, orc, shadow, ghoul, giant_spider, ogre, manticore, minotaur, troll, stone_golem, vampire. Override any attribute for custom variants.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "monsters",
+        "stat-blocks",
+        "rpg"
+      ],
+      "predicates": [
+        "monster_cr/2",
+        "monster_type/2",
+        "monster_xp/2",
+        "srd_monster/1",
+        "d20_monster_attack/5"
+      ],
+      "requires": [],
+      "recommends": [
+        "d20-core",
+        "d20-combat"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-monsters/d20_monsters.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-monsters",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-xp",
+      "version": "1.0.0",
+      "title": "d20 Encounter XP",
+      "description": "SRD 5.1 encounter building tools. XP by CR (full table CR 0\u201330), difficulty thresholds per party level (easy/medium/hard/deadly), action-economy XP multiplier by monster count, adjusted XP calculation, and encounter difficulty rating. With d20-monsters installed, rate difficulty by monster name list directly.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "xp",
+        "encounter-building",
+        "rpg"
+      ],
+      "predicates": [
+        "xp_for_cr/2",
+        "encounter_threshold/3",
+        "xp_multiplier/2",
+        "adjusted_xp/3",
+        "encounter_difficulty/4",
+        "party_encounter_difficulty/4"
+      ],
+      "requires": [],
+      "recommends": [
+        "d20-monsters"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-xp/d20_xp.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-xp",
       "install": "batteries.install_many",
       "installs": 0
     }
