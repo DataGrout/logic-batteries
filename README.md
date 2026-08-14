@@ -157,6 +157,7 @@ Three deliberate tiers — permissive tooling and runtime, protected content:
 | Content batteries (default) | [Elastic License 2.0](./LICENSE) | Free to use — including vendored into your projects via the CLI — but can't seed a competing managed Logic Cell service |
 | [prob-core-iso](./modules/probabilistic/prob-core-iso/) | [Apache-2.0](./modules/probabilistic/prob-core-iso/LICENSE) | Core runtime, not content — embed it anywhere, no restrictions |
 | [`battery` CLI](./cli/) | [MIT](./cli/LICENSE) | Commodity tooling — the batteries it installs carry their own license |
+| [d20 category](./modules/d20/) | Elastic 2.0, incorporating SRD 5.1 content under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | Stat blocks, tables, and mechanics from the Systems Reference Document 5.1, © Wizards of the Coast LLC — attribution travels with every module and the registry |
 
 Registry entries may carry an explicit `license` field; when absent, the
 repository default (Elastic License 2.0) applies.
