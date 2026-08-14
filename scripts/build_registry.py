@@ -17,7 +17,7 @@ ROOT = pathlib.Path(__file__).parent.parent
 MODULES_DIR = ROOT / "modules"
 TOP_LEVEL = ROOT / "registry.json"
 
-CATEGORY_ORDER = ["reasoning", "games", "business", "probabilistic"]
+CATEGORY_ORDER = ["reasoning", "games", "business", "probabilistic", "d20"]
 
 
 def load_category_registries():

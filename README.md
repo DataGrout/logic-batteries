@@ -65,6 +65,18 @@ Query exact probabilities instead of thresholds — zero LLM calls per tick. Wei
 | [scheduling](./modules/business/scheduling/) | 5 | Slot availability, conflicts, advance windows |
 | [compliance](./modules/business/compliance/) | 5 | Policy checks, retention windows, consent registry |
 
+### d20
+
+The SRD 5.1 rules layer as composing batteries. All stat blocks and mechanics from the **Systems Reference Document 5.1**, published under **CC BY 4.0** by Wizards of the Coast LLC. Dice stay client-side — the cell adjudicates, the caller rolls. Pure ISO: runs on SWI and Scryer alike.
+
+| Module | Predicates | Description |
+|---|---|---|
+| [d20-core](./modules/d20/d20-core/) | 10 | Ability modifiers (floored), proficiency, skills with expertise and stat-block overrides, saves, checks vs DC, opposed contests |
+| [d20-conditions](./modules/d20/d20-conditions/) | 8 | All 15 SRD conditions plus cumulative exhaustion as queryable effect data |
+| [d20-combat](./modules/d20/d20-combat/) | 14 | Natural 1/20 hit resolution, damage with resistances (RAW round-down), crits, initiative, advantage/disadvantage with RAW cancellation, death saves, instant death |
+| [d20-monsters](./modules/d20/d20-monsters/) | 5 | 17 stat blocks CR 0–13 with full SRD attack profiles (`d20_monster_attack/5`) |
+| [d20-xp](./modules/d20/d20-xp/) | 6 | XP by CR 0–30, encounter difficulty thresholds, action-economy multipliers |
+
 ## batteries.* MCP Toolsuite
 
 The `batteries.*` toolsuite lets agents search, install, and manage batteries directly from an LC session — no manual Prolog URL handling needed.
