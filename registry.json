@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-08-13",
+  "updated_at": "2026-08-30",
   "modules": [
     {
       "id": "fsm",
@@ -1062,6 +1062,82 @@
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-xp/d20_xp.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-xp",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-grid",
+      "version": "1.0.0",
+      "title": "d20 Grid Combat Geometry",
+      "description": "Square-grid combat geometry: Chebyshev distance and range (SRD basic rule \u2014 diagonals count as one), Bresenham line of sight over blocking terrain, cover derivation (none/half/total) with SRD AC bonuses, forced-movement push resolution, burst areas, and occupancy. Standalone; pairs naturally with d20-combat for AC handling and targeting.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "grid",
+        "line-of-sight",
+        "cover",
+        "rpg"
+      ],
+      "predicates": [
+        "grid_distance/3",
+        "grid_adjacent/2",
+        "grid_in_range/3",
+        "grid_los/2",
+        "grid_los_xy/4",
+        "grid_cover/3",
+        "cover_ac_bonus/2",
+        "grid_push_dest/4",
+        "grid_in_burst/4",
+        "grid_occupied/2"
+      ],
+      "requires": [],
+      "recommends": [
+        "d20-combat"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-grid/d20_grid.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-grid",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-spells",
+      "version": "1.0.0",
+      "title": "d20 Spellcasting",
+      "description": "Spellcasting mechanics: spell slots per level with expenditure tracking, the full casting gate (known \u2192 prepared \u2192 slot free), upcasting, save resolution against the caster's DC, concentration DCs and checks, and a starter grimoire of 14 SRD spells (3 cantrips, 7 first-level, 4 second-level) with cantrip scaling at levels 5/11/17. The application rolls the dice; the cell owns the ruling.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "spells",
+        "spellcasting",
+        "rpg"
+      ],
+      "predicates": [
+        "d20_spell/3",
+        "spell_range/2",
+        "spell_cast_action/2",
+        "spell_save/3",
+        "spell_attack_roll/1",
+        "spell_concentration/1",
+        "spell_damage_type/2",
+        "spell_known/2",
+        "spell_castable/2",
+        "spell_slots_total/3",
+        "spell_slots_expended/3",
+        "spell_slot_available/2",
+        "d20_can_cast/3",
+        "spell_effective_dice/5",
+        "spell_heal_profile/4",
+        "d20_spell_save/5",
+        "d20_concentration_dc/2",
+        "d20_concentration_check/4"
+      ],
+      "requires": [
+        "d20-core"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-spells/d20_spells.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-spells",
       "install": "batteries.install_many",
       "installs": 0
     }

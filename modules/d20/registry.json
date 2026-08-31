@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-08-12",
+  "updated_at": "2026-08-30",
   "category": "d20",
   "license": "CC BY 4.0",
   "srd_note": "All stat blocks and mechanics are from the Systems Reference Document 5.1, published under the Creative Commons Attribution 4.0 International License by Wizards of the Coast LLC.",
@@ -9,7 +9,7 @@
       "id": "d20-core",
       "version": "1.0.0",
       "title": "d20 Core Rules",
-      "description": "Ability scores, ability modifiers, proficiency bonus by level, skill modifiers with proficiency/expertise, saving throws, passive perception, spell save DC, and attack bonus for melee/ranged/spell. The foundation battery \u2014 install this first; all other d20 batteries depend on it.",
+      "description": "Ability scores, ability modifiers, proficiency bonus by level, skill modifiers with proficiency/expertise, saving throws, passive perception, spell save DC, and attack bonus for melee/ranged/spell. The foundation battery — install this first; all other d20 batteries depend on it.",
       "category": "d20",
       "tags": [
         "d20",
@@ -40,7 +40,7 @@
       "id": "d20-combat",
       "version": "1.0.0",
       "title": "d20 Combat",
-      "description": "AC-based hit resolution (natural 1/20 rules), damage calculation with ability modifier, critical hits, physical damage subcategory grouping (slashing/piercing/bludgeoning \u2192 physical), resistance/immunity/vulnerability, initiative ordering via keysort, advantage/disadvantage derivation from conditions and terrain, and action gating.",
+      "description": "AC-based hit resolution (natural 1/20 rules), damage calculation with ability modifier, critical hits, physical damage subcategory grouping (slashing/piercing/bludgeoning → physical), resistance/immunity/vulnerability, initiative ordering via keysort, advantage/disadvantage derivation from conditions and terrain, and action gating.",
       "category": "d20",
       "tags": [
         "d20",
@@ -111,7 +111,7 @@
       "id": "d20-monsters",
       "version": "1.0.0",
       "title": "d20 Monster Stat Blocks",
-      "description": "SRD 5.1 monster stat blocks as attribute facts \u2014 AC, HP, speed, ability scores, damage type, immunities, resistances, and vulnerabilities. Includes 16 monsters from CR 0 to CR 13: commoner, bandit, guard, goblin, skeleton, zombie, orc, shadow, ghoul, giant_spider, ogre, manticore, minotaur, troll, stone_golem, vampire. Override any attribute for custom variants.",
+      "description": "SRD 5.1 monster stat blocks as attribute facts — AC, HP, speed, ability scores, damage type, immunities, resistances, and vulnerabilities. Includes 16 monsters from CR 0 to CR 13: commoner, bandit, guard, goblin, skeleton, zombie, orc, shadow, ghoul, giant_spider, ogre, manticore, minotaur, troll, stone_golem, vampire. Override any attribute for custom variants.",
       "category": "d20",
       "tags": [
         "d20",
@@ -141,7 +141,7 @@
       "id": "d20-xp",
       "version": "1.0.0",
       "title": "d20 Encounter XP",
-      "description": "SRD 5.1 encounter building tools. XP by CR (full table CR 0\u201330), difficulty thresholds per party level (easy/medium/hard/deadly), action-economy XP multiplier by monster count, adjusted XP calculation, and encounter difficulty rating. With d20-monsters installed, rate difficulty by monster name list directly.",
+      "description": "SRD 5.1 encounter building tools. XP by CR (full table CR 0–30), difficulty thresholds per party level (easy/medium/hard/deadly), action-economy XP multiplier by monster count, adjusted XP calculation, and encounter difficulty rating. With d20-monsters installed, rate difficulty by monster name list directly.",
       "category": "d20",
       "tags": [
         "d20",
@@ -164,6 +164,82 @@
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-xp/d20_xp.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-xp",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-grid",
+      "version": "1.0.0",
+      "title": "d20 Grid Combat Geometry",
+      "description": "Square-grid combat geometry: Chebyshev distance and range (SRD basic rule — diagonals count as one), Bresenham line of sight over blocking terrain, cover derivation (none/half/total) with SRD AC bonuses, forced-movement push resolution, burst areas, and occupancy. Standalone; pairs naturally with d20-combat for AC handling and targeting.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "grid",
+        "line-of-sight",
+        "cover",
+        "rpg"
+      ],
+      "predicates": [
+        "grid_distance/3",
+        "grid_adjacent/2",
+        "grid_in_range/3",
+        "grid_los/2",
+        "grid_los_xy/4",
+        "grid_cover/3",
+        "cover_ac_bonus/2",
+        "grid_push_dest/4",
+        "grid_in_burst/4",
+        "grid_occupied/2"
+      ],
+      "requires": [],
+      "recommends": [
+        "d20-combat"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-grid/d20_grid.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-grid",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "d20-spells",
+      "version": "1.0.0",
+      "title": "d20 Spellcasting",
+      "description": "Spellcasting mechanics: spell slots per level with expenditure tracking, the full casting gate (known → prepared → slot free), upcasting, save resolution against the caster's DC, concentration DCs and checks, and a starter grimoire of 14 SRD spells (3 cantrips, 7 first-level, 4 second-level) with cantrip scaling at levels 5/11/17. The application rolls the dice; the cell owns the ruling.",
+      "category": "d20",
+      "tags": [
+        "d20",
+        "srd",
+        "spells",
+        "spellcasting",
+        "rpg"
+      ],
+      "predicates": [
+        "d20_spell/3",
+        "spell_range/2",
+        "spell_cast_action/2",
+        "spell_save/3",
+        "spell_attack_roll/1",
+        "spell_concentration/1",
+        "spell_damage_type/2",
+        "spell_known/2",
+        "spell_castable/2",
+        "spell_slots_total/3",
+        "spell_slots_expended/3",
+        "spell_slot_available/2",
+        "d20_can_cast/3",
+        "spell_effective_dice/5",
+        "spell_heal_profile/4",
+        "d20_spell_save/5",
+        "d20_concentration_dc/2",
+        "d20_concentration_check/4"
+      ],
+      "requires": [
+        "d20-core"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-spells/d20_spells.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-spells",
       "install": "batteries.install_many",
       "installs": 0
     }

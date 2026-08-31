@@ -51,6 +51,8 @@
     'd20/d20_combat_test',
     'd20/d20_monsters_test',
     'd20/d20_xp_test',
+    'd20/d20_grid_test',
+    'd20/d20_spells_test',
     'd20/d20_integration_test',
     %% Integration
     'integration_test'
