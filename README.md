@@ -65,6 +65,7 @@ Query exact probabilities instead of thresholds — zero LLM calls per tick. Wei
 | [loyalty](./modules/business/loyalty/) | 5 | Points balance, tier benefits, redemption costs |
 | [scheduling](./modules/business/scheduling/) | 5 | Slot availability, conflicts, advance windows |
 | [duty](./modules/business/duty/) | 16 | Duty conflicts, rest and rolling limits, qualification currency, who is fit and why not |
+| [rostering](./modules/business/rostering/) | 18 | Coverage, violations, ranked candidates, greedy fill, replacements, swaps, load balance; assign model for exact fill |
 | [compliance](./modules/business/compliance/) | 5 | Policy checks, retention windows, consent registry |
 
 ### d20

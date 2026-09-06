@@ -8,10 +8,13 @@
 
 **assign** v1.0.0 (reasoning) — budgeted constraint search over cell facts. Variables carry a `domain` attribute, `distinct` relations form all-different groups, and three open hook predicates (`assign_reject/2`, `assign_reject_pair/4`, `assign_cost/3`) constrain and price assignments — their bodies can call any other battery, which is how `assign` composes with `duty` to fill a roster. Depth-first over an explicit agenda so the node budget is a true global bound, minimum-remaining-values ordering, forward checking, cheapest-first value order, and branch and bound in `assign_best/3`. Results are explicit terms: `solution/2`, `unsat/1`, `unsat(empty_domain(V))`, `budget_exhausted/1`, `best/4`. `assign_violations/2` audits an assignment made elsewhere. Pure ISO; no `call/N`.
 
+**rostering** v1.0.0 (business, requires duty and assign) — the roster layer: seat requirements per shift, coverage and gaps, violations that surface every `duty` unfit reason plus `clash/1` and `role_not_needed/1`, a compatibility test between two shifts for one worker (overlap or rest below `min_rest`), candidates filtered through `fit_for_duty/4`, a weight-free ranking key compared by standard order (preference, headroom, load, seniority), greedy `fill_shift/3` and `propose_roster/3` that honour incompatibility between their own picks and report unfilled seats, `replacement_for/3`, `swap_valid/4`, clipped `assigned_load/4` and `load_imbalance/5`, and `roster_model/2`, which emits the `assign` model for open seats so exact fill is one hook and one `assign_solve/2` away. Pure ISO; reuses `duty` rather than redefining it.
+
 ### Tests
 
 - 37 duty tests across conflicts, policy resolution, duty length, rest, rolling limits, qualifications, and end-to-end verdicts.
 - 21 assign tests across domains, satisfy, optimise, violations, and a composition suite that fills two shifts over `duty` with fitness and rest constraints.
+- 33 rostering tests across coverage, compatibility, violations, ranking, greedy fill, replacements and swaps, load, and the assign model solved end to end.
 - Scryer smoke: both batteries concatenated flat with a fact set pass on scryer-prolog. `max_list/2` is SWI-only and is avoided in favour of a pure ISO fold.
 
 

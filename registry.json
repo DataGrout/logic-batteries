@@ -792,6 +792,49 @@
       "installs": 0
     },
     {
+      "id": "rostering",
+      "version": "1.0.0",
+      "title": "Rostering",
+      "description": "Roster coverage, violations, candidate ranking, greedy fill, replacements, swaps, and load balance over the duty battery, plus an assign-battery model for exact fill of open seats. Proposals come back as terms to assert; nothing is written.",
+      "category": "business",
+      "tags": [
+        "rostering",
+        "scheduling",
+        "shifts",
+        "coverage",
+        "staffing",
+        "business"
+      ],
+      "requires": [
+        "duty",
+        "assign"
+      ],
+      "predicates": [
+        "coverage/3",
+        "coverage_gap/3",
+        "understaffed/1",
+        "overstaffed/3",
+        "incompatible_shifts/3",
+        "roster_violation/3",
+        "roster_valid/1",
+        "candidates/3",
+        "candidate_score/3",
+        "rank_candidates/3",
+        "fill_shift/3",
+        "propose_roster/2",
+        "propose_roster/3",
+        "replacement_for/3",
+        "swap_valid/4",
+        "assigned_load/4",
+        "load_imbalance/5",
+        "roster_model/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/rostering/rostering.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/rostering",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
       "id": "compliance",
       "version": "1.0.0",
       "title": "Compliance",

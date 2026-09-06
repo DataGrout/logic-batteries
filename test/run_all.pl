@@ -32,6 +32,7 @@
     'business/loyalty_test',
     'business/scheduling_test',
     'business/duty_test',
+    'business/rostering_test',
     'business/compliance_test',
     %% Reasoning
     'reasoning/taxonomy_test',
