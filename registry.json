@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-08-30",
+  "updated_at": "2026-09-09",
   "modules": [
     {
       "id": "fsm",
@@ -156,6 +156,35 @@
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fixpoint/fixpoint.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fixpoint",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "assign",
+      "version": "1.0.0",
+      "title": "Assign",
+      "description": "Budgeted constraint search over cell facts: variables with domains, all-different groups, and reject/pair/cost hooks whose bodies can call any other battery. Returns one consistent assignment, the cheapest by branch and bound, or the violations in a given assignment. Explicit node budget; small instances.",
+      "category": "reasoning",
+      "tags": [
+        "constraints",
+        "assignment",
+        "search",
+        "optimisation",
+        "rostering",
+        "reasoning"
+      ],
+      "predicates": [
+        "assign_domain/2",
+        "assign_solve/2",
+        "assign_solve/3",
+        "assign_best/3",
+        "assign_violations/2",
+        "assign_reject/2",
+        "assign_reject_pair/4",
+        "assign_cost/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/assign/assign.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/assign",
       "install": "batteries.install_many",
       "installs": 0
     },
@@ -721,6 +750,44 @@
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/scheduling/scheduling.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/scheduling",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
+      "id": "duty",
+      "version": "1.0.0",
+      "title": "Duty",
+      "description": "Duty conflicts, unavailability windows (leave, maintenance), maximum duty length, minimum rest, rolling cumulative limits, qualification currency, and role gating for people and the equipment they use. Ask whether a proposed duty is clean, who is available for it, and exactly why someone is not.",
+      "category": "business",
+      "tags": [
+        "scheduling",
+        "duty",
+        "rest",
+        "shifts",
+        "rostering",
+        "compliance",
+        "business"
+      ],
+      "predicates": [
+        "duty_conflict/3",
+        "unavailable/3",
+        "duty_limit/3",
+        "policy_gap/2",
+        "duty_length_ok/3",
+        "rest_before/3",
+        "rest_satisfied/2",
+        "cumulative_duty/4",
+        "rolling_limit_ok/3",
+        "duty_headroom/3",
+        "qualified_for/3",
+        "missing_qualification/4",
+        "role_matches/2",
+        "fit_for_duty/4",
+        "unfit_reason/5",
+        "available_staff/4"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/duty/duty.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/duty",
       "install": "batteries.install_many",
       "installs": 0
     },

@@ -173,6 +173,44 @@
       "installs": 0
     },
     {
+      "id": "duty",
+      "version": "1.0.0",
+      "title": "Duty",
+      "description": "Duty conflicts, unavailability windows (leave, maintenance), maximum duty length, minimum rest, rolling cumulative limits, qualification currency, and role gating for people and the equipment they use. Ask whether a proposed duty is clean, who is available for it, and exactly why someone is not.",
+      "category": "business",
+      "tags": [
+        "scheduling",
+        "duty",
+        "rest",
+        "shifts",
+        "rostering",
+        "compliance",
+        "business"
+      ],
+      "predicates": [
+        "duty_conflict/3",
+        "unavailable/3",
+        "duty_limit/3",
+        "policy_gap/2",
+        "duty_length_ok/3",
+        "rest_before/3",
+        "rest_satisfied/2",
+        "cumulative_duty/4",
+        "rolling_limit_ok/3",
+        "duty_headroom/3",
+        "qualified_for/3",
+        "missing_qualification/4",
+        "role_matches/2",
+        "fit_for_duty/4",
+        "unfit_reason/5",
+        "available_staff/4"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/duty/duty.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/duty",
+      "install": "batteries.install_many",
+      "installs": 0
+    },
+    {
       "id": "compliance",
       "version": "1.0.0",
       "title": "Compliance",

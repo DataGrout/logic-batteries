@@ -18,6 +18,7 @@ Insert a battery into a logic cell and it has new capabilities immediately — n
 | [taxonomy](./modules/reasoning/taxonomy/) | 10 | Hierarchical classification with transitive membership and property inheritance |
 | [explain](./modules/reasoning/explain/) | 6 | Provenance meta-interpreter — `why/2` returns the facts supporting any conclusion; `explain/2` returns full proof trees |
 | [fixpoint](./modules/reasoning/fixpoint/) | 4 | Bottom-up Datalog saturation — tabling's termination benefit without tabling; cyclic/left-recursive rules work verbatim |
+| [assign](./modules/reasoning/assign/) | 8 | Budgeted constraint search — domains, all-different groups, reject/pair/cost hooks, branch and bound, violation checking |
 
 ### Probabilistic
 
@@ -63,6 +64,7 @@ Query exact probabilities instead of thresholds — zero LLM calls per tick. Wei
 | [pricing-rules](./modules/business/pricing_rules/) | 5 | Tier pricing, discounts, bulk breaks, floor/ceiling |
 | [loyalty](./modules/business/loyalty/) | 5 | Points balance, tier benefits, redemption costs |
 | [scheduling](./modules/business/scheduling/) | 5 | Slot availability, conflicts, advance windows |
+| [duty](./modules/business/duty/) | 16 | Duty conflicts, rest and rolling limits, qualification currency, who is fit and why not |
 | [compliance](./modules/business/compliance/) | 5 | Policy checks, retention windows, consent registry |
 
 ### d20

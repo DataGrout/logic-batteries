@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-05
+
+### Modules
+
+**duty** v1.0.0 (business) — duty-time and readiness rules for people and the equipment they use. Duty conflicts and unavailability windows over half-open intervals (same `start`/`end` convention as `temporal`, so the two compose); policy limits (`max_duty`, `min_rest`, `rolling_window`, `rolling_limit`) resolved worker → role → global `duty_policy`; rest measured from committed duty only; rolling limits that clip periods straddling the window edge; qualification currency with optional expiry; role gating. `fit_for_duty/4` is the verdict, `unfit_reason/5` yields one term per failing check, `available_staff/4` enumerates, and `policy_gap/2` exposes unconfigured limits so a caller who needs a complete policy can refuse rather than pass vacuously. Pure ISO; no directives beyond `dynamic`.
+
+**assign** v1.0.0 (reasoning) — budgeted constraint search over cell facts. Variables carry a `domain` attribute, `distinct` relations form all-different groups, and three open hook predicates (`assign_reject/2`, `assign_reject_pair/4`, `assign_cost/3`) constrain and price assignments — their bodies can call any other battery, which is how `assign` composes with `duty` to fill a roster. Depth-first over an explicit agenda so the node budget is a true global bound, minimum-remaining-values ordering, forward checking, cheapest-first value order, and branch and bound in `assign_best/3`. Results are explicit terms: `solution/2`, `unsat/1`, `unsat(empty_domain(V))`, `budget_exhausted/1`, `best/4`. `assign_violations/2` audits an assignment made elsewhere. Pure ISO; no `call/N`.
+
+### Tests
+
+- 37 duty tests across conflicts, policy resolution, duty length, rest, rolling limits, qualifications, and end-to-end verdicts.
+- 21 assign tests across domains, satisfy, optimise, violations, and a composition suite that fills two shifts over `duty` with fitness and rest constraints.
+- Scryer smoke: both batteries concatenated flat with a fact set pass on scryer-prolog. `max_list/2` is SWI-only and is avoided in favour of a pure ISO fold.
+
+
 ## 2026-08-13
 
 ### Modules

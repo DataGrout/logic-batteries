@@ -31,12 +31,14 @@
     'business/pricing_rules_test',
     'business/loyalty_test',
     'business/scheduling_test',
+    'business/duty_test',
     'business/compliance_test',
     %% Reasoning
     'reasoning/taxonomy_test',
     'reasoning/temporal_test',
     'reasoning/explain_test',
     'reasoning/fixpoint_test',
+    'reasoning/assign_test',
     %% Probabilistic
     'probabilistic/prob_loot_test',
     'probabilistic/prob_npc_test',

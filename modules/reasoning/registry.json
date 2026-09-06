@@ -159,6 +159,35 @@
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fixpoint",
       "install": "batteries.install_many",
       "installs": 0
+    },
+    {
+      "id": "assign",
+      "version": "1.0.0",
+      "title": "Assign",
+      "description": "Budgeted constraint search over cell facts: variables with domains, all-different groups, and reject/pair/cost hooks whose bodies can call any other battery. Returns one consistent assignment, the cheapest by branch and bound, or the violations in a given assignment. Explicit node budget; small instances.",
+      "category": "reasoning",
+      "tags": [
+        "constraints",
+        "assignment",
+        "search",
+        "optimisation",
+        "rostering",
+        "reasoning"
+      ],
+      "predicates": [
+        "assign_domain/2",
+        "assign_solve/2",
+        "assign_solve/3",
+        "assign_best/3",
+        "assign_violations/2",
+        "assign_reject/2",
+        "assign_reject_pair/4",
+        "assign_cost/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/assign/assign.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/assign",
+      "install": "batteries.install_many",
+      "installs": 0
     }
   ]
 }
