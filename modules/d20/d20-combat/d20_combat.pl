@@ -36,6 +36,12 @@ battery_export('d20-combat', 'd20_instant_death/2',     'd20_instant_death(Entit
 %% Physical damage subtypes group under `physical` so that resist_physical /
 %% immune_physical catches all three without enumerating them individually.
 %% Type chart lookups still use the specific subtype for inter-entity relations.
+%%
+%% NOTE: nondeterministic by design — d20_damage_category(slashing, C) yields
+%% BOTH C = physical and C = slashing (the catch-all clause), so resistance
+%% checks can match either resist_physical or resist_slashing. If you call it
+%% inside findall/aggregation, guard with once/1 or you will double-count the
+%% three physical subtypes.
 
 d20_damage_category(slashing,    physical).
 d20_damage_category(piercing,    physical).
