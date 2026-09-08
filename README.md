@@ -9,6 +9,12 @@ Insert a battery into a logic cell and it has new capabilities immediately — n
 
 ## Batteries Included
 
+### Core
+
+| Module | Predicates | Description |
+|---|---|---|
+| [core](./modules/core/core/) | 25 | The one copy of the portable list and aggregate helpers (`core_` prefix): max, min, argmax, mean, median, stable msort and keysort, group_pairs, unique, between, numlist, subtract, flatten, zip, include, exclude, foldl, forall. Runs on both engines |
+
 ### Reasoning
 
 | Module | Predicates | Description |
@@ -160,6 +166,7 @@ Three deliberate tiers — permissive tooling and runtime, protected content:
 | What | License | Why |
 |---|---|---|
 | Content batteries (default) | [Elastic License 2.0](./LICENSE) | Free to use — including vendored into your projects via the CLI — but can't seed a competing managed Logic Cell service |
+| [core](./modules/core/core/) | [Apache-2.0](./modules/core/core/LICENSE) | Core runtime, not content — the portable helper layer other batteries are written against; restricting it would restrict everything built on top |
 | [prob-core-iso](./modules/probabilistic/prob-core-iso/) | [Apache-2.0](./modules/probabilistic/prob-core-iso/LICENSE) | Core runtime, not content — embed it anywhere, no restrictions |
 | [`battery` CLI](./cli/) | [MIT](./cli/LICENSE) | Commodity tooling — the batteries it installs carry their own license |
 | [d20 category](./modules/d20/) | Elastic 2.0, incorporating SRD 5.1 content under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | Stat blocks, tables, and mechanics from the Systems Reference Document 5.1, © Wizards of the Coast LLC — attribution travels with every module and the registry |

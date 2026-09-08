@@ -1,0 +1,56 @@
+# rostering over duty and assign on scryer-prolog
+modules/business/duty/duty.pl
+modules/reasoning/assign/assign.pl
+modules/business/rostering/rostering.pl
+---
+attribute(alvarez, role, nurse).
+attribute(chen, role, nurse).
+attribute(diaz, role, nurse).
+attribute(okafor, role, orderly).
+attribute(alvarez, seniority, 9).
+attribute(chen, seniority, 3).
+attribute(diaz, seniority, 5).
+attribute(duty_policy, max_duty, 840).
+attribute(duty_policy, min_rest, 600).
+attribute(nurse, rolling_window, 10080).
+attribute(nurse, rolling_limit, 3600).
+attribute(q_a, kind, acls).
+attribute(q_c, kind, acls).
+attribute(q_d, kind, acls).
+attribute(q_o, kind, acls).
+attribute(sh_am, start, 480).
+attribute(sh_am, end, 1080).
+attribute(r_am_n, seat, nurse).
+attribute(r_am_n, count, 2).
+attribute(r_am_o, seat, orderly).
+attribute(r_am_o, count, 1).
+attribute(sh_pm, start, 1140).
+attribute(sh_pm, end, 1740).
+attribute(r_pm_n, seat, nurse).
+attribute(r_pm_n, count, 1).
+attribute(sh_next, start, 1920).
+attribute(sh_next, end, 2520).
+attribute(r_nx_n, seat, nurse).
+attribute(r_nx_n, count, 1).
+relation(alvarez, holds, q_a).
+relation(chen, holds, q_c).
+relation(diaz, holds, q_d).
+relation(okafor, holds, q_o).
+relation(sh_am, needs, r_am_n).
+relation(sh_am, needs, r_am_o).
+relation(sh_am, requires, acls).
+relation(sh_pm, needs, r_pm_n).
+relation(sh_next, needs, r_nx_n).
+relation(alvarez, prefers, sh_am).
+relation(chen, avoids, sh_am).
+assign_reject_pair(S1, W, S2, W) :-
+    relation(S1, slot_of, Sh1), relation(S2, slot_of, Sh2),
+    Sh1 \== Sh2, incompatible_shifts(W, Sh1, Sh2).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(propose, propose_roster([sh_next, sh_pm, sh_am], [sh_am-alvarez, sh_am-diaz, sh_am-okafor, sh_pm-chen, sh_next-alvarez], [])),
+    check(rank, rank_candidates(sh_am, nurse, [alvarez, diaz, chen])),
+    check(score, candidate_score(sh_am, alvarez, k(0, -3600, 0, -9))),
+    check(incompat, (incompatible_shifts(alvarez, sh_am, sh_pm), \+ incompatible_shifts(alvarez, sh_am, sh_next))),
+    check(model, (roster_model([sh_am, sh_pm], Facts), length(Facts, 16))),
+    write(smoke_ok), nl, halt.

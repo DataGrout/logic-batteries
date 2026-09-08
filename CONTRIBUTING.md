@@ -50,6 +50,48 @@ A battery is a directory under `modules/<category>/<id>/` containing:
    `license` field only if your battery's license differs from the repository
    default.
 
+## Portability: two engines
+
+Batteries run on SWI-Prolog and on Scryer. Directives do not survive
+installation, so a battery may only call what is available without a
+`use_module` line of its own. Write to that intersection:
+
+| Portable | Absent from Scryer | On Scryer only via a library |
+|---|---|---|
+| `sort/2`, `keysort/2`, `sum_list/2`, `nth0/3`, `nth1/3`, `maplist/2..5`, `reverse/2`, `length/2`, `member/2`, `memberchk/2`, `append/3`, `select/3`, `permutation/2`, `list_to_set/2`, `foldl/4`, `findall/3`, `\+`, if-then-else, arithmetic (`max`, `min`, `abs`, `//`, `mod`, `sqrt`, `**`) | `msort/2`, `sort/4`, `max_list/2`, `min_list/2`, `max_member/2`, `min_member/2`, `last/2`, `include/3`, `exclude/3`, `partition/4`, `forall/2`, `aggregate_all/3`, `subtract/3`, `flatten/2`, `sumlist/2`, `predsort/3` | `between/3`, `numlist/3`, `pairs_keys/2`, `pairs_values/2`, `pairs_keys_values/3`, `group_pairs_by_key/2` — all in `library(between)` or `library(pairs)` |
+
+The two right-hand columns are different problems. The middle column needs a
+shim because Scryer has no equivalent at all. The right column exists on both
+engines, but sits in a library a battery cannot import for itself. Either way,
+use the `core` battery's `core_*` equivalent
+(`modules/core/core/README.md`) rather than redefining it under your own prefix.
+
+Measured by calling each predicate with valid arguments and watching for
+`existence_error`. `current_predicate/1` is false for builtins, so it cannot
+answer this question — `keysort/2`, for one, is a Scryer builtin that
+`current_predicate/1` reports as absent.
+
+`core_include/3`, `core_exclude/3`, `core_foldl/4` and `core_forall/2`
+meta-call their goal argument. A host that vets goals before running them may
+decline a higher-order call it cannot inspect, so prefer a first-order
+formulation in a battery meant to run anywhere. `make lint` runs
+`scripts/check_portability.sh` and fails on new files that reach outside the
+subset; `scripts/portability_baseline.txt` records the files that predate the
+rule and only ever shrinks.
+
+One Scryer behaviour that IS a bug (0.10.0): a numeric literal on the left of
+`is/2` inside a clause body miscompiles, so `even(X) :- 0 is X mod 2.` succeeds
+for `X = 3` while the same goal fails at the top level. Write `X mod 2 =:= 0`,
+or bind a variable first. The portability check flags the literal form.
+
+Two Scryer habits that look like bugs but are not: clauses of one predicate
+must be contiguous within a file or the later block silently replaces the
+earlier one, so keep fact blocks grouped when you build a flat test file; and
+an existence error under `-g goal` drops Scryer into its toplevel, which looks
+like a hang. `make scryer-smoke` runs the flat-file smoke specs in
+`test/scryer/`; add one for any battery whose behaviour depends on engine
+details.
+
 Run `make lint` and the full test suite before opening a PR. Batteries must
 stay within the predicate whitelist provided by the LC runtime — no process
 execution, file I/O, networking, global mutable state, or runtime fact

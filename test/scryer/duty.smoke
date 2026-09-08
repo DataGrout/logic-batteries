@@ -1,0 +1,29 @@
+# duty battery on scryer-prolog
+modules/business/duty/duty.pl
+---
+attribute(alvarez, role, nurse).
+attribute(chen, role, nurse).
+attribute(duty_policy, max_duty, 840).
+attribute(duty_policy, min_rest, 600).
+attribute(nurse, rolling_window, 10080).
+attribute(nurse, rolling_limit, 3600).
+attribute(d_c1, start, 1800).
+attribute(d_c1, end, 2280).
+attribute(t_icu, needs_role, nurse).
+attribute(q1, kind, icu_cert).
+attribute(q1, expires, 20000).
+attribute(q2, kind, icu_cert).
+attribute(q2, expires, 1000).
+relation(chen, duty_period, d_c1).
+relation(t_icu, requires, icu_cert).
+relation(alvarez, holds, q1).
+relation(chen, holds, q2).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(fit, fit_for_duty(alvarez, t_icu, 2400, 2760)),
+    check(unfit, \+ fit_for_duty(chen, t_icu, 2370, 2760)),
+    check(reasons, (findall(R, unfit_reason(chen, t_icu, 2370, 2760, R), Rs), Rs == [insufficient_rest(90,600), missing_qualification(icu_cert)])),
+    check(staff, findall(W, available_staff(t_icu, 2400, 2760, W), [alvarez])),
+    check(headroom, (duty_headroom(alvarez, 10080, 3600), duty_headroom(chen, 10080, 3120))),
+    check(rest, (rest_before(chen, 2370, Rest), Rest =:= 90)),
+    write(smoke_ok), nl, halt.

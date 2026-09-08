@@ -1,0 +1,43 @@
+# assign battery composed over duty on scryer-prolog
+modules/business/duty/duty.pl
+modules/reasoning/assign/assign.pl
+---
+attribute(alvarez, role, nurse).
+attribute(chen, role, nurse).
+attribute(duty_policy, max_duty, 840).
+attribute(duty_policy, min_rest, 600).
+attribute(am, domain, [alvarez, chen]).
+attribute(pm, domain, [alvarez, chen]).
+attribute(am, start, 480).
+attribute(am, end, 1080).
+attribute(pm, start, 1140).
+attribute(pm, end, 1740).
+attribute(q_a, kind, icu_cert).
+attribute(s1, domain, [a, b, c]).
+attribute(s2, domain, [a, b, c]).
+attribute(s3, domain, [a, b, c]).
+relation(pm, requires, icu_cert).
+relation(alvarez, holds, q_a).
+relation(day, distinct, s1).
+relation(day, distinct, s2).
+relation(day, distinct, s3).
+assign_reject(Slot, W) :-
+    attribute(Slot, start, S), attribute(Slot, end, E),
+    \+ fit_for_duty(W, Slot, S, E).
+assign_reject_pair(S1, W, S2, W) :-
+    S1 \== S2,
+    attribute(S1, end, E1), attribute(S2, start, St2),
+    St2 >= E1,
+    duty_limit(W, min_rest, Min),
+    St2 - E1 < Min.
+assign_cost(s1, a, 5).
+assign_cost(s1, b, 1).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(over_duty, assign_solve([am, pm], solution([am-chen, pm-alvarez], _))),
+    check(distinct, (assign_solve([s1, s2, s3], solution(A, _)), A = [s1-X, s2-Y, s3-Z], X \== Y, Y \== Z, X \== Z)),
+    check(best, assign_best([s1, s2, s3], 1000, best(_, 0, _, complete))),
+    check(budget, assign_solve([s1, s2, s3], 1, budget_exhausted(1))),
+    check(violations, assign_violations([am-alvarez, pm-alvarez], [pair(am, alvarez, pm, alvarez)])),
+    check(domain, assign_domain(pm, [alvarez])),
+    write(smoke_ok), nl, halt.

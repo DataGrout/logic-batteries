@@ -6,6 +6,8 @@
 :- load_files([
     'support/test_helpers',
     %% Core
+    'core/core_test',
+    %% Core
     'fsm_test',
     %% Games
     'games/inventory_test',

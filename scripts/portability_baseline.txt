@@ -1,0 +1,11 @@
+# Files that used non-portable predicates before the portability check existed.
+# Reported as LEGACY, not failures. Remove a file from this list when it is fixed;
+# the check fails if a listed file is already clean, so the list only shrinks.
+modules/business/approval_chains/approval_chains.pl
+modules/business/pricing_rules/pricing_rules.pl
+modules/games/combat/combat.pl
+modules/games/economy/economy.pl
+modules/games/inventory/inventory.pl
+modules/reasoning/fixpoint/fixpoint.pl
+modules/reasoning/fsm/logic_cell.pl
+modules/reasoning/temporal/temporal.pl

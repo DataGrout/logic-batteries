@@ -1,0 +1,53 @@
+{
+  "version": "1",
+  "updated_at": "2026-09-06",
+  "category": "core",
+  "modules": [
+    {
+      "id": "core",
+      "version": "1.0.0",
+      "title": "Core",
+      "description": "The one copy of the list and aggregate helpers every battery needs, in pure ISO Prolog and prefixed core_: max, min, argmax, mean, median, clamp, last, take, drop, stable msort and keysort, group_pairs, unique, between, numlist, subtract, flatten, zip, and the higher-order include, exclude, foldl, forall. Runs on both engines.",
+      "category": "core",
+      "license": "Apache-2.0",
+      "tags": [
+        "core",
+        "lists",
+        "aggregates",
+        "portability",
+        "iso"
+      ],
+      "predicates": [
+        "core_max_list/2",
+        "core_min_list/2",
+        "core_argmax/2",
+        "core_argmin/2",
+        "core_mean/2",
+        "core_median/2",
+        "core_clamp/4",
+        "core_last/2",
+        "core_take/3",
+        "core_drop/3",
+        "core_msort/2",
+        "core_keysort/2",
+        "core_group_pairs/2",
+        "core_unique/2",
+        "core_between/3",
+        "core_numlist/3",
+        "core_subtract/3",
+        "core_flatten/2",
+        "core_zip/3",
+        "core_keys/2",
+        "core_values/2",
+        "core_include/3",
+        "core_exclude/3",
+        "core_foldl/4",
+        "core_forall/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/core/core/core.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/core/core",
+      "install": "batteries.install_many",
+      "installs": 0
+    }
+  ]
+}

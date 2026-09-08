@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-06
+
+### Modules
+
+**core** v1.0.0 (new category `core`) — the one copy of the list and aggregate helpers batteries kept redefining under their own prefixes. Pure ISO, every predicate prefixed `core_` so nothing shadows an engine library: `core_max_list/2`, `core_min_list/2`, `core_argmax/2`, `core_argmin/2`, `core_mean/2`, `core_median/2`, `core_clamp/4`, `core_last/2`, `core_take/3`, `core_drop/3`, stable duplicate-keeping `core_msort/2` and `core_keysort/2`, `core_group_pairs/2`, `core_unique/2`, `core_between/3`, `core_numlist/3`, `core_subtract/3`, `core_flatten/2`, `core_zip/3`, `core_keys/2`, `core_values/2`, and the higher-order `core_include/3`, `core_exclude/3`, `core_foldl/4`, `core_forall/2`. Install it like any battery, or consult it first when running standalone; the higher-order four meta-call their goal and are documented as such.
+
+### Tooling
+
+- `make lint` now also runs `scripts/check_portability.sh`, which flags any battery outside `core` that calls a predicate Scryer does not have (`msort`, `max_list`, `min_list`, `last`, `include`, `exclude`, `forall`, `aggregate_all`, `subtract`, `sumlist`, `predsort`, `sort/4`) or has only in a library a battery cannot import (`between`, `numlist`, the pairs family, `group_pairs_by_key`), and the `N is Expr` literal-left form that miscompiles on Scryer 0.10. It is a ratchet: `scripts/portability_baseline.txt` lists the files that predate the rule, reported as LEGACY; a clean file still on the list fails the check so the list only shrinks.
+- `make scryer-smoke` runs `scripts/scryer_smoke.sh` over `test/scryer/*.smoke`: each spec names battery files and a fact set with a `smoke/0` goal, concatenated into a single load, executed on scryer-prolog. Specs for `core`, `duty`, `assign`, and `rostering`.
+- CONTRIBUTING gains the portable-subset table and the two-engine test rule.
+
 ## 2026-09-05
 
 ### Modules

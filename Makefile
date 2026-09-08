@@ -1,10 +1,17 @@
-.PHONY: test lint check registry check-registry check-pl
+.PHONY: test lint portability scryer-smoke check registry check-registry check-pl
 
 test:
 	swipl -g "run_tests, halt(0)" -t "halt(1)" test/run_all.pl
 
 lint:
 	./scripts/check_safety.sh
+	./scripts/check_portability.sh
+
+portability:
+	./scripts/check_portability.sh
+
+scryer-smoke:
+	./scripts/scryer_smoke.sh
 
 check-pl:
 	@echo "Checking Prolog syntax..."; \
