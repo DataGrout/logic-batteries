@@ -81,6 +81,30 @@ report() {  # level file line message
   echo "$1  $2:$3 — $4"
 }
 
+# Remove quoted atoms and strings from a line, leaving only code.
+#
+# Everything this script looks for is a CALL, so prose can only produce false
+# hits. Prolog escapes a quote inside an atom by doubling it; that still leaves
+# the closing quote findable by a scan, and an unterminated quote drops the rest
+# of the line, which is the safe direction for a linter — it can only under-
+# report on a line that is already unusual, never invent a failure.
+strip_noncode() {
+  local s="$1" out="" head rest qc
+  while [[ "$s" == *[\'\"]* ]]; do
+    head="${s%%[\'\"]*}"
+    out+="$head "
+    rest="${s:${#head}}"
+    qc="${rest:0:1}"
+    rest="${rest:1}"
+    if [[ "$rest" == *"$qc"* ]]; then
+      s="${rest#*"$qc"}"
+    else
+      s=""
+    fi
+  done
+  printf '%s' "$out$s"
+}
+
 while IFS= read -r -d '' file; do
   rel="${file#$ROOT/}"
   # The core battery is where the shims live; it is allowed to name them.
@@ -95,7 +119,12 @@ while IFS= read -r -d '' file; do
   while IFS= read -r line; do
     ((line_num++)) || true
     [[ "$line" =~ ^[[:space:]]*% ]] && continue
-    code="${line%%\%*}"
+    # Strip the comment tail AND every quoted atom/string before matching. A
+    # doc string is prose, not code: d20-spells' export doc reads "Level 0 is a
+    # cantrip", which tripped the is/2 check below and failed the build on a
+    # perfectly portable battery. Quoted spans can also hold parentheses, which
+    # would give the predicate-call patterns false hits for the same reason.
+    code="$(strip_noncode "${line%%\%*}")"
 
     # A numeric literal on the LEFT of is/2 inside a clause body miscompiles on
     # Scryer 0.10 (`0 is X mod 2` succeeds for X = 3) when the goal is the first
