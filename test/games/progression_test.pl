@@ -328,3 +328,36 @@ test(no_prestige_missing_quest, [
     assertion(\+ can_prestige(alice)).
 
 :- end_tests(progression_prestige).
+
+%% ── unlock aliases (v1.0.1) ──────────────────────────────────────────────────
+
+setup_prog_fix_requires_level_unlock :-
+    assertz(attribute(double_jump, requires_level, 5)),
+    assertz(attribute(alice, level, 5)).
+
+setup_prog_fix_requires_class_gate :-
+    assertz(attribute(fireball, unlock_at_level, 10)),
+    assertz(attribute(fireball, requires_class, mage)),
+    assertz(attribute(alice, level, 10)),
+    assertz(attribute(alice, class, warrior)).
+
+setup_prog_fix_prestige_is_not_an_unlock :-
+    assertz(attribute(prestige, requires_level, 50)),
+    assertz(attribute(double_jump, requires_level, 5)),
+    assertz(attribute(alice, level, 60)).
+
+:- begin_tests(progression_unlock_aliases).
+
+test(requires_level_unlocks, [setup(setup_prog_fix_requires_level_unlock), cleanup(clear_facts)]) :-
+    %% the name the README always used; it was read only on prestige before
+    assertion(unlock_available(alice, double_jump)).
+
+test(requires_class_gates, [setup(setup_prog_fix_requires_class_gate), cleanup(clear_facts)]) :-
+    assertion(\+ unlock_available(alice, fireball)).
+
+test(prestige_entity_is_not_enumerated_as_an_unlock, [setup(setup_prog_fix_prestige_is_not_an_unlock), cleanup(clear_facts)]) :-
+    findall(U, unlock_available(alice, U), Us),
+    assertion(\+ member(prestige, Us)),
+    assertion(member(double_jump, Us)).
+
+:- end_tests(progression_unlock_aliases).

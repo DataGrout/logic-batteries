@@ -212,3 +212,30 @@ test(missing_item_blocked_not_no_moves, [setup(setup_missing_item_puzzle), clean
     assertion(Reason == missing_item(combination_note)).
 
 :- end_tests(puzzle_blocked_by).
+
+%% ── items via the player's inventory (v1.0.1) ────────────────────────────────
+
+setup_puz_fix_vault :-
+    assertz(attribute(vault_puzzle, initial_state, sealed)),
+    assertz(attribute(vault_puzzle, solve_state, open)),
+    assertz(relation(sealed, move, turn_key)),
+    assertz(attribute(turn_key, leads_to, open)),
+    assertz(attribute(turn_key, requires_item, vault_key)),
+    assertz(attribute(vault_puzzle, player, alice)).
+
+setup_puz_fix_vault_with_key :-
+    setup_puz_fix_vault,
+    assertz(relation(alice, has_item, vault_key)).
+
+:- begin_tests(puzzle_fsm_player_inventory).
+
+test(players_inventory_satisfies_item_gate, [setup(setup_puz_fix_vault_with_key), cleanup(clear_facts)]) :-
+    %% the item lives on the player (inventory's has_item), not on the puzzle
+    assertion(can_transition(vault_puzzle, turn_key, open)),
+    assertion(\+ blocked_by(vault_puzzle, missing_item(_))).
+
+test(without_the_item_the_move_is_blocked, [setup(setup_puz_fix_vault), cleanup(clear_facts)]) :-
+    assertion(\+ can_transition(vault_puzzle, turn_key, _)),
+    blocked_by(vault_puzzle, R), assertion(R == missing_item(vault_key)).
+
+:- end_tests(puzzle_fsm_player_inventory).

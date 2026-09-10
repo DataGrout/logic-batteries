@@ -95,3 +95,25 @@ test(inherited_perm_grants_access, [setup((setup_role_inheritance, setup_delete_
     assertion(can_access(alice, editor_panel)).
 
 :- end_tests(permissions_access).
+
+%% ── inheritance cycles terminate (v1.0.1) ────────────────────────────────────
+
+setup_perm_fix_cycle :-
+    assertz(relation(a_role, inherits_from, b_role)),
+    assertz(relation(b_role, inherits_from, a_role)),
+    assertz(relation(b_role, grants_permission, wave)),
+    assertz(relation(alice, has_role, a_role)).
+
+:- begin_tests(permissions_cycle).
+
+test(grant_found_through_cycle, [setup(setup_perm_fix_cycle), cleanup(clear_facts)]) :-
+    assertion(role_grants(a_role, wave)).
+
+test(missing_grant_fails_instead_of_looping, [setup(setup_perm_fix_cycle), cleanup(clear_facts)]) :-
+    %% before the visited set this goal never returned
+    assertion(\+ role_grants(a_role, fly)).
+
+test(permission_granted_through_cycle, [setup(setup_perm_fix_cycle), cleanup(clear_facts)]) :-
+    assertion(permission_granted(alice, wave)).
+
+:- end_tests(permissions_cycle).

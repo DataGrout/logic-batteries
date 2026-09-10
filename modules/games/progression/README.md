@@ -1,4 +1,4 @@
-# Module: progression v1.0.0
+# Module: progression v1.0.1
 
 Levels from XP along a configurable curve, stats that scale with level,
 level-gated unlocks, and prestige conditions.
@@ -47,8 +47,9 @@ A player's level is the `level` attribute when present, otherwise derived from
 | `scale` | stat | `exponential` | Switches the stat to `base × multiplier^(level−1)` |
 | `multiplier` | stat | number | Exponential stat growth; default 1.1 |
 | `level_<N>` | stat | number | Exact value at level N, as an *attribute* named `level_5` on the stat; overrides the formula |
-| `unlock_at_level` | unlock | integer | The level at which the unlock becomes available |
-| `unlock_requires_class` | unlock | a class id | Optional: the player's `class` must match |
+| `unlock_at_level` | unlock | integer | The level at which the unlock becomes available. `requires_level` is accepted as the same thing on an unlock |
+| `unlock_requires_class` | unlock | a class id | Optional: the player's `class` must match. `requires_class` is accepted as the same thing |
+| `requires_level`, `requires_class` | unlock | as above | Aliases for the two rows above, since they are the names authors reach for. On the `prestige` entity `requires_level` keeps its own meaning below |
 | `requires_max_level` | `prestige` | `true` | Prestige needs the player at `max_level` |
 | `requires_level` | `prestige` | integer | Or at least this level. One of the two must be set or nobody can prestige |
 | `requires_quest` | `prestige` | a quest id | Optional quest gate |
@@ -129,9 +130,10 @@ dg:query("my-game", "unlock_available(alice, U)", function(rs) for _, r in ipair
 
 ## Semantics worth knowing
 
-**Unlocks gate on `unlock_at_level`, not `requires_level`.** `requires_level`
-is read only on the `prestige` entity. An unlock carrying `requires_level` is
-never available.
+**Either unlock spelling works.** `unlock_at_level` / `unlock_requires_class`
+and `requires_level` / `requires_class` mean the same on an unlock. The
+`prestige` entity is never treated as an unlock even though it carries
+`requires_level`.
 
 **Breakpoints end the curve.** `level_for_xp` walks upward and stops at the
 first level whose cumulative XP it cannot compute; it does not skip gaps. If you
@@ -148,3 +150,10 @@ cost of the next level.
 
 `combat` reads stat values you derive here; `quests` asserts
 `completed_quest`; `crafting` reads the player's `level` for discovery.
+
+## Changes
+
+**1.0.1** — unlocks accept `requires_level` and `requires_class` alongside
+`unlock_at_level` and `unlock_requires_class`. Earlier only the `unlock_*`
+names were read, while the documentation used `requires_level`, so every
+unlock written from the README was inert.

@@ -2,7 +2,7 @@
 %% Exports: can_transition/3, puzzle_solved/1, valid_sequence/2,
 %%          hint_for/2, blocked_by/2
 
-battery_module('puzzle-fsm', '1.0.0', auto).
+battery_module('puzzle-fsm', '1.0.1', auto).
 
 battery_export('puzzle-fsm', 'can_transition/3', 'can_transition(Puzzle, Move, NextState) — Move is valid from current state, leading to NextState').
 battery_export('puzzle-fsm', 'puzzle_solved/1',  'puzzle_solved(Puzzle) — Puzzle is in a winning/solved state').
@@ -42,11 +42,16 @@ can_transition(Puzzle, Move, NextState) :-
     relation(CurrentState, move, Move),
     attribute(Move, leads_to, NextState),
     ( attribute(Move, requires_item, Item)
-      -> relation(Puzzle, player_has, Item)
-      ;  true ),
-    ( attribute(Move, requires_state, ReqState)
-      -> puzzle_current_state(Puzzle, ReqState)
+      -> puzzle_item_available(Puzzle, Item)
       ;  true ).
+%% An item gate is satisfied by either shape: the item asserted on the puzzle
+%% (`player_has`), or — when the puzzle names its `player` — the player's
+%% inventory (`has_item`, the relation the inventory battery maintains).
+puzzle_item_available(Puzzle, Item) :-
+    relation(Puzzle, player_has, Item), !.
+puzzle_item_available(Puzzle, Item) :-
+    attribute(Puzzle, player, Player),
+    relation(Player, has_item, Item).
 
 %% puzzle_solved(+Puzzle)
 puzzle_solved(Puzzle) :-
@@ -69,7 +74,7 @@ solve_path(Puzzle, State, SolveStates, Visited, RevMoves, Moves) :-
     attribute(Move, leads_to, Next),
     \+ member(Next, Visited),
     ( attribute(Move, requires_item, Item)
-      -> relation(Puzzle, player_has, Item)
+      -> puzzle_item_available(Puzzle, Item)
       ;  true ),
     solve_path(Puzzle, Next, SolveStates, [Next|Visited], [Move|RevMoves], Moves).
 
@@ -87,7 +92,7 @@ blocked_by(Puzzle, missing_item(Item)) :-
     puzzle_current_state(Puzzle, State),
     relation(State, move, Move),
     attribute(Move, requires_item, Item),
-    \+ relation(Puzzle, player_has, Item), !.
+    \+ puzzle_item_available(Puzzle, Item), !.
 blocked_by(Puzzle, no_moves) :-
     puzzle_current_state(Puzzle, State),
     \+ relation(State, move, _).

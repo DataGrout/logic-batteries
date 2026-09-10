@@ -2,11 +2,12 @@
 %% Exports: drops/2, drops_at/3, eligible_loot/2, rarity_tier/2,
 %%          condition_met/2, loot_chance/3
 
-battery_module('loot-tables', '1.0.0', auto).
+battery_module('loot-tables', '1.0.1', auto).
 
 battery_export('loot-tables', 'drops/2',          'drops(Source, Item) — Item can drop from Source under any conditions').
 battery_export('loot-tables', 'drops_at/3',        'drops_at(Source, Item, Conditions) — Item drops from Source when Conditions are met').
 battery_export('loot-tables', 'eligible_loot/2',   'eligible_loot(Source, Item) — Item is eligible to drop right now given current world state').
+battery_export('loot-tables', 'eligible_loot/3',   'eligible_loot(Source, Item, Context) — as eligible_loot/2, with player conditions evaluated against Context (a player entity)').
 battery_export('loot-tables', 'rarity_tier/2',     'rarity_tier(Item, Tier) — Tier is common/uncommon/rare/epic/legendary').
 battery_export('loot-tables', 'condition_met/2',   'condition_met(Condition, Context) — Condition is satisfied in Context').
 battery_export('loot-tables', 'loot_chance/3',     'loot_chance(Source, Item, Pct) — Pct is drop chance 0-100').
@@ -59,11 +60,17 @@ drops_at(Source, Item, Conditions) :-
     drops(Source, Item),
     attribute(Item, loot_conditions, Conditions).
 
-%% eligible_loot/2 — items that can drop right now
+%% eligible_loot/2 — items that can drop right now, world conditions only.
+%% eligible_loot/3 — the same with a context entity (a player), so
+%% player_level_gte/1 and player_has/1 conditions can hold. World conditions
+%% ignore the context, so /3 is a superset of /2.
 eligible_loot(Source, Item) :-
+    eligible_loot(Source, Item, world).
+
+eligible_loot(Source, Item, Context) :-
     drops(Source, Item),
     (   attribute(Item, loot_conditions, Conditions)
-    ->  all_conditions_met(Conditions, world)
+    ->  all_conditions_met(Conditions, Context)
     ;   true   %% no conditions = always eligible
     ).
 

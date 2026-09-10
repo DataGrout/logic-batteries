@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-11",
+  "updated_at": "2026-09-10",
   "category": "reasoning",
   "modules": [
     {
@@ -78,7 +78,7 @@
     },
     {
       "id": "taxonomy",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Taxonomy & Classification",
       "description": "Hierarchical classification with transitive membership and property inheritance. Assert is_a relations between entities and classes; query ancestors, siblings, subclass trees, and inherited attributes at zero token cost. Works for monster types, product categories, capability trees, or any knowledge hierarchy.",
       "category": "reasoning",
@@ -110,7 +110,7 @@
       "id": "explain",
       "version": "1.0.0",
       "title": "Explain / Provenance",
-      "description": "Proof-tree meta-interpreter for stored rules and facts: ask not just whether a goal holds but which facts made it true. why/2 gives a deterministic flat list of supporting base/stored facts (the everyday API); explain/2 gives full proof trees with alternatives on backtracking. Handles conjunction, disjunction, if-then-else, negation-as-failure, and whitelisted builtins. Pure ISO \u2014 runs on pinned (Scryer) cells.",
+      "description": "Proof-tree meta-interpreter for stored rules and facts: ask not just whether a goal holds but which facts made it true. why/2 gives a deterministic flat list of supporting base/stored facts (the everyday API); explain/2 gives full proof trees with alternatives on backtracking. Handles conjunction, disjunction, if-then-else, negation-as-failure, and whitelisted builtins. Pure ISO — runs on pinned (Scryer) cells.",
       "category": "reasoning",
       "tags": [
         "provenance",
@@ -138,7 +138,7 @@
       "id": "fixpoint",
       "version": "1.0.1",
       "title": "Fixpoint Evaluation",
-      "description": "Bottom-up (Datalog-style) saturation of stored rules: tabling's termination benefit without tabling. Textbook recursive rules \u2014 transitive closure, left-recursive ancestry \u2014 work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Pure ISO \u2014 runs on SWI and Scryer alike, including ISO-pinned cells where :- table is unavailable.",
+      "description": "Bottom-up (Datalog-style) saturation of stored rules: tabling's termination benefit without tabling. Textbook recursive rules — transitive closure, left-recursive ancestry — work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Pure ISO — runs on SWI and Scryer alike, including ISO-pinned cells where :- table is unavailable.",
       "category": "reasoning",
       "tags": [
         "fixpoint",

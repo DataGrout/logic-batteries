@@ -3,7 +3,7 @@
 %%          common_ancestor/3, siblings/2, subclasses/2, class_members/2,
 %%          depth_in_hierarchy/2, compatible_types/2, root_class/1
 
-battery_module(taxonomy, '1.0.0', auto).
+battery_module(taxonomy, '1.0.1', auto).
 
 battery_export(taxonomy, 'isa/2',
     'isa(Entity, Class) — Entity is a Class (direct or transitive via is_a relations)').
@@ -30,21 +30,32 @@ battery_export(taxonomy, 'root_class/1',
 %% Assert: { type="relation", subject="goblin", relation="is_a", object="humanoid" }
 %%         { type="relation", subject="humanoid", relation="is_a", object="creature" }
 
+%% Every walk over is_a carries a visited set, so a cycle in the hierarchy
+%% terminates instead of looping. Directives are stripped at install, so
+%% tabling is not available for this.
 isa(Entity, Class) :-
+    isa_(Entity, Class, [Entity]).
+
+isa_(Entity, Class, _) :-
     relation(Entity, is_a, Class).
-isa(Entity, Class) :-
+isa_(Entity, Class, Seen) :-
     relation(Entity, is_a, Mid),
-    isa(Mid, Class).
+    \+ member(Mid, Seen),
+    isa_(Mid, Class, [Mid|Seen]).
 
 %% ── Property inheritance ─────────────────────────────────────────────────────
 %% Direct attribute wins; if absent, walks up is_a chain.
 %% Assert: { type="attribute", entity="creature", attribute="has_soul", value=true }
 
 inherits_property(Entity, Property, Value) :-
+    inherits_property_(Entity, Property, Value, [Entity]).
+
+inherits_property_(Entity, Property, Value, _) :-
     attribute(Entity, Property, Value), !.
-inherits_property(Entity, Property, Value) :-
+inherits_property_(Entity, Property, Value, Seen) :-
     relation(Entity, is_a, Parent),
-    inherits_property(Parent, Property, Value).
+    \+ member(Parent, Seen),
+    inherits_property_(Parent, Property, Value, [Parent|Seen]).
 
 %% ── Classification queries ───────────────────────────────────────────────────
 
@@ -71,11 +82,15 @@ class_members(Class, Members) :-
 
 %% ── Structural queries ───────────────────────────────────────────────────────
 
-depth_in_hierarchy(Class, 0) :-
-    \+ relation(Class, is_a, _), !.
 depth_in_hierarchy(Class, Depth) :-
+    depth_in_hierarchy_(Class, Depth, [Class]).
+
+depth_in_hierarchy_(Class, 0, _) :-
+    \+ relation(Class, is_a, _), !.
+depth_in_hierarchy_(Class, Depth, Seen) :-
     relation(Class, is_a, Parent),
-    depth_in_hierarchy(Parent, ParentDepth),
+    \+ member(Parent, Seen),
+    depth_in_hierarchy_(Parent, ParentDepth, [Parent|Seen]),
     Depth is ParentDepth + 1.
 
 root_class(Class) :-

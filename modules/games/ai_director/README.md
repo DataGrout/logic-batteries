@@ -1,4 +1,4 @@
-# Module: ai-director v1.0.0
+# Module: ai-director v1.0.1
 
 Dynamic difficulty and pacing. A zone's threat score becomes a pacing state,
 the state becomes a difficulty multiplier and a spawn gate, and transitions can
@@ -36,7 +36,7 @@ From Tether: `dg:batteries().install("ai-director", "my-game", cb)`.
 | `threat` | zone | number | The zone's current threat. Raise it as enemies spawn and players take pressure, lower it on kills and clears. Absent reads as 0 |
 | `min_threat` | enemy | number | The enemy may spawn only at or above this threat |
 | `max_threat` | enemy | number | …and at or below this. Either bound is optional |
-| `spawn_zone` | enemy | a zone id | **Not enforced.** The clause that reads it succeeds whether or not it matches, so an enemy with a `spawn_zone` is still eligible in every zone. Filter by zone yourself until this is fixed |
+| `spawn_zone` | enemy | a zone id | Restricts the enemy to that zone; assert several for several zones. An enemy with none may spawn anywhere |
 | `peak_threshold` | `director` | number | Threat at or above which the state is `peak`; default 80 |
 | `tense_threshold` | `director` | number | `tense` at or above this; default 50 |
 | `building_threshold` | `director` | number | `building` at or above this; default 20 |
@@ -68,6 +68,7 @@ it and is optional. Thresholds are global — there is no per-zone override.
 { type="attribute", entity="forest_zone", attribute="threat", value=45 }
 
 # Spawn rules
+{ type="attribute", entity="goblin", attribute="spawn_zone", value="forest_zone" }
 { type="attribute", entity="goblin", attribute="min_threat", value=10 }
 { type="attribute", entity="goblin", attribute="max_threat", value=60 }
 { type="attribute", entity="dragon", attribute="min_threat", value=70 }
@@ -125,3 +126,8 @@ per zone. Two zones with the same threat are always in the same state.
 - No per-zone thresholds or modifiers.
 - No threat decay over time; lower `threat` yourself.
 - No spawn *selection* — `spawn_eligible` is a filter over enemies you propose, not a picker.
+
+## Changes
+
+**1.0.1** — `spawn_zone` is enforced. It was read but the clause succeeded
+whether or not the zone matched, so zoned enemies spawned everywhere.

@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-09-10
+
+### Modules
+
+Writing each README's facts table against the source turned up places where a
+battery did not do what its documentation said. Each is a patch release.
+
+**ai-director** v1.0.1 — `spawn_zone` is enforced; the clause that read it succeeded whether or not the zone matched.
+
+**progression** v1.0.1 — unlocks accept `requires_level` / `requires_class` alongside `unlock_at_level` / `unlock_requires_class`. The README had always used the former; the code read only the latter. The `prestige` entity is excluded from the alias so it is not enumerated as an unlock.
+
+**faction** v1.0.1 — negative standings mirror the positive thresholds: at or below `unfriendly_threshold` is `unfriendly`, at or below `hostile_threshold` is `hostile`. Scores between the two negative thresholds had matched neither rule and fallen through to `neutral`; small negative scores are now `neutral` rather than `unfriendly`.
+
+**prob-loot** v1.0.2 — `drop_occurs` weights are 0.70 / 0.30 / 0.10 / 0.03 / 0.01, the same scale as `loot-tables` and `drop_probability`. They were 0.90 / 0.65 / 0.35 / 0.10 / 0.15, which ranked legendary above epic.
+
+**permissions** v1.0.1 and **taxonomy** v1.0.1 — `role_grants`, `isa`, `inherits_property` and `depth_in_hierarchy` walk with a visited set; a cycle in `inherits_from` or `is_a` terminates instead of looping.
+
+**loot-tables** v1.0.1 — `eligible_loot/3` takes a player context, so `player_level_gte` and `player_has` conditions can hold. Through `eligible_loot/2`, whose context is `world`, they never could.
+
+**dungeon** v1.0.1 — `dungeon_path` returns maximal walks rather than every prefix (the first answer was `[From]`). `room_cleared/3` and `dungeon_complete` read the per-dungeon key `<player>_<dungeon>` the source comments had promised; the fixed `_dungeon` suffix and `cleared_room` still count as per-player shapes.
+
+**puzzle-fsm** v1.0.1 — a puzzle with a `player` attribute reads that player's `has_item` for item gates, so `inventory` composes without mirroring items onto the puzzle. The unused `requires_state` check was removed.
+
+**risk-assessment** v1.0.1 — the declared dependency on `combat` was removed; nothing called it. Gains a test file.
+
+**prob-detection** v1.0.1 — `detection_probability` starts from the same tier weights as the annotated `detected/2` clauses, disguise included, instead of `perception / 10 × 1.3`. `environmental_detection_factor` no longer uses a yall lambda.
+
+**economy** v1.0.1 — a `<material>_qty` attribute on the player is read as quantity held, ahead of counting duplicate `has_material` facts.
+
+### Documentation
+
+Every battery README now carries a `## Facts this battery reads` section — attributes and relations it looks up, what they sit on, their values, what they mean — directly under the exported predicates. The 22 READMEs written as Tether/Lua callbacks show setup as plain facts and querying as bare goals, with one short Tether block each.
+
+### Tooling
+
+- `make check-readme` (`scripts/check_readme_vocab.py --check`) fails when a name a battery's clauses read is missing from its README's facts section; `--draft <id>` prints a starting table. Part of `make check`; CONTRIBUTING asks for the table.
+
 ## 2026-09-06
 
 ### Modules

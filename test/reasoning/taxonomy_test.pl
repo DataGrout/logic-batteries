@@ -173,3 +173,29 @@ test(ancestor_descendant_compatible, [setup(setup_creature_hierarchy), cleanup(c
     assertion(compatible_types(goblin, humanoid)).
 
 :- end_tests(taxonomy_compatible_types).
+
+%% ── is_a cycles terminate (v1.0.1) ───────────────────────────────────────────
+
+setup_tax_fix_cycle :-
+    assertz(relation(x_cls, is_a, y_cls)),
+    assertz(relation(y_cls, is_a, x_cls)),
+    assertz(attribute(y_cls, color, blue)).
+
+:- begin_tests(taxonomy_cycle).
+
+test(isa_through_cycle, [setup(setup_tax_fix_cycle), cleanup(clear_facts)]) :-
+    assertion(isa(x_cls, y_cls)).
+
+test(isa_missing_class_fails_instead_of_looping, [setup(setup_tax_fix_cycle), cleanup(clear_facts)]) :-
+    assertion(\+ isa(x_cls, z_cls)).
+
+test(inherits_through_cycle, [setup(setup_tax_fix_cycle), cleanup(clear_facts)]) :-
+    assertion(inherits_property(x_cls, color, blue)).
+
+test(inherits_missing_property_fails_instead_of_looping, [setup(setup_tax_fix_cycle), cleanup(clear_facts)]) :-
+    assertion(\+ inherits_property(x_cls, wings, _)).
+
+test(depth_of_a_cycle_with_no_root_fails, [setup(setup_tax_fix_cycle), cleanup(clear_facts)]) :-
+    assertion(\+ depth_in_hierarchy(x_cls, _)).
+
+:- end_tests(taxonomy_cycle).

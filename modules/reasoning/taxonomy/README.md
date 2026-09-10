@@ -1,4 +1,4 @@
-# Module: taxonomy v1.0.0
+# Module: taxonomy v1.0.1
 
 Hierarchies with property inheritance. One relation, `is_a`, carries both
 membership and subclassing; the battery follows it transitively to answer what
@@ -131,9 +131,15 @@ naming convention or a marker attribute.
 **Multiple parents, first-found inheritance.** With two parents that both carry
 a property, `inherits_property` returns the first in fact order and stops.
 
-**No cycle guard.** `isa` and `depth_in_hierarchy` recurse on `is_a` with no
-memory of visited nodes; `a is_a b` together with `b is_a a` does not
-terminate. Keep the hierarchy a tree or a DAG.
+**Cycles terminate.** `isa`, `inherits_property` and `depth_in_hierarchy` all
+walk `is_a` with a visited set. A cycle makes its members mutually `isa` each
+other and share inherited properties; a cycle with no root has no depth and
+`depth_in_hierarchy` fails for it rather than looping.
 
 **Depth is per path.** `depth_in_hierarchy` on a node with two parents returns
 a depth for each parent chain on backtracking.
+
+## Changes
+
+**1.0.1** — every `is_a` walk carries a visited set; a cycle in the hierarchy
+no longer hangs `isa`, `inherits_property` or `depth_in_hierarchy`.

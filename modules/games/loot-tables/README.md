@@ -1,4 +1,4 @@
-# Module: loot-tables v1.0.0
+# Module: loot-tables v1.0.1
 
 What a source can drop, under which world conditions, at what chance. Rarity
 tiers give default chances; conditions are terms evaluated against world facts.
@@ -20,7 +20,8 @@ From Tether: `dg:batteries().install("loot-tables", "my-game", cb)`.
 |---|---|
 | `drops(Source, Item)` | The source `can_drop` the item, conditions aside |
 | `drops_at(Source, Item, Conditions)` | The item's `loot_conditions` list, for items that have one |
-| `eligible_loot(Source, Item)` | Drops, and every condition holds against `world` right now |
+| `eligible_loot(Source, Item)` | Drops, and every condition holds against `world` right now — player conditions cannot hold here |
+| `eligible_loot(Source, Item, Player)` | The same with a player as context, so `player_level_gte` and `player_has` are evaluated against that player. World conditions still read `world` |
 | `rarity_tier(Item, Tier)` | The item's `rarity`; `common` when unset |
 | `condition_met(Condition, Context)` | One condition term, evaluated against a context entity |
 | `loot_chance(Source, Item, Pct)` | `drop_chance` if set, else the tier's default |
@@ -46,8 +47,8 @@ From Tether: `dg:batteries().install("loot-tables", "my-game", cb)`.
 | `can_drop` | source → item | The drop table entry |
 | `has_item` | context → item | Matched by `player_has(Item)` when the context is a player |
 
-`world` is a fixed entity name; `eligible_loot` always evaluates conditions
-against it.
+`world` is a fixed entity name. World conditions always read it, whatever the
+context; the context only matters for the two player conditions.
 
 ## Conditions
 
@@ -104,7 +105,10 @@ loot_chance(cave_chest, rare_gem, Pct)
 # Is the fish on tonight?
 eligible_loot(lake, rare_fish)
 
-# A player-scoped condition, checked directly
+# What can this chest give alice, including player-gated drops?
+eligible_loot(cave_chest, Item, alice)
+
+# One condition, checked directly
 condition_met(player_level_gte(10), alice)
 ```
 
@@ -121,11 +125,11 @@ end)
 
 ## Semantics worth knowing
 
-**`eligible_loot` knows nothing about the player.** Its context is always
-`world`, so `player_level_gte` and `player_has` inside `loot_conditions` look
-for `level` and `has_item` on the `world` entity and fail. Use those two only
-through `condition_met(Cond, Player)` directly, or gate player-specific loot
-yourself before asking `eligible_loot`.
+**Use `eligible_loot/3` for player-gated drops.** The two-argument form
+evaluates against `world`, which has no `level` and holds no items, so any
+`player_level_gte` or `player_has` condition fails through it. Pass the player
+as the third argument and those conditions read the player; world conditions
+are unaffected either way.
 
 **Conditions are terms, not strings.** `loot_conditions` is walked as a list;
 the value has to reach the cell as `[time(night), weather(rain)]`, not as text.
@@ -139,4 +143,9 @@ argument; the same item drops at the same odds everywhere.
 
 - No rolling or selection; it reports odds.
 - No per-source chance, quantity, or pity timers.
-- No player-aware eligibility through `eligible_loot`.
+
+## Changes
+
+**1.0.1** — `eligible_loot/3` takes a player context. Before it, the two
+player conditions could never hold through `eligible_loot`, whose context was
+fixed to `world`.

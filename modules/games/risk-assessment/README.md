@@ -1,4 +1,4 @@
-# Module: risk-assessment v1.0.0
+# Module: risk-assessment v1.0.1
 
 Should this character fight that enemy? A simple turn-trade model over `hp`
 and `base_damage` gives a survival probability, a recommendation, and how many
@@ -15,9 +15,8 @@ client.perform("data-grout@1/batteries.install_many@1", {
 
 From Tether: `dg:batteries().install("risk-assessment", "my-game", cb)`.
 
-The registry lists `combat` as a requirement; no clause here calls it, so it is
-not needed for these predicates to run. Install it too if you use `combat`'s
-`hp` for the same entities — the two read the same attribute.
+No dependencies. It reads the same `hp` attribute `combat` does, so the two
+compose on the same entities, but nothing here calls `combat`.
 
 ## Exported Predicates
 
@@ -103,3 +102,8 @@ the damage ratio; treat the number as a ranking, not as odds.
 - No armor, resistances, or status effects — see `combat` for those, and
   compute an effective damage to pass in if you want them reflected.
 - No randomness; two identical queries always agree.
+
+## Changes
+
+**1.0.1** — the declared dependency on `combat` was removed; no predicate here
+ever called it.

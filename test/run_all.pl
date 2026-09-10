@@ -25,6 +25,7 @@
     'games/permissions_test',
     'games/ai_director_test',
     'games/dungeon_test',
+    'games/risk_assessment_test',
     %% Business
     'business/lead_scoring_test',
     'business/invoice_rules_test',

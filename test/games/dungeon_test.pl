@@ -89,3 +89,40 @@ test(incomplete_when_some_remain, [setup(setup_incomplete_check), cleanup(clear_
     assertion(\+ dungeon_complete(alice, catacombs)).
 
 :- end_tests(dungeon_complete).
+
+%% ── maximal paths and per-dungeon clearance (v1.0.1) ─────────────────────────
+
+setup_dun_fix_branching :-
+    assertz(relation(e1, connects_to, c1)),
+    assertz(relation(c1, connects_to, b1)),
+    assertz(relation(c1, connects_to, side1)).
+
+setup_dun_fix_shared_room_name :-
+    assertz(relation(crypt, has_room, hall)),
+    assertz(relation(tower, has_room, hall)),
+    assertz(relation(alice_crypt, cleared, hall)).
+
+setup_dun_fix_cleared_room_shape :-
+    assertz(relation(crypt, has_room, hall)),
+    assertz(relation(alice, cleared_room, hall)).
+
+:- begin_tests(dungeon_paths_and_clearance).
+
+test(paths_are_maximal_not_prefixes, [setup(setup_dun_fix_branching), cleanup(clear_facts)]) :-
+    findall(P, dungeon_path(alice, e1, P), Ps),
+    %% the trivial [e1] and the prefix [e1, c1] used to be solutions too
+    assertion(\+ member([e1], Ps)),
+    assertion(\+ member([e1, c1], Ps)),
+    assertion(member([e1, c1, b1], Ps)),
+    assertion(member([e1, c1, side1], Ps)).
+
+test(clearance_is_per_dungeon, [setup(setup_dun_fix_shared_room_name), cleanup(clear_facts)]) :-
+    assertion(room_cleared(alice, crypt, hall)),
+    assertion(\+ room_cleared(alice, tower, hall)),
+    assertion(dungeon_complete(alice, crypt)),
+    assertion(\+ dungeon_complete(alice, tower)).
+
+test(cleared_room_relation_completes_a_dungeon, [setup(setup_dun_fix_cleared_room_shape), cleanup(clear_facts)]) :-
+    assertion(dungeon_complete(alice, crypt)).
+
+:- end_tests(dungeon_paths_and_clearance).

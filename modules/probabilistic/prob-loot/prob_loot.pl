@@ -2,7 +2,7 @@
 %% Requires: loot-tables
 %% Exports: drop_occurs/2, guaranteed_drop/2, drop_probability/3, expected_drops/4
 
-battery_module('prob-loot', '1.0.1', auto).
+battery_module('prob-loot', '1.0.2', auto).
 
 battery_export('prob-loot', 'drop_occurs/2',
     'drop_occurs(Source, Item) — probabilistic: Item drops from Source based on rarity tier').
@@ -25,11 +25,15 @@ battery_export('prob-loot', 'expected_drops/4',
 %% legendary item). The guaranteed-drop logic now lives in guaranteed_drop/2
 %% below so drop_occurs/2 is purely probabilistic.
 
-0.90::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, common).
-0.65::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, uncommon).
-0.35::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, rare).
-0.10::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, epic).
-0.15::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, legendary).
+%% One scale, shared with loot-tables' tier_chance/2 (70/30/10/3/1 percent), so
+%% a ProbLog marginal over drop_occurs/2 and drop_probability/3 agree. The
+%% earlier weights (0.90/0.65/0.35/0.10/0.15) disagreed with it and ranked
+%% legendary above epic.
+0.70::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, common).
+0.30::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, uncommon).
+0.10::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, rare).
+0.03::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, epic).
+0.01::drop_occurs(Source, Item) :- drops(Source, Item), rarity_tier(Item, legendary).
 
 %% ── Guaranteed drops (deterministic, separate from ProbLog inference) ──────
 %% Items with drop_chance >= 100 always drop. Query as a regular predicate;

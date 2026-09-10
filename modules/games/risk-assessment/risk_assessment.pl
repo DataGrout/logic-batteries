@@ -1,9 +1,10 @@
-%% Battery: risk-assessment v1.0.0
-%% Requires: combat
+%% Battery: risk-assessment v1.0.1
+%% Requires: (nothing) — reads the same hp attribute combat does, but calls
+%%           none of combat's predicates
 %% Exports: survival_probability/4, recommended_action/3,
 %%          kills_to_exhaust/4, fight_outcome_summary/5
 
-battery_module('risk-assessment', '1.0.0', auto).
+battery_module('risk-assessment', '1.0.1', auto).
 
 battery_export('risk-assessment', 'survival_probability/4',
     'survival_probability(Player, Enemy, HP, P) — P is probability (0.0–1.0) Player survives a fight, HP is remaining health').
@@ -15,7 +16,6 @@ battery_export('risk-assessment', 'fight_outcome_summary/5',
     'fight_outcome_summary(Player, Enemy, TurnsToKill, DamageTaken, P) — full breakdown of a combat encounter').
 
 %% ── Survival probability ───────────────────────────────────────────────────
-%% Requires combat battery in the same namespace.
 %% Assert: { type:"attribute", entity:"player", attribute:"hp", value:80 }
 %%         { type:"attribute", entity:"goblin", attribute:"hp", value:30 }
 %%         { type:"attribute", entity:"goblin", attribute:"base_damage", value:10 }

@@ -3,7 +3,7 @@
 %% Exports: detected/2, detection_probability/3, stealth_success/2,
 %%          environmental_detection_factor/2
 
-battery_module('prob-detection', '1.0.0', auto).
+battery_module('prob-detection', '1.0.1', auto).
 
 battery_export('prob-detection', 'detected/2',
     'detected(Guard, Player) — probabilistic: Guard detects Player based on perception and alert state').
@@ -76,16 +76,32 @@ detection_probability(Guard, Player, P) :-
     stealth_factor(Player, StealthFactor),
     P is min(0.99, max(0.01, Base * EnvFactor * StealthFactor)).
 
-base_detection_probability(Guard, _Player, Base) :-
-    attribute(Guard, perception, Perc),
-    ( attribute(Guard, alert_state, active) -> AlertMod = 1.3 ; AlertMod = 1.0 ),
-    Base is min(0.95, (Perc / 10.0) * AlertMod).
-base_detection_probability(Guard, _Player, 0.3) :-
-    \+ attribute(Guard, perception, _),
-    \+ attribute(Guard, alert_state, active).
-base_detection_probability(Guard, _Player, 0.5) :-
-    \+ attribute(Guard, perception, _),
-    attribute(Guard, alert_state, active).
+%% One model. The base is the same tier table the annotated detected/2 clauses
+%% carry, so a ProbLog marginal and this accessor start from the same number;
+%% environment and stealth then multiply in. (An earlier version used
+%% perception/10 × 1.3 here, which disagreed with the table.) A guard with no
+%% perception score keeps the 0.3 passive / 0.5 active defaults.
+base_detection_probability(Guard, Player, Base) :-
+    ( attribute(Guard, alert_state, active) -> Active = true ; Active = false ),
+    (   Active == false, disguised_for(Guard, Player)
+    ->  Base = 0.10
+    ;   attribute(Guard, perception, Perc)
+    ->  perception_tier_base(Perc, Active, Base)
+    ;   Active == true
+    ->  Base = 0.5
+    ;   Base = 0.3
+    ).
+perception_tier_base(P, true,  0.95) :- P > 8, !.
+perception_tier_base(P, true,  0.75) :- P > 5, !.
+perception_tier_base(_, true,  0.45).
+perception_tier_base(P, false, 0.60) :- P > 8, !.
+perception_tier_base(P, false, 0.35) :- P > 5, !.
+perception_tier_base(_, false, 0.15).
+%% The player holds an item whose disguise_faction matches the guard's faction.
+disguised_for(Guard, Player) :-
+    attribute(Guard, faction, Faction),
+    relation(Player, has_item, Uniform),
+    attribute(Uniform, disguise_faction, Faction).
 
 %% ── Environmental factors ──────────────────────────────────────────────────
 %% Assert world conditions:
@@ -95,7 +111,12 @@ base_detection_probability(Guard, _Player, 0.5) :-
 
 environmental_detection_factor(_, Factor) :-
     findall(F, env_factor(F), Fs),
-    ( Fs = [] -> Factor = 1.0 ; foldl([F, A, B]>>(B is A * F), Fs, 1.0, Factor) ).
+    env_product(Fs, 1.0, Factor).
+%% Plain recursion rather than foldl with a yall lambda: `>>` is SWI-only.
+env_product([], Acc, Acc).
+env_product([F|Fs], Acc, Product) :-
+    Acc1 is Acc * F,
+    env_product(Fs, Acc1, Product).
 
 env_factor(0.5) :- attribute(world, light_level, dark).
 env_factor(0.75) :- attribute(world, light_level, dim).

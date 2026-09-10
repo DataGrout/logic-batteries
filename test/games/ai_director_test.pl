@@ -144,3 +144,29 @@ test(no_event_when_none_set, [setup(setup_zone_threat_60), cleanup(clear_facts)]
     assertion(\+ director_event(forest_zone, _)).
 
 :- end_tests(ai_director_events).
+
+%% ── spawn_zone is enforced (v1.0.1) ──────────────────────────────────────────
+
+setup_ai_fix_zoned_goblin :-
+    assertz(attribute(goblin, spawn_zone, forest_zone)),
+    assertz(attribute(goblin, min_threat, 10)),
+    assertz(attribute(forest_zone, threat, 40)),
+    assertz(attribute(cave_zone, threat, 40)).
+
+setup_ai_fix_free_roamer :-
+    assertz(attribute(rat, min_threat, 0)),
+    assertz(attribute(cave_zone, threat, 40)).
+
+:- begin_tests(ai_director_spawn_zone).
+
+test(zoned_enemy_spawns_in_its_zone, [setup(setup_ai_fix_zoned_goblin), cleanup(clear_facts)]) :-
+    assertion(spawn_eligible(goblin, forest_zone)).
+
+test(zoned_enemy_does_not_spawn_elsewhere, [setup(setup_ai_fix_zoned_goblin), cleanup(clear_facts)]) :-
+    %% same threat, wrong zone — the clause used to succeed either way
+    assertion(\+ spawn_eligible(goblin, cave_zone)).
+
+test(unzoned_enemy_spawns_anywhere, [setup(setup_ai_fix_free_roamer), cleanup(clear_facts)]) :-
+    assertion(spawn_eligible(rat, cave_zone)).
+
+:- end_tests(ai_director_spawn_zone).

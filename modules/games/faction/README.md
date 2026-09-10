@@ -1,4 +1,4 @@
-# Module: faction v1.0.0
+# Module: faction v1.0.1
 
 Reputation as a number, standing as a tier derived from it, alliances and wars
 between factions, and area access gated on standing.
@@ -36,9 +36,9 @@ From Tether: `dg:batteries().install("faction", "my-game", cb)`.
 | `exalted_threshold` | `faction` | number | Score at or above which standing is `exalted`; default 21000 |
 | `revered_threshold` | `faction` | number | Default 12000 |
 | `honored_threshold` | `faction` | number | Default 9000 |
-| `friendly_threshold` | `faction` | number | Default 3000. Below it, non-negative scores are `neutral` |
-| `unfriendly_threshold` | `faction` | number | Negative scores at or above this are `unfriendly`; default −3000 |
-| `hostile_threshold` | `faction` | number | Scores *below* this are `hostile`; default −6000 |
+| `friendly_threshold` | `faction` | number | Default 3000. Between `unfriendly_threshold` and this, exclusive, is `neutral` |
+| `unfriendly_threshold` | `faction` | number | Scores at or below this are `unfriendly`; default −3000 |
+| `hostile_threshold` | `faction` | number | Scores at or below this are `hostile`; default −6000 |
 
 **Relations**
 
@@ -61,13 +61,13 @@ Lowest to highest: `hostile` → `unfriendly` → `neutral` → `friendly` →
 | `revered` | ≥ 12000 |
 | `honored` | ≥ 9000 |
 | `friendly` | ≥ 3000 |
-| `neutral` | 0 to 2999, **and −3001 to −6000** |
-| `unfriendly` | −3000 to −1 |
-| `hostile` | < −6000 |
+| `neutral` | −2999 to 2999 |
+| `unfriendly` | −5999 to −3000 |
+| `hostile` | ≤ −6000 |
 
-The second `neutral` range is a gap in the rules as written: a score between
-the unfriendly and hostile thresholds matches neither and falls through to the
-default. Treat it as a defect to fix, not a feature to rely on.
+Every tier reads the same way: a score at or beyond its threshold, on either
+side of zero. Neutral is the band between the friendly and unfriendly
+thresholds.
 
 ## Setup
 
@@ -130,3 +130,12 @@ containing `_` can collide with another player-faction pair. Keep ids free of
 - No reputation changes — assert the new `score`.
 - No spill-over between allied or warring factions.
 - No per-faction thresholds.
+
+## Changes
+
+**1.0.1** — negative standings mirror the positive thresholds. Scores between
+`unfriendly_threshold` and `hostile_threshold` were matched by neither rule
+and fell through to `neutral`; now anything at or below `unfriendly_threshold`
+is `unfriendly`, and at or below `hostile_threshold` is `hostile`. Small
+negative scores (above `unfriendly_threshold`) are now `neutral` rather than
+`unfriendly`.

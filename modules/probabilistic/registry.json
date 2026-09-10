@@ -1,11 +1,11 @@
 {
   "version": "1",
-  "updated_at": "2026-05-12",
+  "updated_at": "2026-09-10",
   "category": "probabilistic",
   "modules": [
     {
       "id": "prob-loot",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "title": "Probabilistic Loot",
       "description": "ProbLog-annotated drop probabilities layered on top of loot-tables. Query the exact probability an item drops, compute expected yields, and build drop-rate UIs without any LLM calls. Requires loot-tables in the same namespace.",
       "category": "probabilistic",
@@ -29,11 +29,18 @@
     },
     {
       "id": "prob-detection",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Probabilistic Detection",
       "description": "Guard perception and stealth probability. Annotates detection likelihood based on perception tier, alert state, environmental conditions (light, weather, noise), and player stealth bonus. Requires combat in the same namespace.",
       "category": "probabilistic",
-      "tags": ["stealth", "detection", "probability", "rpg", "problog", "games"],
+      "tags": [
+        "stealth",
+        "detection",
+        "probability",
+        "rpg",
+        "problog",
+        "games"
+      ],
       "predicates": [
         "detected/2",
         "detection_probability/3",
@@ -51,7 +58,14 @@
       "title": "Probabilistic Economy",
       "description": "Market uncertainty for simulation games. Models supply disruption and demand spike probabilities from world state (weather, seasons, conflict), then derives price ranges and expected prices. Requires economy in the same namespace.",
       "category": "probabilistic",
-      "tags": ["economy", "market", "probability", "simulation", "problog", "games"],
+      "tags": [
+        "economy",
+        "market",
+        "probability",
+        "simulation",
+        "problog",
+        "games"
+      ],
       "predicates": [
         "supply_disruption/2",
         "demand_spike/2",
@@ -70,7 +84,14 @@
       "title": "Probabilistic NPC Trust",
       "description": "NPC belief and trust probability based on faction standing and relationship score. Query the likelihood an NPC will share information, assist with tasks, or offer a price discount. Requires npc-state and faction in the same namespace.",
       "category": "probabilistic",
-      "tags": ["npc", "trust", "probability", "rpg", "problog", "games"],
+      "tags": [
+        "npc",
+        "trust",
+        "probability",
+        "rpg",
+        "problog",
+        "games"
+      ],
       "predicates": [
         "trust_probability/3",
         "will_share_info/3",
@@ -90,7 +111,14 @@
       "title": "ProbLog Core (ISO)",
       "description": "ProbLog-lite runtime for ISO-pinned (Scryer) cells. Weighted P::Head rules are rewritten to reified prob_rule(Head, P) clauses at install/assert time; this battery provides the pure-ISO combinators over them: noisy-or psuccess, legacy pmax, negation, conjunction, and expected value. Enables the other prob-* batteries on ISO namespaces without SWI escalation.",
       "category": "probabilistic",
-      "tags": ["probability", "problog", "iso", "scryer", "runtime", "core"],
+      "tags": [
+        "probability",
+        "problog",
+        "iso",
+        "scryer",
+        "runtime",
+        "core"
+      ],
       "predicates": [
         "psuccess/2",
         "pmax/2",
@@ -110,7 +138,14 @@
       "title": "Decision Theory (DTProbLog-lite)",
       "description": "Expected-utility decision layer over prob-core-iso. Declare action/1 candidates, weighted P::outcome(Action, Outcome) rules, and utility/2 values; eu/2 scores each action as sum(P*U) over its outcomes and best_action/2 picks the argmax. Pure ISO — runs on pinned (Scryer) cells.",
       "category": "probabilistic",
-      "tags": ["probability", "decision-theory", "expected-utility", "dtproblog", "iso", "scryer"],
+      "tags": [
+        "probability",
+        "decision-theory",
+        "expected-utility",
+        "dtproblog",
+        "iso",
+        "scryer"
+      ],
       "predicates": [
         "eu/2",
         "eu_sum/3",

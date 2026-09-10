@@ -1,4 +1,4 @@
-# Module: puzzle-fsm v1.0.0
+# Module: puzzle-fsm v1.0.1
 
 A puzzle as a small state machine: which moves are open from the current
 state, whether it is solved, a move sequence that solves it, a hint, and why
@@ -35,8 +35,8 @@ From Tether: `dg:batteries().install("puzzle-fsm", "my-game", cb)`.
 | `current_state` | puzzle | a state id | Where it is now; falls back to `initial_state`. You assert the new state after a move |
 | `solve_state` | puzzle | a state id | A winning state (single). For several, use the relation below |
 | `leads_to` | move | a state id | Where the move goes |
-| `requires_item` | move | an item id | The move is open only if the *puzzle* `player_has` the item |
-| `requires_state` | move | a state id | Read, but redundant: a move is only considered from the state it hangs off, so this can only ever repeat that state |
+| `requires_item` | move | an item id | The move is open only if the item is available — see `player_has` and `player` |
+| `player` | puzzle | a player id | Whose inventory the puzzle may draw on: with this set, the player's `has_item` satisfies `requires_item` |
 
 **Relations**
 
@@ -44,7 +44,8 @@ From Tether: `dg:batteries().install("puzzle-fsm", "my-game", cb)`.
 |---|---|---|
 | `move` | state → move | A move available from that state |
 | `solve_state` | puzzle → state | A winning state; any number of these |
-| `player_has` | **puzzle** → item | The item is available to this puzzle. Not the `inventory` battery's `has_item` — mirror the item here |
+| `player_has` | puzzle → item | The item is available to this puzzle directly, without going through a player |
+| `has_item` | player → item | The `inventory` battery's shape; read when the puzzle names its `player` |
 
 ## Setup
 
@@ -55,8 +56,12 @@ From Tether: `dg:batteries().install("puzzle-fsm", "my-game", cb)`.
 { type="relation",  subject="locked", relation="move",          object="use_key" }
 { type="attribute", entity="use_key", attribute="leads_to",     value="open" }
 
-# An item gate, and the item made available to the puzzle
+# An item gate, satisfied through the player's inventory…
 { type="attribute", entity="use_key", attribute="requires_item", value="brass_key" }
+{ type="attribute", entity="chest",   attribute="player",        value="alice" }
+{ type="relation",  subject="alice",  relation="has_item",       object="brass_key" }
+
+# …or by making the item available to the puzzle directly
 { type="relation",  subject="chest",  relation="player_has",     object="brass_key" }
 
 # Several winning states
@@ -94,10 +99,10 @@ dg:query("my-game", "blocked_by(chest, R)", function(r) if r[1] then explain(r[1
 
 ## Semantics worth knowing
 
-**Items belong to the puzzle here.** `requires_item` is satisfied by
-`relation(Puzzle, player_has, Item)`. When the player picks up the key, assert
-that relation on the puzzle; `inventory`'s `has_item` on the player is not
-consulted.
+**Two ways to hold an item.** Give the puzzle a `player` and its item gates
+read that player's `has_item` — the relation `inventory` maintains, so a
+pickup there opens the move here with no mirroring. Or assert `player_has` on
+the puzzle for a puzzle with no particular player.
 
 **Moves do not move.** Nothing here changes `current_state`; apply the move in
 the game and assert the new state.
@@ -120,4 +125,12 @@ gated move is found only if the item is already available; it will not plan
 ## Composing with Other Modules
 
 `quests` for solving as an objective; `fsm` for reachability and cycle analysis
-over the same state graph.
+over the same state graph; `inventory` for the `has_item` a `player` puzzle
+reads.
+
+## Changes
+
+**1.0.1** — a puzzle with a `player` attribute reads that player's `has_item`
+for its item gates; before, only `player_has` on the puzzle itself counted and
+`inventory` was never consulted. The unused `requires_state` check on moves
+was removed: it could only ever repeat the state a move already hangs off.

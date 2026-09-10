@@ -2,7 +2,7 @@
 %% Exports: level_for_xp/2, xp_to_next_level/2, stat_at_level/3,
 %%          unlock_available/2, can_prestige/1
 
-battery_module(progression, '1.0.0', auto).
+battery_module(progression, '1.0.1', auto).
 
 battery_export(progression, 'level_for_xp/2',     'level_for_xp(XP, Level) — Level reached with XP total experience').
 battery_export(progression, 'xp_to_next_level/2', 'xp_to_next_level(Player, Needed) — XP gap from Player''s current position to next level').
@@ -142,12 +142,27 @@ stat_at_level(Stat, Level, Value) :-
 %%   attribute(fireball, unlock_requires_class, mage)    %% optional class gate
 
 unlock_available(Player, Unlock) :-
-    attribute(Unlock, unlock_at_level, ReqLevel),
+    unlock_level_requirement(Unlock, ReqLevel),
     player_level(Player, PlayerLevel),
     PlayerLevel >= ReqLevel,
-    ( attribute(Unlock, unlock_requires_class, ReqClass)
+    ( unlock_class_requirement(Unlock, ReqClass)
       -> attribute(Player, class, ReqClass)
       ;  true ).
+
+%% `unlock_at_level` is canonical; `requires_level` is accepted because it is
+%% the name the prestige entity uses and the one authors reach for. The
+%% prestige entity itself is not an unlock, so it is excluded when the alias
+%% is what matched — otherwise `unlock_available(P, U)` would enumerate it.
+unlock_level_requirement(Unlock, L) :-
+    attribute(Unlock, unlock_at_level, L), !.
+unlock_level_requirement(Unlock, L) :-
+    attribute(Unlock, requires_level, L),
+    Unlock \== prestige.
+
+unlock_class_requirement(Unlock, C) :-
+    attribute(Unlock, unlock_requires_class, C), !.
+unlock_class_requirement(Unlock, C) :-
+    attribute(Unlock, requires_class, C).
 
 %% ── Prestige ─────────────────────────────────────────────────────────────────
 %%

@@ -1,4 +1,4 @@
-# Module: economy v1.0.0
+# Module: economy v1.0.1
 
 Recipes as material lists, whether a player can craft one and what they lack,
 the gold cost of crafting, and buy and sell prices adjusted for supply and
@@ -32,6 +32,7 @@ From Tether: `dg:batteries().install("economy", "my-game", cb)`.
 | Name | On | Value | Description |
 |---|---|---|---|
 | `<material>_qty` | recipe item | integer | How many of that material the recipe needs: `iron_ingot_qty`. Default 1. Built from the material name, so it does not appear in the source as a literal |
+| `<material>_qty` | player | integer | How many of that material the player holds. Preferred over counting `has_material` facts; when present it is authoritative |
 | `recipe_gold_cost` | recipe item | number | Flat crafting cost; when present the ingredient sum is skipped |
 | `base_price` | item | number | Required for any price; an item without one has no `buy_price` |
 | `supply_factor` | item | multiplier | Default 1.0; below 1 is abundant and cheaper |
@@ -43,7 +44,7 @@ From Tether: `dg:batteries().install("economy", "my-game", cb)`.
 | Name | Subject → Object | Description |
 |---|---|---|
 | `requires` | recipe item → material | One per ingredient |
-| `has_material` | player → material | One unit held. Quantity is the *number of these facts*; three facts mean three units |
+| `has_material` | player → material | One unit held, when no `<material>_qty` is set on the player. Quantity is then the *number of these facts* |
 
 `economy` is a fixed entity name for the sell ratio.
 
@@ -65,9 +66,7 @@ From Tether: `dg:batteries().install("economy", "my-game", cb)`.
 { type="attribute", entity="economy",    attribute="sell_ratio",    value=0.7 }
 
 # What alice holds: three ingots, no wood
-{ type="relation", subject="alice", relation="has_material", object="iron_ingot" }
-{ type="relation", subject="alice", relation="has_material", object="iron_ingot" }
-{ type="relation", subject="alice", relation="has_material", object="iron_ingot" }
+{ type="attribute", entity="alice", attribute="iron_ingot_qty", value=3 }
 ```
 
 ## Querying
@@ -98,11 +97,10 @@ dg:query("my-game", "missing_materials(alice, iron_sword, M)", function(r) if r[
 
 ## Semantics worth knowing
 
-**Quantity is a count of identical facts.** `has_material` has no amount; three
-units are three identical relation facts. Check that your fact store keeps
-duplicates — a store that collapses identical facts would cap every material at
-one. If that is your situation, model quantities as an attribute and query it
-yourself.
+**Prefer the quantity attribute.** `<material>_qty` on the player is one fact
+per material and is read first. Counting `has_material` facts still works, but
+it depends on the store keeping identical duplicates; a store that collapses
+them would cap every material at one.
 
 **`craft_cost` skips unpriced ingredients silently.** An ingredient with no
 `base_price` contributes nothing to the sum rather than failing the query, so
@@ -116,3 +114,8 @@ relation; an item nobody has given a recipe is uncraftable, not free.
 
 `inventory` for what the player holds, `quests` for crafting as an objective,
 `npc-state` for gating a shop on standing.
+
+## Changes
+
+**1.0.1** — a `<material>_qty` attribute on the player is read as the quantity
+held, ahead of counting `has_material` facts.

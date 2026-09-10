@@ -49,8 +49,9 @@ test(active_high_perception, [nondet, setup(setup_active_high_perception_guard),
 
 test(passive_low_perception, [nondet, setup(setup_passive_low_perception_guard), cleanup(clear_facts)]) :-
     base_detection_probability(guard_rookie, player, Base),
-    %% perception 3, no alert: 3/10 * 1.0 = 0.3
-    assertion(Base =:= 0.3).
+    %% perception 3, passive: the low/passive tier — the same 0.15 the
+    %% annotated detected/2 clause carries
+    assertion(Base =:= 0.15).
 
 test(no_perception_passive_default, [nondet, cleanup(clear_facts)]) :-
     %% guard with no perception attribute and no active state
@@ -153,3 +154,38 @@ test(no_stealth_success_against_elite_guard, [setup(setup_active_high_perception
     assertion(\+ stealth_success(guard_elite, player)).
 
 :- end_tests(prob_detection_stealth_success).
+
+%% ── one model: tier table base + disguise (v1.0.1) ───────────────────────────
+
+setup_det_fix_mid_guard_active :-
+    assertz(attribute(mid_guard, perception, 7)),
+    assertz(attribute(mid_guard, alert_state, active)).
+
+setup_det_fix_mid_guard_passive :-
+    assertz(attribute(mid_guard, perception, 7)).
+
+setup_det_fix_disguise :-
+    assertz(attribute(gate_guard, perception, 9)),
+    assertz(attribute(gate_guard, faction, watch)),
+    assertz(relation(spy, has_item, watch_cloak)),
+    assertz(attribute(watch_cloak, disguise_faction, watch)).
+
+setup_det_fix_disguise_vs_active :-
+    setup_det_fix_disguise,
+    assertz(attribute(gate_guard, alert_state, active)).
+
+:- begin_tests(prob_detection_tier_model).
+
+test(medium_active_matches_annotated_weight, [setup(setup_det_fix_mid_guard_active), cleanup(clear_facts)]) :-
+    base_detection_probability(mid_guard, player, B), assertion(B =:= 0.75).
+
+test(medium_passive_matches_annotated_weight, [setup(setup_det_fix_mid_guard_passive), cleanup(clear_facts)]) :-
+    base_detection_probability(mid_guard, player, B), assertion(B =:= 0.35).
+
+test(disguise_lowers_passive_guard_to_0_10, [setup(setup_det_fix_disguise), cleanup(clear_facts)]) :-
+    base_detection_probability(gate_guard, spy, B), assertion(B =:= 0.10).
+
+test(disguise_does_nothing_against_active_guard, [setup(setup_det_fix_disguise_vs_active), cleanup(clear_facts)]) :-
+    base_detection_probability(gate_guard, spy, B), assertion(B =:= 0.95).
+
+:- end_tests(prob_detection_tier_model).

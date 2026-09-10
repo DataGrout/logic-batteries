@@ -1,4 +1,4 @@
-# Module: prob-loot v1.0.0
+# Module: prob-loot v1.0.2
 
 Drop odds as numbers. Wraps `loot-tables` so a game or agent can ask the
 probability of a drop, the expected yield over many kills, and whether a drop is
@@ -21,7 +21,7 @@ From Tether: `dg:batteries().install_many({"loot-tables", "prob-loot"}, "my-game
 
 | Predicate | Description |
 |---|---|
-| `drop_occurs(Source, Item)` | Probabilistic, weighted by rarity tier — see the two scales below |
+| `drop_occurs(Source, Item)` | Probabilistic, weighted by rarity tier on the same scale as `drop_probability` |
 | `guaranteed_drop(Source, Item)` | The item's `drop_chance` is 100 or more |
 | `drop_probability(Source, Item, P)` | `loot-tables`' `loot_chance` as 0–1 |
 | `expected_drops(Source, Item, N, Expected)` | `N × drop_probability` |
@@ -39,25 +39,20 @@ Everything else comes from the `loot-tables` battery: `drops/2` for the table,
 facts — `can_drop`, `rarity`, `loot_conditions` — are what you assert; see its
 table.
 
-**Two scales.** `drop_occurs/2` is ProbLog-weighted by tier at 0.90 / 0.65 /
-0.35 / 0.10 / **0.15** for common through legendary — note legendary is more
-likely than epic as written. `drop_probability/3` instead converts
-`loot-tables`' deterministic chance (70 / 30 / 10 / 3 / 1 percent, or the
-item's `drop_chance`) to 0–1. The two do not agree; `expected_drops/4` uses the
-second.
+**One scale.** `drop_occurs/2`'s ProbLog weights are `loot-tables`' tier
+chances as probabilities, so a marginal over `drop_occurs` and
+`drop_probability/3` agree by construction. An item's `drop_chance` overrides
+the tier for `drop_probability`; the annotated clauses read the tier only.
 
-## Weights of `drop_occurs` by Rarity
+## Weights by Rarity
 
-| Tier | Weight |
-|---|---|
-| `common` | 0.90 |
-| `uncommon` | 0.65 |
-| `rare` | 0.35 |
-| `epic` | 0.10 |
-| `legendary` | 0.15 |
-
-These are the ProbLog weights only. `drop_probability` uses `loot-tables`'
-chances: 70 / 30 / 10 / 3 / 1.
+| Tier | Weight (`drop_occurs`) | Chance (`drop_probability`) |
+|---|---|---|
+| `common` | 0.70 | 70 |
+| `uncommon` | 0.30 | 30 |
+| `rare` | 0.10 | 10 |
+| `epic` | 0.03 | 3 |
+| `legendary` | 0.01 | 1 |
 
 ## Setup
 
@@ -86,7 +81,7 @@ expected_drops(warden_boss, boss_key, 100, E)
 # Always?
 guaranteed_drop(warden_boss, gold_coin)
 
-# Marginal, through ProbLog (legendary weight 0.15)
+# Marginal, through ProbLog — the same 0.01
 probability(drop_occurs(warden_boss, boss_key), P)
 ```
 
@@ -98,9 +93,10 @@ dg:query("my-game", "drop_probability(warden_boss, boss_key, P)", function(r) if
 
 ## Semantics worth knowing
 
-**Ask the scale you mean.** A UI showing "drop rate" wants `drop_probability`
-(and it will say 1% for a legendary). A ProbLog query over `drop_occurs` will
-say 15%. Neither is wrong about itself; do not mix them in one display.
+**`drop_chance` reaches one path only.** A per-item `drop_chance` changes
+`drop_probability` and `guaranteed_drop`; the annotated `drop_occurs` clauses
+always use the tier. An item you override will read differently through
+ProbLog than through the accessor.
 
 **`guaranteed_drop` needs a number.** A `drop_chance` of `"100"` as text does
 not count; the clause checks `number/1`.
@@ -108,3 +104,9 @@ not count; the clause checks `number/1`.
 **Conditions are `loot-tables`' business.** Nothing here reads
 `loot_conditions`; `drop_occurs` and `drop_probability` ignore whether the drop
 is currently eligible. Check `eligible_loot` first if that matters.
+
+## Changes
+
+**1.0.2** — `drop_occurs` weights are now 0.70 / 0.30 / 0.10 / 0.03 / 0.01,
+matching `loot-tables`. They were 0.90 / 0.65 / 0.35 / 0.10 / 0.15, which
+disagreed with `drop_probability` and made legendary drops likelier than epic.

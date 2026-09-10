@@ -1,9 +1,9 @@
-# Module: prob-detection v1.0.0
+# Module: prob-detection v1.0.1
 
-Does the guard see the player? Two answers to the same question: a
+Does the guard see the player? One model, two ways to ask it: a
 ProbLog-weighted `detected/2` for marginal inference, and a deterministic
-`detection_probability/3` that multiplies perception, alertness, environment
-and stealth into one number.
+`detection_probability/3` that starts from the same per-guard weight and
+multiplies environment and stealth into it.
 
 **Requires:** `combat`, for `detected/2` only — its rules call `can_attack/2`
 to establish that the guard can reach the player. The deterministic predicates
@@ -25,7 +25,7 @@ From Tether: `dg:batteries().install_many({"combat", "prob-detection"}, "my-game
 | Predicate | Description |
 |---|---|
 | `detected(Guard, Player)` | Probabilistic; query its marginal with `probability(detected(G, P), X)`. Weights in the table below |
-| `detection_probability(Guard, Player, P)` | Deterministic: `base × environment × stealth`, clamped to 0.01–0.99 |
+| `detection_probability(Guard, Player, P)` | Deterministic: the guard's tier weight × environment × stealth, clamped to 0.01–0.99 |
 | `stealth_success(Guard, Player)` | `detection_probability` below 0.5 |
 | `environmental_detection_factor(_, Factor)` | Product of the environmental multipliers. The first argument is ignored; the factor is global |
 
@@ -35,11 +35,11 @@ From Tether: `dg:batteries().install_many({"combat", "prob-detection"}, "my-game
 
 | Name | On | Value | Description |
 |---|---|---|---|
-| `perception` | guard | 1–10 | Deterministic base is `perception / 10` (×1.3 when active), capped at 0.95. Without it the base is 0.3 passive or 0.5 active |
+| `perception` | guard | 1–10 | Picks the tier: above 8 high, 6–8 medium, 5 or below low. Without it the base is 0.3 passive or 0.5 active |
 | `alert_state` | guard | `active` | Alerted. Any other value, or none, is passive |
-| `faction` | guard | a faction id | For the disguise rule of `detected/2` |
+| `faction` | guard | a faction id | For the disguise rule |
 | `stealth_bonus` | player | 0–10 | Multiplies detection by `1 − 0.07 × bonus`, floored at 0.1 |
-| `disguise_faction` | uniform item | a faction id | A held item whose faction matches the guard's drops `detected/2` to 0.10 against a passive guard |
+| `disguise_faction` | uniform item | a faction id | A held item whose faction matches the guard's drops a *passive* guard's weight to 0.10 |
 | `light_level` | `world` | `dark` \| `dim` | ×0.5 / ×0.75 |
 | `weather` | `world` | `rain` \| `fog` | ×0.8 / ×0.85 |
 | `noise_level` | `world` | `loud` | ×1.3 |
@@ -53,10 +53,11 @@ From Tether: `dg:batteries().install_many({"combat", "prob-detection"}, "my-game
 `world` is a fixed entity name; the `world` battery maintains the same
 attributes.
 
-## The Two Models
+## The Model
 
-**`detected/2`** — ProbLog clauses; each fires when its conditions hold and the
-guard `can_attack` the player:
+One weight per guard, from perception tier, alertness and disguise. The
+ProbLog clauses of `detected/2` carry it (and additionally require the guard to
+`can_attack` the player); `detection_probability/3` starts from it:
 
 | Guard | Weight |
 |---|---|
@@ -68,16 +69,14 @@ guard `can_attack` the player:
 | perception ≤ 5, passive | 0.15 |
 | passive, player holds a uniform of the guard's faction | 0.10 |
 
-**`detection_probability/3`** — arithmetic, no inference and no `combat`:
+Then, for `detection_probability/3` only — no inference, no `combat`:
 
 ```
-base   = min(0.95, perception/10 × (1.3 if active else 1.0))   (0.3 / 0.5 with no perception)
-env    = product of light, weather and noise multipliers
+base    = the guard's weight from the table   (0.3 passive / 0.5 active with no perception)
+env     = product of light, weather and noise multipliers
 stealth = max(0.1, 1 − 0.07 × stealth_bonus)
-P      = clamp(base × env × stealth, 0.01, 0.99)
+P       = clamp(base × env × stealth, 0.01, 0.99)
 ```
-
-The two do not agree by construction; pick one per feature.
 
 ## Setup
 
@@ -115,8 +114,8 @@ dg:query("my-game", "detection_probability(guard_a, player, P)", function(r) if 
 
 ## Semantics worth knowing
 
-**Disguise only helps against passive guards, and only in `detected/2`.** The
-deterministic path ignores `faction`, `has_item` and `disguise_faction`.
+**Disguise only helps against passive guards.** An alerted guard sees through
+the uniform in both predicates.
 
 **Environment is global.** Multipliers come from `world`; there is no per-guard
 or per-location lighting.
@@ -128,3 +127,9 @@ or per-location lighting.
 - No line of sight or distance of its own; `detected/2` borrows `can_attack`,
   the deterministic path has neither.
 - No per-guard environment.
+
+## Changes
+
+**1.0.1** — `detection_probability` starts from the same tier weights as the
+annotated `detected/2` clauses, disguise included. It used
+`perception / 10 × 1.3`, so the two disagreed for every guard.

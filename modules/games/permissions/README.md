@@ -1,4 +1,4 @@
-# Module: permissions v1.0.0
+# Module: permissions v1.0.1
 
 Roles that grant permissions and inherit from one another, ownership, public
 resources, and a single access check that combines them. Fits game systems
@@ -41,7 +41,7 @@ From Tether: `dg:batteries().install("permissions", "my-game", cb)`.
 |---|---|---|
 | `has_role` | entity → role | Role assignment; an entity may hold several |
 | `grants_permission` | role → permission | What the role allows |
-| `inherits_from` | role → role | The role also grants everything its parent grants, transitively. **Keep it acyclic** — see below |
+| `inherits_from` | role → role | The role also grants everything its parent grants, transitively. A cycle is tolerated: the walk remembers where it has been |
 
 ## Access Order
 
@@ -95,9 +95,10 @@ dg:query("my-game", "can_access(" .. player.Name .. ", admin_panel)", function(r
 
 ## Semantics worth knowing
 
-**Inheritance must not cycle.** `role_grants` follows `inherits_from` with no
-memory of where it has been, so `a inherits_from b` together with `b
-inherits_from a` does not terminate. Ranks are a chain; keep them one.
+**Inheritance may cycle.** `role_grants` walks `inherits_from` with a visited
+set, so `a inherits_from b` together with `b inherits_from a` simply means the
+two roles grant the same permissions. Ranks are usually a chain, but a mistake
+in the data no longer hangs a query.
 
 **Ownership is not a permission.** `is_owner` opens `can_access` on that
 resource only; it grants nothing `permission_granted` can see. A resource with
@@ -114,3 +115,8 @@ each granting its own actions (kick, invite, vault). **Party** — the leader
 holds `kick_member` and `set_destination`; everyone holds `leave_party`.
 **Staff** — moderators inherit a subset of admin; promotion is one `has_role`
 assert.
+
+## Changes
+
+**1.0.1** — `role_grants` carries a visited set; an inheritance cycle
+terminates instead of looping forever.

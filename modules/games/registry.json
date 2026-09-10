@@ -1,13 +1,13 @@
 {
   "version": "1",
-  "updated_at": "2026-05-11",
+  "updated_at": "2026-09-10",
   "category": "games",
   "modules": [
     {
       "id": "inventory",
       "version": "1.0.0",
       "title": "Inventory System",
-      "description": "Item carrying, weight limits, and slot constraints. Works out of the box with sensible defaults \u2014 override per-player or per-item by asserting attribute facts.",
+      "description": "Item carrying, weight limits, and slot constraints. Works out of the box with sensible defaults — override per-player or per-item by asserting attribute facts.",
       "category": "games",
       "tags": [
         "items",
@@ -30,7 +30,7 @@
     },
     {
       "id": "loot-tables",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Loot Tables",
       "description": "Rarity tiers, condition-gated drops, and drop chance calculation. Supports time-of-day, weather, moon phase, player level, and item prerequisites as conditions.",
       "category": "games",
@@ -47,7 +47,8 @@
         "eligible_loot/2",
         "rarity_tier/2",
         "condition_met/2",
-        "loot_chance/3"
+        "loot_chance/3",
+        "eligible_loot/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/loot-tables/loot_tables.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/loot-tables",
@@ -107,9 +108,9 @@
     },
     {
       "id": "progression",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Progression & Leveling",
-      "description": "XP thresholds, level-up triggers, stat unlocks, and prestige conditions. Configurable XP curve \u2014 linear, exponential, or custom breakpoints.",
+      "description": "XP thresholds, level-up triggers, stat unlocks, and prestige conditions. Configurable XP curve — linear, exponential, or custom breakpoints.",
       "category": "games",
       "tags": [
         "progression",
@@ -132,7 +133,7 @@
     },
     {
       "id": "economy",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Economy & Crafting",
       "description": "Crafting recipes, buy/sell pricing, supply-demand adjustments, and trade validation. Supports material substitutions and quality tiers.",
       "category": "games",
@@ -182,7 +183,7 @@
     },
     {
       "id": "puzzle-fsm",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Puzzle & FSM",
       "description": "Finite state machine transitions, win/loss condition detection, hint generation, and sequence validation.",
       "category": "games",
@@ -231,7 +232,7 @@
     },
     {
       "id": "faction",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Faction System",
       "description": "Numeric reputation tracking, standing tier derivation, faction alliances, wars, and area access gating. Standing tiers from hostile to exalted with configurable thresholds.",
       "category": "games",
@@ -304,7 +305,7 @@
     },
     {
       "id": "permissions",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Permissions",
       "description": "Role-based access control with inheritance, ownership checks, and public resource handling. Roles inherit permissions from parent roles; ownership always grants access.",
       "category": "games",
@@ -328,7 +329,7 @@
     },
     {
       "id": "ai-director",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "AI Director",
       "description": "Dynamic difficulty and pacing for games. Derives pacing state (calm/building/tense/peak/recovery) from zone threat levels, adjusts difficulty multipliers, controls enemy spawning windows, and fires director events.",
       "category": "games",
@@ -353,7 +354,7 @@
     },
     {
       "id": "dungeon",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Dungeon Navigation",
       "description": "Room connectivity, key-locked access, DFS pathfinding through accessible rooms, clearance tracking, and dungeon completion detection.",
       "category": "games",
@@ -369,7 +370,8 @@
         "room_accessible/2",
         "dungeon_path/3",
         "room_cleared/2",
-        "dungeon_complete/2"
+        "dungeon_complete/2",
+        "room_cleared/3"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/dungeon/dungeon.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/dungeon",
@@ -378,9 +380,9 @@
     },
     {
       "id": "risk-assessment",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Risk Assessment",
-      "description": "Combat risk analysis — survival probability, fight-or-flee recommendations, and encounter breakdowns. Works with the combat battery and base HP/damage attributes. Requires combat in the same namespace.",
+      "description": "Combat risk analysis — survival probability, fight-or-flee recommendations, and encounter breakdowns. Reads the same hp attribute combat does, so the two compose; depends on nothing.",
       "category": "games",
       "tags": [
         "combat",

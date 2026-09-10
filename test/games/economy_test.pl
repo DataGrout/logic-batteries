@@ -190,3 +190,31 @@ test(sell_always_less_than_buy, [setup(setup_iron_sword_price), cleanup(clear_fa
     assertion(Sell < Buy).
 
 :- end_tests(economy_sell_price).
+
+%% ── quantity as an attribute (v1.0.1) ────────────────────────────────────────
+
+setup_eco_fix_qty_attribute :-
+    assertz(relation(iron_sword, requires, iron_ingot)),
+    assertz(attribute(iron_sword, iron_ingot_qty, 3)),
+    assertz(attribute(alice, iron_ingot_qty, 5)).
+
+setup_eco_fix_qty_attribute_wins :-
+    assertz(relation(iron_sword, requires, iron_ingot)),
+    assertz(attribute(iron_sword, iron_ingot_qty, 3)),
+    assertz(attribute(alice, iron_ingot_qty, 0)),
+    assertz(relation(alice, has_material, iron_ingot)),
+    assertz(relation(alice, has_material, iron_ingot)),
+    assertz(relation(alice, has_material, iron_ingot)).
+
+:- begin_tests(economy_quantity_attribute).
+
+test(quantity_attribute_counts, [setup(setup_eco_fix_qty_attribute), cleanup(clear_facts)]) :-
+    assertion(can_craft(alice, iron_sword)),
+    missing_materials(alice, iron_sword, M), assertion(M == []).
+
+test(quantity_attribute_takes_precedence_over_relation_facts, [setup(setup_eco_fix_qty_attribute_wins), cleanup(clear_facts)]) :-
+    %% the explicit count is authoritative; the three relation facts are not counted
+    assertion(\+ can_craft(alice, iron_sword)),
+    missing_materials(alice, iron_sword, M), assertion(M == [material(iron_ingot, 3, 0)]).
+
+:- end_tests(economy_quantity_attribute).

@@ -1,7 +1,7 @@
 %% Battery: economy v1.0.0
 %% Exports: can_craft/2, craft_cost/2, buy_price/2, sell_price/2, missing_materials/3
 
-battery_module(economy, '1.0.0', auto).
+battery_module(economy, '1.0.1', auto).
 
 battery_export(economy, 'can_craft/2',          'can_craft(Player, Item) — Player has all materials to craft Item').
 battery_export(economy, 'craft_cost/2',         'craft_cost(Item, Cost) — Cost is the total gold value of materials to craft Item').
@@ -32,6 +32,13 @@ can_craft(Player, Item) :-
         Have < Need
     ).
 
+%% Quantity held: a `<material>_qty` attribute on the player when present —
+%% the same suffix a recipe uses for quantity needed — otherwise one unit per
+%% has_material relation fact. The attribute is the reliable form: counting
+%% relation facts depends on the store keeping duplicates.
+player_material_count(Player, Material, Count) :-
+    atom_concat(Material, '_qty', QtyAttr),
+    attribute(Player, QtyAttr, Count), !.
 player_material_count(Player, Material, Count) :-
     findall(_, relation(Player, has_material, Material), Xs),
     length(Xs, Count).

@@ -2,7 +2,7 @@
 %% Exports: faction_reputation/3, faction_standing/3, faction_allied/2,
 %%          faction_at_war/2, faction_access/2
 
-battery_module(faction, '1.0.0', auto).
+battery_module(faction, '1.0.1', auto).
 
 battery_export(faction, 'faction_reputation/3', 'faction_reputation(Player, Faction, Rep) — numeric reputation score').
 battery_export(faction, 'faction_standing/3',   'faction_standing(Player, Faction, Standing) — standing tier: hostile/unfriendly/neutral/friendly/honored/revered/exalted').
@@ -15,7 +15,7 @@ battery_export(faction, 'faction_access/2',     'faction_access(Player, Area) �
 %% Reputation keyed as player_faction:
 %%   attribute(alice_traders_guild, score, 5000)
 %%
-%% Standing thresholds (global defaults; override by asserting per-faction):
+%% Standing thresholds (global; override by asserting on the `faction` entity):
 %%   attribute(faction, exalted_threshold,    21000)   default
 %%   attribute(faction, revered_threshold,    12000)   default
 %%   attribute(faction, honored_threshold,     9000)   default
@@ -68,8 +68,13 @@ rep_to_standing(Rep, exalted)    :- threshold(exalted,    T), Rep >= T, !.
 rep_to_standing(Rep, revered)    :- threshold(revered,    T), Rep >= T, !.
 rep_to_standing(Rep, honored)    :- threshold(honored,    T), Rep >= T, !.
 rep_to_standing(Rep, friendly)   :- threshold(friendly,   T), Rep >= T, !.
-rep_to_standing(Rep, unfriendly) :- threshold(unfriendly, T), Rep < 0, Rep >= T, !.
-rep_to_standing(Rep, hostile)    :- threshold(hostile,    T), Rep < T, !.
+%% Negative tiers mirror the positive ones: a score at or beyond a threshold is
+%% that tier. Hostile is checked first because it is the more negative bound;
+%% anything above unfriendly_threshold and below friendly_threshold is neutral.
+%% (The earlier form left scores between the two negative thresholds unmatched,
+%% so they fell through to neutral.)
+rep_to_standing(Rep, hostile)    :- threshold(hostile,    T), Rep =< T, !.
+rep_to_standing(Rep, unfriendly) :- threshold(unfriendly, T), Rep =< T, !.
 rep_to_standing(_, neutral).
 
 %% faction_standing(+Player, +Faction, -Standing)

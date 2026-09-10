@@ -203,3 +203,35 @@ test(multiple_conditions_all_met, [setup(setup_lake_moon_fish_all_met),
     assertion(eligible_loot(lake, moon_fish)).
 
 :- end_tests(loot_eligible).
+
+%% ── eligible_loot/3 with a player context (v1.0.1) ───────────────────────────
+
+setup_loot_fix_player_gated :-
+    assertz(relation(vault, can_drop, sigil)),
+    assertz(attribute(sigil, loot_conditions, [player_level_gte(10), player_has(vault_key)])),
+    assertz(attribute(bob, level, 12)),
+    assertz(relation(bob, has_item, vault_key)),
+    assertz(attribute(carl, level, 3)).
+
+setup_loot_fix_world_gated :-
+    assertz(relation(lake, can_drop, night_fish)),
+    assertz(attribute(night_fish, loot_conditions, [time(night)])),
+    assertz(attribute(world, time_of_day, night)).
+
+:- begin_tests(loot_tables_eligible_with_context).
+
+test(player_conditions_hold_for_qualifying_player, [setup(setup_loot_fix_player_gated), cleanup(clear_facts)]) :-
+    assertion(eligible_loot(vault, sigil, bob)).
+
+test(player_conditions_fail_for_other_player, [setup(setup_loot_fix_player_gated), cleanup(clear_facts)]) :-
+    assertion(\+ eligible_loot(vault, sigil, carl)).
+
+test(two_arity_form_cannot_satisfy_player_conditions, [setup(setup_loot_fix_player_gated), cleanup(clear_facts)]) :-
+    %% /2 evaluates against `world`, which has no level and holds no items
+    assertion(\+ eligible_loot(vault, sigil)).
+
+test(world_conditions_ignore_the_context, [setup(setup_loot_fix_world_gated), cleanup(clear_facts)]) :-
+    assertion(eligible_loot(lake, night_fish, bob)),
+    assertion(eligible_loot(lake, night_fish)).
+
+:- end_tests(loot_tables_eligible_with_context).

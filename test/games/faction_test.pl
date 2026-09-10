@@ -100,3 +100,28 @@ test(no_access_no_faction_rep, [setup(setup_guild_hall_access), cleanup(clear_fa
     assertion(\+ faction_access(alice, guild_hall)).
 
 :- end_tests(faction_access).
+
+%% ── negative standings mirror the positive thresholds (v1.0.1) ───────────────
+
+setup_fac_fix_negative_scores :-
+    assertz(attribute(alice_g1, score, -3000)),
+    assertz(attribute(alice_g2, score, -5000)),
+    assertz(attribute(alice_g3, score, -1)),
+    assertz(attribute(alice_g4, score, -6000)).
+
+:- begin_tests(faction_negative_standings).
+
+test(at_unfriendly_threshold_is_unfriendly, [setup(setup_fac_fix_negative_scores), cleanup(clear_facts)]) :-
+    faction_standing(alice, g1, S), assertion(S == unfriendly).
+
+test(between_thresholds_is_unfriendly_not_neutral, [setup(setup_fac_fix_negative_scores), cleanup(clear_facts)]) :-
+    %% −5000 used to match neither negative clause and fall through to neutral
+    faction_standing(alice, g2, S), assertion(S == unfriendly).
+
+test(slightly_negative_is_neutral, [setup(setup_fac_fix_negative_scores), cleanup(clear_facts)]) :-
+    faction_standing(alice, g3, S), assertion(S == neutral).
+
+test(at_hostile_threshold_is_hostile, [setup(setup_fac_fix_negative_scores), cleanup(clear_facts)]) :-
+    faction_standing(alice, g4, S), assertion(S == hostile).
+
+:- end_tests(faction_negative_standings).

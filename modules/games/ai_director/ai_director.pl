@@ -1,8 +1,8 @@
-%% Battery: ai_director v1.0.0
+%% Battery: ai_director v1.0.1
 %% Exports: spawn_eligible/2, difficulty_modifier/2, pacing_state/2,
 %%          threat_level/2, director_event/2
 
-battery_module(ai_director, '1.0.0', auto).
+battery_module(ai_director, '1.0.1', auto).
 
 battery_export(ai_director, 'spawn_eligible/2',    'spawn_eligible(Enemy, Zone) — Enemy may spawn in Zone given current pacing and threat').
 battery_export(ai_director, 'difficulty_modifier/2','difficulty_modifier(Zone, Modifier) — numeric multiplier for challenge in Zone (1.0 = baseline)').
@@ -80,8 +80,11 @@ difficulty_modifier(Zone, Modifier) :-
 
 %% ── spawn_eligible/2 ─────────────────────────────────────────────────────────
 
+%% An enemy with spawn_zone facts may spawn only in those zones; one with none
+%% may spawn anywhere. (The earlier `-> true ; true` succeeded either way, so
+%% spawn_zone was never enforced.)
 spawn_eligible(Enemy, Zone) :-
-    ( attribute(Enemy, spawn_zone, Zone) -> true ; true ),
+    ( attribute(Enemy, spawn_zone, _) -> attribute(Enemy, spawn_zone, Zone) ; true ),
     threat_level(Zone, Threat),
     ( attribute(Enemy, min_threat, Min) -> Threat >= Min ; true ),
     ( attribute(Enemy, max_threat, Max) -> Threat =< Max ; true ),

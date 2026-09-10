@@ -1,7 +1,7 @@
 %% Battery: permissions v1.0.0
 %% Exports: has_role/2, role_grants/2, is_owner/2, permission_granted/2, can_access/2
 
-battery_module(permissions, '1.0.0', auto).
+battery_module(permissions, '1.0.1', auto).
 
 battery_export(permissions, 'has_role/2',           'has_role(Entity, Role) — Entity holds Role').
 battery_export(permissions, 'role_grants/2',        'role_grants(Role, Permission) — Role grants Permission (including inherited)').
@@ -34,11 +34,18 @@ has_role(Entity, Role) :-
     relation(Entity, has_role, Role).
 
 %% role_grants(+Role, ?Permission)  — follows inherits_from chains
+%% Visited-set walk: an inheritance cycle (a inherits_from b, b inherits_from a)
+%% terminates instead of looping. Directives are stripped at install, so
+%% tabling is not available for this.
 role_grants(Role, Permission) :-
+    role_grants_(Role, Permission, [Role]).
+
+role_grants_(Role, Permission, _) :-
     relation(Role, grants_permission, Permission).
-role_grants(Role, Permission) :-
+role_grants_(Role, Permission, Seen) :-
     relation(Role, inherits_from, Parent),
-    role_grants(Parent, Permission).
+    \+ member(Parent, Seen),
+    role_grants_(Parent, Permission, [Parent|Seen]).
 
 %% is_owner(+Entity, +Resource)
 is_owner(Entity, Resource) :-
