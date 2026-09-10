@@ -1,103 +1,116 @@
 # Module: permissions v1.0.0
 
-Role-based access control with inheritance, ownership checks, and public resource handling. Works for both game-level permissions (admin tools, moderation) and in-game systems (guild ranks, party leader).
+Roles that grant permissions and inherit from one another, ownership, public
+resources, and a single access check that combines them. Fits game systems
+(guild ranks, party leader) and game-level tooling (admin, moderation) alike.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["permissions"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("permissions", "my-game", cb)`.
 
-```lua
-dg:batteries().install("permissions", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `has_role(Entity, Role)` | Entity holds Role |
-| `role_grants(Role, Permission)` | Role grants Permission (follows `inherits_from` chains) |
-| `is_owner(Entity, Resource)` | Entity owns Resource |
-| `permission_granted(Entity, Permission)` | Entity has Permission via any role |
-| `can_access(Entity, Resource)` | Entity may access Resource (public, owner, or permission) |
+| `has_role(Entity, Role)` | The relation, as a predicate |
+| `role_grants(Role, Permission)` | Granted directly, or by any role reached through `inherits_from` |
+| `is_owner(Entity, Resource)` | The resource's `owner` is the entity |
+| `permission_granted(Entity, Permission)` | Some role the entity holds grants it |
+| `can_access(Entity, Resource)` | Public, or owned by the entity, or the entity holds the resource's `requires_permission` |
 
-## Access Hierarchy
+## Facts this battery reads
 
-`can_access` resolves in this order:
-1. Resource is `public` → always accessible
-2. Entity is the owner → accessible
-3. Entity has the required permission via a role → accessible
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `owner` | resource | an entity id | The owner can always access the resource |
+| `public` | resource | `true` | Anyone can access it |
+| `requires_permission` | resource | a permission id | Access needs a role granting this. A resource with none of the three is accessible to nobody |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `has_role` | entity → role | Role assignment; an entity may hold several |
+| `grants_permission` | role → permission | What the role allows |
+| `inherits_from` | role → role | The role also grants everything its parent grants, transitively. **Keep it acyclic** — see below |
+
+## Access Order
+
+`can_access` tries, in order: `public`, then ownership, then permission. The
+first that holds wins; a resource with none of them is closed.
 
 ## Setup
 
-### Role assignment
-
-```lua
-local ns = "my-game"
-
-dg:assert(ns, { type="relation", subject="alice", relation="has_role", object="admin"  })
-dg:assert(ns, { type="relation", subject="bob",   relation="has_role", object="editor" })
 ```
+# Roles
+{ type="relation", subject="alice", relation="has_role", object="admin" }
+{ type="relation", subject="bob",   relation="has_role", object="editor" }
 
-### Role permissions
+# What roles grant
+{ type="relation", subject="admin",  relation="grants_permission", object="delete_posts" }
+{ type="relation", subject="admin",  relation="grants_permission", object="manage_users" }
+{ type="relation", subject="editor", relation="grants_permission", object="edit_posts" }
 
-```lua
-dg:assert(ns, { type="relation", subject="admin",  relation="grants_permission", object="delete_posts"  })
-dg:assert(ns, { type="relation", subject="admin",  relation="grants_permission", object="manage_users"  })
-dg:assert(ns, { type="relation", subject="editor", relation="grants_permission", object="edit_posts"    })
-```
+# admin gets everything editor has
+{ type="relation", subject="admin", relation="inherits_from", object="editor" }
 
-### Role inheritance
-
-```lua
--- admin inherits all editor permissions
-dg:assert(ns, { type="relation", subject="admin", relation="inherits_from", object="editor" })
-```
-
-### Ownership
-
-```lua
-dg:assert(ns, { type="attribute", entity="post_123", attribute="owner", value="alice" })
-```
-
-### Resource gates
-
-```lua
--- Public resource
-dg:assert(ns, { type="attribute", entity="landing_page", attribute="public", value=true })
-
--- Permission-gated resource
-dg:assert(ns, { type="attribute", entity="admin_panel", attribute="requires_permission", value="manage_users" })
+# Resources
+{ type="attribute", entity="post_123",     attribute="owner",               value="bob" }
+{ type="attribute", entity="landing_page", attribute="public",              value=true }
+{ type="attribute", entity="admin_panel",  attribute="requires_permission", value="manage_users" }
 ```
 
 ## Querying
 
-```lua
--- Check access before showing a UI element
-dg:query(ns, "can_access(alice, admin_panel)", function(result)
-  if result then showAdminPanel() end
-end)
-
--- List all permissions an entity holds
-dg:query_all(ns, "permission_granted(alice, P)", function(results)
-  for _, r in ipairs(results) do print(r.P) end
-end)
 ```
+# Before showing the panel
+can_access(alice, admin_panel)
+can_access(bob, admin_panel)
+   false
+
+# bob owns his post; alice can edit posts but does not own it
+can_access(bob, post_123)
+can_access(alice, post_123)
+   false
+
+# Everything alice may do, inherited included
+permission_granted(alice, P)
+   P = delete_posts ; P = manage_users ; P = edit_posts
+```
+
+From Tether, in a loop that already speaks it:
+
+```lua
+dg:query("my-game", "can_access(" .. player.Name .. ", admin_panel)", function(r) if #r > 0 then showAdminPanel() end end)
+```
+
+## Semantics worth knowing
+
+**Inheritance must not cycle.** `role_grants` follows `inherits_from` with no
+memory of where it has been, so `a inherits_from b` together with `b
+inherits_from a` does not terminate. Ranks are a chain; keep them one.
+
+**Ownership is not a permission.** `is_owner` opens `can_access` on that
+resource only; it grants nothing `permission_granted` can see. A resource with
+`requires_permission` is still open to its owner.
+
+**Closed by default.** No `public`, no `owner`, no `requires_permission` —
+`can_access` fails for everyone, including admins. Every resource needs at
+least one of the three.
 
 ## Game Use Cases
 
-**Guild ranks**: A guild_leader role inherits from officer, which inherits from member. Each rank gates different actions (kick, invite, deposit to vault).
-
-**Party system**: The party_leader has `kick_member` and `set_destination` permissions; others only have `leave_party`.
-
-**Admin tools**: Server admins get `teleport`, `ban`, `spawn_item`. Moderators inherit a subset. New staff start as moderator and get promoted by asserting the admin role.
+**Guild ranks** — `guild_leader inherits_from officer inherits_from member`,
+each granting its own actions (kick, invite, vault). **Party** — the leader
+holds `kick_member` and `set_destination`; everyone holds `leave_party`.
+**Staff** — moderators inherit a subset of admin; promotion is one `has_role`
+assert.

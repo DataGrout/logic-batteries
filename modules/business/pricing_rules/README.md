@@ -23,6 +23,39 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `discount_applicable(Item, Discount)` | A discount rule applies to Item |
 | `bulk_discount(Item, Qty, PctOff)` | Percentage discount for purchasing Qty units |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `base_price` | item | number | The list price everything is computed from |
+| `price_floor` | item | number | `price_capped` never goes below this |
+| `price_ceil` | item | number | `price_capped` never goes above this |
+| `bulk_qty_1` … `bulk_qty_5` | item | integer | Quantity thresholds for `bulk_discount`, up to five. Paired by number with `bulk_pct_N` |
+| `bulk_pct_1` … `bulk_pct_5` | item | percentage | Percent off at the matching threshold; the highest threshold the quantity reaches wins |
+| `pct_off` | discount | percentage | Percentage off the base price (`round(base × pct / 100)`). Used in preference to `flat_off` |
+| `flat_off` | discount | number | Flat amount off; used only when the discount has no `pct_off` |
+| `requires_tier` | discount | `member` \| `vip` | Gates the discount to customers of that tier when computing `effective_price` |
+| `pricing_tier` | customer | `standard` \| `member` \| `vip` | The customer's tier; default `standard` |
+| `member_multiplier` | `pricing` | fraction | Applied to the base price for members before discounts; default 0.9 |
+| `vip_multiplier` | `pricing` | fraction | Same for VIPs; default 0.8. Standard is fixed at 1.0 |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `has_discount` | item → discount | Attaches a discount rule to the item |
+
+`pricing` is a fixed entity name for the tier multipliers. The `bulk_*` names
+are built at query time from the number, so they will not appear in a search
+of the source for a literal attribute.
+
+`discount_applicable/2` reports every attached discount regardless of
+`requires_tier`; the tier gate is applied only inside `effective_price`. If you
+need "applicable *to this customer*", call `effective_price` or filter on
+`requires_tier` yourself.
+
 ## Tier Multipliers
 
 | Tier | Default multiplier |

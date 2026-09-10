@@ -23,6 +23,32 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `next_approver(Request, Approver)` | Next pending approver in the ordered chain |
 | `approval_blocked(Request, Reason)` | Approval cannot proceed; Reason is `rejected(By, Why)` or `awaiting(Approver)` |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `request` | step | a request id | Which request this approval step belongs to |
+| `approver` | step, threshold rule | an approver id | Who must approve. On a step: the approver at that position. On a threshold rule: the approver added automatically when the amount exceeds `threshold` |
+| `step` | step | integer | Position in the chain; `next_approver` walks steps in ascending order |
+| `threshold` | threshold rule | number | Amount above which the rule's `approver` is required |
+| `amount` | request | number | Compared against every `threshold` rule; a larger amount pulls in more approvers |
+| `rejection_reason` | request | text | Returned inside `rejected(By, Reason)` from `approval_blocked`; `unspecified` when absent |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `approved_by` | request → approver | An approval has been given. A delegate's approval counts for the approver who delegated (`delegated_to`) |
+| `rejected_by` | request → approver | Any rejection stops the chain: `fully_approved` fails and `next_approver` returns nothing |
+| `delegated_to` | approver → delegate | The delegate may approve in the approver's place |
+
+A step is its own entity (`req_001_step1`) carrying `request`, `approver` and
+`step`. A threshold rule is likewise an entity (`finance_approval`) carrying
+`threshold` and `approver`; it applies to every request whose `amount` exceeds
+it and its step position is `auto`, which sorts after every numbered step.
+
 ## Setup
 
 ### Step-based approval chain

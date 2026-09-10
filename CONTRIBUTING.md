@@ -39,7 +39,16 @@ A battery is a directory under `modules/<category>/<id>/` containing:
      directives outright.
 
 2. **A README** with an install snippet, an exported-predicates table, a
-   worked example, and honest notes on semantics and scope.
+   **facts-read table** (`## Facts this battery reads`: every `attribute` and
+   `relation` name your clauses look up — kind, name, what entity it sits on,
+   its value shape, which predicates read it), a worked example, and honest
+   notes on semantics and scope. Write examples as plain facts and bare Prolog
+   goals; a short Tether block is welcome, a README of Lua callbacks is not.
+   `make check-readme` fails when a name the code reads is missing from the
+   table (`scripts/check_readme_vocab.py --draft <id>` prints a starting table).
+   Tunables — thresholds, weights, multipliers — belong in that table above
+   all: they are what a user changes, and they were the names most often
+   missing.
 
 3. **Tests** in `test/<category>/<id>_test.pl` (plunit), wired into
    `test/run_all.pl`. Assert via file-level setup predicates, never inside

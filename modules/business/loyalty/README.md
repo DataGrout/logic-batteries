@@ -23,6 +23,32 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `points_to_redeem(Customer, Reward, Points)` | Points required, adjusted for tier multiplier |
 | `tier_benefit(Customer, Benefit, Value)` | A named benefit the customer receives at their tier |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `lifetime_points` | customer | integer | Total ever earned; sets the tier and is the base of the balance |
+| `redeemed_points` | customer | integer | Total ever redeemed; default 0. Balance is `lifetime_points − redeemed_points` |
+| `points_cost` | reward | integer | Base cost before the tier multiplier; `points_to_redeem` is `ceiling(cost × multiplier)` |
+| `benefit_value` | benefit | any | The value `tier_benefit` returns for a benefit the customer's tier grants |
+| `platinum_threshold` | `loyalty` | integer | Lifetime points for platinum; default 5000 |
+| `gold_threshold` | `loyalty` | integer | Default 2000 |
+| `silver_threshold` | `loyalty` | integer | Default 500. Below is bronze |
+| `platinum_redemption_multiplier` | `loyalty` | fraction | Default 0.7 |
+| `gold_redemption_multiplier` | `loyalty` | fraction | Default 0.85 |
+| `silver_redemption_multiplier` | `loyalty` | fraction | Default 1.0. Bronze is fixed at 1.0 and cannot be overridden |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `has_benefit` | tier → benefit | Grants the benefit at that tier and every tier above it: platinum receives gold's, silver's and bronze's benefits too. Tiers are the atoms `platinum`, `gold`, `silver`, `bronze` |
+
+`loyalty` is a fixed entity name for thresholds and multipliers; each is
+optional and overrides its default individually.
+
 ## Default Tier Thresholds
 
 | Tier | Lifetime points required |

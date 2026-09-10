@@ -23,6 +23,30 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `escalation_level(Invoice, Level)` | `reminder`/`warning`/`collections` based on days overdue |
 | `payment_due_amount(Invoice, Amount)` | Total now due including any late fee |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `amount` | invoice | number | The invoiced amount; base for `late_fee` and `payment_due_amount` |
+| `paid` | invoice | `true` | A paid invoice is never overdue. Any other value, or no fact, means unpaid |
+| `due_absolute_days` | invoice | integer | Due date as a day count from any epoch. Preferred; takes priority over the three-part date |
+| `due_year`, `due_month`, `due_day` | invoice | integers | Due date in parts. Used only when `due_absolute_days` is absent, and approximated as `Y×365 + M×30 + D` |
+| `absolute_days` | `today` | integer | Today as a day count, same epoch as `due_absolute_days`. Preferred |
+| `year`, `month`, `day` | `today` | integers | Today in parts; same approximation as above |
+| `late_fee_flat` | `billing` | number | Flat late fee; default 50 |
+| `late_fee_pct` | `billing` | fraction | Percentage late fee (`round(amount × pct)`). When present it is used instead of the flat fee |
+| `late_fee_cap` | `billing` | number | Upper bound on the fee; no cap when absent |
+| `warning_days` | `billing` | integer | Days overdue at which `escalation_level` becomes `warning`; default 15 |
+| `collections_days` | `billing` | integer | Days overdue at which it becomes `collections`; default 60 |
+
+`today` and `billing` are fixed entity names: the current date and the fee
+policy live on them, not on each invoice. Assert `today` at query time.
+
+Mixing the two date forms across `today` and an invoice compares a real day
+count with an approximation and will be off by days; use one form for both.
+
 ## Default Escalation Thresholds
 
 | Level | Trigger |

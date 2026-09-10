@@ -45,6 +45,37 @@ plus `clash(OtherShift)` when the worker holds an incompatible second
 assignment, and `role_not_needed(Role)` when the shift has no seat for the
 worker's role.
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `start`, `end` | shift | integers | The shift's window, half-open `[start, end)`; a shift is anything with both plus at least one `needs` |
+| `seat` | requirement | a role id | The role a seat requirement is for. Named `seat`, not `role`, because `role` is the worker attribute |
+| `count` | requirement | integer | How many workers with that `seat` role the shift needs |
+| `role` | worker | a role id | The worker's role; only workers whose role matches a seat are candidates |
+| `seniority` | worker | integer | Fourth ranking key; higher ranks earlier. Default 0 |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `needs` | shift → requirement | Attaches a seat requirement to the shift; one per role needed |
+| `assigned` | shift → worker | A current assignment. Coverage, violations, load and swaps are all computed from these |
+| `prefers` | worker → shift | First ranking key: a preferred shift ranks before neutral, which ranks before avoided |
+| `avoids` | worker → shift | See `prefers` |
+
+Everything about the worker's legality — duty periods, unavailability,
+qualifications, `min_rest` and the other policy limits — is read through the
+`duty` battery's predicates, not directly; see its facts table.
+
+**Produced, not read.** `roster_model/2` returns, as terms for you to assert,
+the `assign` model of the open seats: on each slot an attribute `domain` (the
+candidate list) and `seat` (the role), a relation `slot_of` from the slot to
+its shift, and a relation `distinct` from the shift to each of its slots. Slot
+names are `<shift>_<role>_<n>`.
+
 ## Data model
 
 Shifts are `duty` tasks with a window and one or more seat requirements. A

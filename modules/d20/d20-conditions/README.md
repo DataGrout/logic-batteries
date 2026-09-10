@@ -28,6 +28,18 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `condition_grants_advantage_on_attack(Attacker, Target)` | A condition gives advantage on the attack |
 | `condition_imposes_disadvantage_on_attack(Attacker, Target)` | A condition imposes disadvantage |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `condition` | entity | one of the 15 condition names | One fact per active condition; `d20_condition_active` is exactly this lookup. Remove a condition by retracting the fact |
+| `exhaustion` | entity | 1–6 | Exhaustion level; absent is 0. Effects accumulate: level 3 carries levels 1 and 2 as well |
+
+Everything else in this battery is a table of rules, not facts you assert:
+`condition_effect/3` and the exhaustion penalties are built in.
+
 ## The 15 Conditions
 
 `blinded` `charmed` `deafened` `frightened` `grappled` `incapacitated`

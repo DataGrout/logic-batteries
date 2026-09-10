@@ -1,109 +1,142 @@
 # Module: loot-tables v1.0.0
 
-Rarity tiers, condition-gated drops, and drop chance calculation for any game with item drops.
+What a source can drop, under which world conditions, at what chance. Rarity
+tiers give default chances; conditions are terms evaluated against world facts.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["loot-tables"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("loot-tables", "my-game", cb)`.
 
-```lua
-dg:batteries().install("loot-tables", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `drops(Source, Item)` | Item can drop from Source under any conditions |
-| `drops_at(Source, Item, Conditions)` | Item drops from Source when Conditions are met |
-| `eligible_loot(Source, Item)` | Item is eligible to drop right now given current world state |
-| `rarity_tier(Item, Tier)` | Tier is `common`/`uncommon`/`rare`/`epic`/`legendary` |
-| `condition_met(Condition, Context)` | Condition is satisfied in Context |
-| `loot_chance(Source, Item, Pct)` | Pct is drop chance 0–100 |
+| `drops(Source, Item)` | The source `can_drop` the item, conditions aside |
+| `drops_at(Source, Item, Conditions)` | The item's `loot_conditions` list, for items that have one |
+| `eligible_loot(Source, Item)` | Drops, and every condition holds against `world` right now |
+| `rarity_tier(Item, Tier)` | The item's `rarity`; `common` when unset |
+| `condition_met(Condition, Context)` | One condition term, evaluated against a context entity |
+| `loot_chance(Source, Item, Pct)` | `drop_chance` if set, else the tier's default |
 
-## Default Drop Chances by Rarity
+## Facts this battery reads
 
-| Tier | Chance |
-|---|---|
-| common | 70% |
-| uncommon | 30% |
-| rare | 10% |
-| epic | 3% |
-| legendary | 1% |
+**Attributes**
 
-Override per-item with an explicit `drop_chance` attribute.
+| Name | On | Value | Description |
+|---|---|---|---|
+| `rarity` | item | `common` \| `uncommon` \| `rare` \| `epic` \| `legendary` | Selects the default chance. Default `common` |
+| `drop_chance` | item | 0–100 | Overrides the tier default for this item |
+| `loot_conditions` | item | a Prolog list of condition terms | e.g. `[time(night), weather(rain)]`. All must hold. Must be a real list term — a quoted string is never satisfied |
+| `time_of_day` | `world` | any | Matched by `time(T)` |
+| `weather` | `world` | any | Matched by `weather(W)` |
+| `moon_phase` | `world` | any | Matched by `moon(M)` |
+| `level` | context | integer | Matched by `player_level_gte(N)` when the context is a player |
 
-## Setup
+**Relations**
 
-```lua
--- Register what a source can drop
-dg:assert("my-game", { type="relation", subject="cave_chest", relation="can_drop", object="gold_coin" })
-dg:assert("my-game", { type="relation", subject="cave_chest", relation="can_drop", object="rare_gem" })
+| Name | Subject → Object | Description |
+|---|---|---|
+| `can_drop` | source → item | The drop table entry |
+| `has_item` | context → item | Matched by `player_has(Item)` when the context is a player |
 
--- Set rarity (default is common)
-dg:assert("my-game", { type="attribute", entity="rare_gem", attribute="rarity", value="rare" })
-
--- Conditional drop: rare_fish only drops at night in rain
-dg:assert("my-game", { type="relation", subject="lake", relation="can_drop", object="rare_fish" })
-dg:assert("my-game", { type="attribute", entity="rare_fish", attribute="rarity", value="uncommon" })
-dg:assert("my-game", { type="attribute", entity="rare_fish", attribute="loot_conditions",
-  value="[time(night), weather(rain)]" })
-
--- Set world conditions at runtime
-dg:assert("my-game", { type="attribute", entity="world", attribute="time_of_day", value="night" })
-dg:assert("my-game", { type="attribute", entity="world", attribute="weather", value="rain" })
-```
-
-## Usage
-
-```lua
--- What can drop from this chest right now?
-dg:query("my-game", "eligible_loot(cave_chest, Item)", function(results)
-  for _, r in ipairs(results) do
-    addToDropPool(r.Item)
-  end
-end)
-
--- What is the drop chance for a specific item?
-dg:query("my-game", "loot_chance(cave_chest, rare_gem, Chance)", function(results)
-  if results[1] then
-    print("Drop chance: " .. results[1].Chance .. "%")
-  end
-end)
-
--- Roll drops on kill using eligible_loot + loot_chance
-local function rollDrops(source)
-  dg:query("my-game", "eligible_loot(" .. source .. ", Item), loot_chance(" .. source .. ", Item, Chance)",
-    function(results)
-      for _, r in ipairs(results) do
-        if math.random(100) <= tonumber(r.Chance) then
-          spawnItem(r.Item)
-        end
-      end
-    end)
-end
-```
+`world` is a fixed entity name; `eligible_loot` always evaluates conditions
+against it.
 
 ## Conditions
 
-The following condition types are built in:
-
-| Condition | Fact to assert |
+| Term | Holds when |
 |---|---|
-| `time(night)` | `attribute(world, time_of_day, night)` |
-| `weather(rain)` | `attribute(world, weather, rain)` |
-| `moon(full)` | `attribute(world, moon_phase, full)` |
-| `player_level_gte(10)` | `attribute(Player, level, N)` where N ≥ 10 |
-| `player_has(sword)` | `relation(Player, has_item, sword)` |
-| `always` | No fact needed — always true |
+| `time(T)` | `world` has `time_of_day = T` |
+| `weather(W)` | `world` has `weather = W` |
+| `moon(M)` | `world` has `moon_phase = M` |
+| `player_level_gte(N)` | the context has `level ≥ N` |
+| `player_has(Item)` | the context `has_item` Item |
+| `always` | always |
+
+## Default Chances by Rarity
+
+| Tier | Chance |
+|---|---|
+| `common` | 70 |
+| `uncommon` | 30 |
+| `rare` | 10 |
+| `epic` | 3 |
+| `legendary` | 1 |
+
+## Setup
+
+```
+# The table
+{ type="relation",  subject="cave_chest", relation="can_drop", object="gold_coin" }
+{ type="relation",  subject="cave_chest", relation="can_drop", object="rare_gem" }
+{ type="attribute", entity="rare_gem",    attribute="rarity",  value="rare" }
+
+# A conditional drop
+{ type="relation",  subject="lake",      relation="can_drop",        object="rare_fish" }
+{ type="attribute", entity="rare_fish",  attribute="rarity",          value="uncommon" }
+{ type="attribute", entity="rare_fish",  attribute="loot_conditions", value=[time(night), weather(rain)] }
+
+# An explicit chance
+{ type="attribute", entity="gold_coin", attribute="drop_chance", value=95 }
+
+# The world, kept current by you
+{ type="attribute", entity="world", attribute="time_of_day", value="night" }
+{ type="attribute", entity="world", attribute="weather",     value="rain" }
+```
+
+## Querying
+
+```
+# What can this chest give right now?
+eligible_loot(cave_chest, Item)
+
+# At what odds?
+loot_chance(cave_chest, rare_gem, Pct)
+   Pct = 10
+
+# Is the fish on tonight?
+eligible_loot(lake, rare_fish)
+
+# A player-scoped condition, checked directly
+condition_met(player_level_gte(10), alice)
+```
+
+Rolling is yours: take each eligible item with its chance and compare against
+your own random number.
+
+From Tether, in a loop that already speaks it:
+
+```lua
+dg:query("my-game", "eligible_loot(cave_chest, I), loot_chance(cave_chest, I, C)", function(rs)
+  for _, r in ipairs(rs) do if math.random(100) <= r.C then spawnItem(r.I) end end
+end)
+```
+
+## Semantics worth knowing
+
+**`eligible_loot` knows nothing about the player.** Its context is always
+`world`, so `player_level_gte` and `player_has` inside `loot_conditions` look
+for `level` and `has_item` on the `world` entity and fail. Use those two only
+through `condition_met(Cond, Player)` directly, or gate player-specific loot
+yourself before asking `eligible_loot`.
+
+**Conditions are terms, not strings.** `loot_conditions` is walked as a list;
+the value has to reach the cell as `[time(night), weather(rain)]`, not as text.
+How that is encoded depends on your client — confirm one conditional drop
+works before relying on it.
+
+**Chance is per item, not per source.** `loot_chance` ignores its `Source`
+argument; the same item drops at the same odds everywhere.
+
+## What this battery does not do
+
+- No rolling or selection; it reports odds.
+- No per-source chance, quantity, or pity timers.
+- No player-aware eligibility through `eligible_loot`.

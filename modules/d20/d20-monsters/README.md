@@ -15,6 +15,36 @@ client.perform("data-grout@1/batteries.install_many@1", {
 })
 ```
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `cr` | monster | `0` \| `'1/8'` \| `'1/4'` \| `'1/2'` \| integer | Challenge rating; fractions are quoted atoms |
+| `monster_type` | monster | `humanoid` \| `undead` \| `beast` \| … | Creature type |
+| `xp` | monster | integer | Base XP award; `d20-xp` reads this too |
+| `srd` | monster | `true` | Marks a built-in stat block, as opposed to one you asserted |
+| `attack_bonus` | monster | integer | Primary attack's to-hit bonus |
+| `damage_dice` | monster | dice term | Primary attack's damage dice; the client rolls them |
+| `damage_bonus` | monster | integer | Flat damage added to the dice |
+| `damage_type` | monster | `slashing` \| `piercing` \| `bludgeoning` \| `necrotic` \| … | Primary attack's damage type |
+
+These eight are what the exported predicates look up. Assert the same shape
+for a monster of your own and it works with every predicate here.
+
+**Provided, not read.** The sixteen SRD stat blocks are asserted by this
+battery as plain attribute facts, so `d20-core` and `d20-combat` can read them:
+`hp`, `ac`, `speed`, the six ability scores `str` `dex` `con` `int` `wis`
+`cha`, `attacks_per_action`, `skill_stealth`, and the resistance flags
+`immune_poison` `immune_cold` `immune_necrotic` `immune_psychic`
+`immune_charmed` `immune_exhaustion` `immune_physical` `resist_acid`
+`resist_fire` `resist_lightning` `resist_thunder` `resist_necrotic`
+`resist_physical` `vulnerable_fire` `vulnerable_acid` `vulnerable_bludgeoning`.
+One stray `damage_type_override_note` sits on the ghoul and is read by nothing.
+Installing this battery is what makes `goblin` a valid entity in a combat
+query; assert over any of these to customise a monster.
+
 ## Included Monsters
 
 | Name | CR | Type | AC | HP |

@@ -1,98 +1,117 @@
 # Module: dungeon v1.0.0
 
-Room connectivity, key-locked access, DFS pathfinding through accessible rooms, room clearance tracking, and dungeon completion detection.
+Room connectivity, key-locked access, a depth-first walk through the rooms a
+player can reach, clearance tracking, and dungeon completion.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["dungeon"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("dungeon", "my-game", cb)`.
 
-```lua
-dg:batteries().install("dungeon", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `room_connected(Room1, Room2)` | Rooms share a directed passage |
-| `room_accessible(Player, Room)` | Player can enter Room (unlocked or holds the key) |
-| `dungeon_path(Player, From, Path)` | List of accessible rooms reachable from From (DFS) |
-| `room_cleared(Player, Room)` | Player has visited and cleared Room |
-| `dungeon_complete(Player, Dungeon)` | Player has cleared every room in Dungeon |
+| `room_connected(Room1, Room2)` | A directed passage from Room1 to Room2 |
+| `room_accessible(Player, Room)` | Room has no `requires_key`, or the player `has_item` the key |
+| `dungeon_path(Player, From, Path)` | Paths of accessible rooms from From, depth-first; every prefix is a solution — see below |
+| `room_cleared(Player, Room)` | The player has cleared the room, by either clearance shape |
+| `dungeon_complete(Player, Dungeon)` | Every room the dungeon `has_room` is cleared |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `requires_key` | room | an item id | The room is locked; the player must hold this item to enter |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `connects_to` | room → room | A one-way passage. Assert both directions for a door you can walk back through |
+| `has_room` | dungeon → room | Membership; `dungeon_complete` checks exactly these rooms |
+| `has_item` | player → item | Satisfies `requires_key` (the `inventory` battery asserts this shape) |
+| `cleared_room` | player → room | The player has cleared the room — the simple shape |
+| `cleared` | `<player>_dungeon` → room | The same, on a composite entity: `alice_dungeon`. The suffix is the literal word `dungeon`, not a dungeon id |
+
+Either clearance shape satisfies `room_cleared`; use one.
 
 ## Setup
 
-### Room connections
-
-Connections are directed — assert both directions for bidirectional passages:
-
-```lua
-local ns = "my-game"
-
-dg:assert(ns, { type="relation", subject="entrance",   relation="connects_to", object="corridor_a" })
-dg:assert(ns, { type="relation", subject="corridor_a", relation="connects_to", object="entrance"   }) -- bidirectional
-dg:assert(ns, { type="relation", subject="corridor_a", relation="connects_to", object="boss_room"  })
 ```
+# Passages (directed)
+{ type="relation", subject="entrance",   relation="connects_to", object="corridor_a" }
+{ type="relation", subject="corridor_a", relation="connects_to", object="entrance" }
+{ type="relation", subject="corridor_a", relation="connects_to", object="boss_room" }
 
-### Locked rooms
+# A locked room
+{ type="attribute", entity="boss_room", attribute="requires_key", value="iron_key" }
 
-```lua
-dg:assert(ns, { type="attribute", entity="boss_room", attribute="requires_key", value="iron_key" })
-```
+# Membership
+{ type="relation", subject="catacombs", relation="has_room", object="entrance" }
+{ type="relation", subject="catacombs", relation="has_room", object="corridor_a" }
+{ type="relation", subject="catacombs", relation="has_room", object="boss_room" }
 
-Keys are checked against `relation(player, has_item, key)` — the inventory battery provides this if you're using it.
+# The player
+{ type="relation", subject="alice", relation="has_item", object="iron_key" }
 
-### Dungeon membership
-
-```lua
-dg:assert(ns, { type="relation", subject="catacombs", relation="has_room", object="entrance"   })
-dg:assert(ns, { type="relation", subject="catacombs", relation="has_room", object="corridor_a" })
-dg:assert(ns, { type="relation", subject="catacombs", relation="has_room", object="boss_room"  })
-```
-
-### Clearance tracking
-
-Clearance is keyed as `<player>_dungeon`:
-
-```lua
--- Record when alice clears a room
-dg:assert(ns, { type="relation", subject="alice_dungeon", relation="cleared", object="entrance" })
+# As alice clears rooms
+{ type="relation", subject="alice", relation="cleared_room", object="entrance" }
+{ type="relation", subject="alice", relation="cleared_room", object="corridor_a" }
 ```
 
 ## Querying
 
-```lua
--- Check if alice can enter the boss room
-dg:query(ns, "room_accessible(alice, boss_room)", function(result)
-  if result then openBossRoom() end
-end)
+```
+# May she enter?
+room_accessible(alice, boss_room)
 
--- Get the full accessible path from the entrance
-dg:query(ns, "dungeon_path(alice, entrance, Path)", function(result)
-  highlightMinimap(result.Path)
-end)
+# Where can she get to from the entrance? (the longest solution is the full walk)
+dungeon_path(alice, entrance, Path)
+   Path = [entrance] ;
+   Path = [entrance, corridor_a] ;
+   Path = [entrance, corridor_a, boss_room]
 
--- Check if the dungeon is complete
-dg:query(ns, "dungeon_complete(alice, catacombs)", function(result)
-  if result then triggerVictory() end
-end)
+# Done yet?
+dungeon_complete(alice, catacombs)
+   false
 ```
 
-## Design Notes
+From Tether, in a loop that already speaks it:
 
-**Connections are directed by design.** One-way passages (trap doors, slides, portals) are modelled naturally — assert `connects_to` in only one direction. Bidirectional passages require two assertions.
+```lua
+dg:query("my-game", "dungeon_complete(alice, catacombs)", function(r) if #r > 0 then triggerVictory() end end)
+```
 
-**Pathfinding is DFS, not shortest-path.** `dungeon_path` finds an accessible route, not necessarily the optimal one. For shortest path, use the `fsm` battery's `fsm_shortest_path` predicate after modelling rooms as FSM states.
+## Semantics worth knowing
 
-**Clearance keys are scoped per-player.** Multiple players in the same dungeon have independent clearance state — `alice_dungeon` and `bob_dungeon` are separate fact sets.
+**`dungeon_path` returns every prefix.** The first solution is `[From]` alone;
+each further solution extends the walk by one accessible room. Take the last
+solution for the full reachable path, or use `findall` and pick the longest.
+It is a depth-first walk, not a shortest path — for that, model rooms as states
+in the `fsm` battery.
+
+**Clearance is per player, not per dungeon.** Both clearance shapes key on the
+player only. If two dungeons each have a room called `entrance`, clearing one
+clears the other. Give rooms dungeon-unique ids.
+
+**Passages are one-way.** Trap doors, slides and portals fall out of this for
+free; ordinary doors need two facts.
+
+**Accessibility is not reachability.** `room_accessible` looks only at the
+lock; a room can be accessible and still unreachable from where the player is.
+`dungeon_path` is what combines the two.
+
+## What this battery does not do
+
+- No shortest path, no path cost.
+- No per-dungeon clearance state.
+- No key consumption; holding the key is enough, and it stays held.

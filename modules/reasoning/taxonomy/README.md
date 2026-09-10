@@ -1,115 +1,139 @@
 # Module: taxonomy v1.0.0
 
-Hierarchical classification with property inheritance. Assert `is_a` relations between entities and classes; query transitive membership, inherited attributes, common ancestors, and class structure at zero token cost. Domain-agnostic — works for monster types, product categories, capability trees, or any knowledge hierarchy.
+Hierarchies with property inheritance. One relation, `is_a`, carries both
+membership and subclassing; the battery follows it transitively to answer what
+something is, what it inherits, what two things have in common, and how the
+tree is shaped. Domain-agnostic: monster types, product categories, capability
+trees, any knowledge hierarchy.
 
 ## Install
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["taxonomy"],
-    "namespace": "my-namespace"
+    "namespace": "my-ns"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
-
-```lua
-dg:batteries().install_many({"taxonomy"}, "my-namespace", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
+From Tether: `dg:batteries().install("taxonomy", "my-ns", cb)`.
 
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `isa(Entity, Class)` | Entity is a Class (direct or transitive) |
-| `inherits_property(Entity, Property, Value)` | Entity has Property via direct attribute or ancestor chain |
-| `most_specific_class(Entity, Class)` | Most specific `is_a` class Entity belongs to |
-| `common_ancestor(E1, E2, Ancestor)` | Shared ancestor of E1 and E2 |
-| `siblings(E1, E2)` | E1 and E2 share the same direct parent class |
-| `subclasses(Class, Subs)` | All transitive subclasses of Class |
-| `class_members(Class, Members)` | All entities that isa Class |
-| `depth_in_hierarchy(Class, Depth)` | Hops from Class to a root (no parent) |
-| `compatible_types(E1, E2)` | E1 and E2 share at least one common ancestor |
-| `root_class(Class)` | Class has no `is_a` parent |
+| `isa(Entity, Class)` | Direct or transitive `is_a` |
+| `inherits_property(Entity, Property, Value)` | The attribute on the entity, else on the nearest ancestor that has it |
+| `most_specific_class(Entity, Class)` | A direct parent that is not an ancestor of another direct parent |
+| `common_ancestor(E1, E2, Ancestor)` | Every class both are `isa` |
+| `siblings(E1, E2)` | Two different things with the same direct parent |
+| `subclasses(Class, Subs)` | Everything transitively `isa` the class — entities included |
+| `class_members(Class, Members)` | The same list; kept for readability |
+| `depth_in_hierarchy(Class, Depth)` | Hops up to a class with no parent |
+| `compatible_types(E1, E2)` | They share at least one ancestor |
+| `root_class(Class)` | An entity with no `is_a` parent |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `<any>` | entity or class | any | `inherits_property` looks up a named attribute on the entity first, then up the `is_a` chain until an ancestor has it. Any attribute name qualifies; there is no fixed vocabulary |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `is_a` | entity or class → class | Membership and subclassing in one relation, followed transitively. An entity may have several parents; a class with no `is_a` is a root |
+
+**Entity facts.** `root_class` looks for classes among asserted *entities*
+(`{ type="entity", name="creature" }`); a class that appears only as the object
+of `is_a` relations is never returned as a root. Assert your classes as
+entities if you want to enumerate roots.
 
 ## Setup
 
-```lua
--- Build a hierarchy with is_a relations
-dg:assert("my-ns", { type="relation", subject="goblin",      relation="is_a", object="humanoid" })
-dg:assert("my-ns", { type="relation", subject="orc",         relation="is_a", object="humanoid" })
-dg:assert("my-ns", { type="relation", subject="humanoid",    relation="is_a", object="creature" })
-dg:assert("my-ns", { type="relation", subject="wolf",        relation="is_a", object="beast" })
-dg:assert("my-ns", { type="relation", subject="beast",       relation="is_a", object="creature" })
+```
+# The hierarchy
+{ type="relation", subject="goblin",   relation="is_a", object="humanoid" }
+{ type="relation", subject="orc",      relation="is_a", object="humanoid" }
+{ type="relation", subject="humanoid", relation="is_a", object="creature" }
+{ type="relation", subject="wolf",     relation="is_a", object="beast" }
+{ type="relation", subject="beast",    relation="is_a", object="creature" }
 
--- Attach properties to classes; instances inherit them automatically
-dg:assert("my-ns", { type="attribute", entity="creature",  attribute="has_soul",  value=true })
-dg:assert("my-ns", { type="attribute", entity="humanoid",  attribute="can_speak", value=true })
-dg:assert("my-ns", { type="attribute", entity="goblin",    attribute="base_hp",   value=30 })
+# Properties on classes; instances inherit them
+{ type="attribute", entity="creature", attribute="has_soul",  value=true }
+{ type="attribute", entity="humanoid", attribute="can_speak", value=true }
+{ type="attribute", entity="goblin",   attribute="base_hp",   value=30 }
+
+# Classes as entities, so root_class can find them
+{ type="entity", name="creature" }
 ```
 
-## Usage
+## Querying
+
+```
+# Transitive membership
+isa(goblin, creature)
+
+# Inherited, and not inherited
+inherits_property(goblin, can_speak, V)
+   V = true
+inherits_property(wolf, can_speak, V)
+   false
+
+# What do a goblin and a wolf share?
+common_ancestor(goblin, wolf, A)
+   A = creature
+
+# Structure
+siblings(goblin, orc)
+most_specific_class(goblin, C)
+   C = humanoid
+subclasses(creature, Subs)
+   Subs = [humanoid, beast, goblin, orc, wolf]     % order follows fact order
+depth_in_hierarchy(goblin, D)
+   D = 2
+root_class(R)
+   R = creature
+```
+
+From Tether, in a loop that already speaks it:
 
 ```lua
--- Is a goblin a creature? (transitive)
-dg:query("my-ns", "isa(goblin, creature)", function(r)
-  print(#r > 0 and "yes" or "no")  -- "yes"
-end)
-
--- Can a wolf speak? (inherits from humanoid? no — beast doesn't inherit that)
-dg:query("my-ns", "inherits_property(wolf, can_speak, V)", function(r)
-  print(#r > 0 and tostring(r[1].V) or "no")  -- "no"
-end)
-
--- What do goblins and wolves have in common?
-dg:query("my-ns", "common_ancestor(goblin, wolf, A)", function(r)
-  for _, row in ipairs(r) do print(row.A) end  -- "creature"
-end)
-
--- Are goblin and orc siblings?
-dg:query("my-ns", "siblings(goblin, orc)", function(r)
-  print(#r > 0 and "yes" or "no")  -- "yes" (both isa humanoid)
-end)
-
--- All subclasses of creature
-dg:query("my-ns", "subclasses(creature, Subs)", function(r)
-  if r[1] then
-    -- Subs = [goblin, orc, humanoid, wolf, beast] (order may vary)
-    print(table.concat(r[1].Subs, ", "))
-  end
-end)
-
--- What is goblin's most specific class?
-dg:query("my-ns", "most_specific_class(goblin, C)", function(r)
-  print(r[1] and r[1].C or "none")  -- "humanoid"
-end)
-
--- All members of the humanoid class
-dg:query("my-ns", "class_members(humanoid, M)", function(r)
-  if r[1] then
-    for _, m in ipairs(r[1].M) do print(m) end  -- goblin, orc
-  end
-end)
+dg:query("my-ns", "inherits_property(" .. mob .. ", loot_multiplier, M)", function(r) if r[1] then applyLoot(r[1].M) end end)
 ```
 
 ## Property Inheritance Resolution
 
-Properties resolve in order:
-1. Direct attribute on the entity — always wins
-2. Direct attribute on the entity's `is_a` parent
-3. Transitive ancestors, depth-first
+1. An attribute on the entity itself — always wins.
+2. Otherwise the same attribute on a direct parent.
+3. Otherwise on ancestors, depth-first along the first parent chain that has
+   it.
 
-This means you can set a default on a class and override it on any subclass or instance:
+So a class default can be overridden on any subclass or instance:
 
-```lua
--- Default for all creatures
-dg:assert("my-ns", { type="attribute", entity="creature", attribute="loot_multiplier", value=1.0 })
--- Boss override
-dg:assert("my-ns", { type="attribute", entity="dragon", attribute="loot_multiplier", value=5.0 })
--- inherits_property(goblin, loot_multiplier, 1.0) — inherited
--- inherits_property(dragon, loot_multiplier, 5.0) — overridden
 ```
+{ type="attribute", entity="creature", attribute="loot_multiplier", value=1.0 }
+{ type="attribute", entity="dragon",   attribute="loot_multiplier", value=5.0 }
+
+inherits_property(goblin, loot_multiplier, M)    M = 1.0   (inherited)
+inherits_property(dragon, loot_multiplier, M)    M = 5.0   (own)
+```
+
+## Semantics worth knowing
+
+**Entities and classes are the same kind of thing.** `subclasses(creature, S)`
+returns goblins and wolves alongside `humanoid` and `beast`; nothing marks a
+node as a leaf. If you need only classes, keep instances out of the query by
+naming convention or a marker attribute.
+
+**Multiple parents, first-found inheritance.** With two parents that both carry
+a property, `inherits_property` returns the first in fact order and stops.
+
+**No cycle guard.** `isa` and `depth_in_hierarchy` recurse on `is_a` with no
+memory of visited nodes; `a is_a b` together with `b is_a a` does not
+terminate. Keep the hierarchy a tree or a DAG.
+
+**Depth is per path.** `depth_in_hierarchy` on a node with two parents returns
+a depth for each parent chain on backtracking.

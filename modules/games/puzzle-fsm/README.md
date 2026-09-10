@@ -1,129 +1,123 @@
 # Module: puzzle-fsm v1.0.0
 
-State-based puzzle logic: transitions, win condition detection, hint generation, sequence validation, and blocked-state diagnosis.
+A puzzle as a small state machine: which moves are open from the current
+state, whether it is solved, a move sequence that solves it, a hint, and why
+it is stuck.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["puzzle-fsm"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("puzzle-fsm", "my-game", cb)`.
 
-```lua
-dg:batteries().install("puzzle-fsm", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `can_transition(Puzzle, Move, NextState)` | Move is valid from current state; NextState is where it leads |
-| `puzzle_solved(Puzzle)` | Puzzle is in a winning state |
-| `valid_sequence(Puzzle, Moves)` | Moves is a sequence that leads from the initial state to a solved state |
-| `hint_for(Puzzle, Move)` | Move is a valid next step toward solving Puzzle |
-| `blocked_by(Puzzle, Reason)` | Reason explains why Puzzle cannot be progressed |
+| `can_transition(Puzzle, Move, NextState)` | A `move` out of the current state whose item gate is met |
+| `puzzle_solved(Puzzle)` | The current state is a solve state |
+| `valid_sequence(Puzzle, Moves)` | A move list from `initial_state` to a solve state, depth-first without revisiting states |
+| `hint_for(Puzzle, Move)` | The first open move — one answer only |
+| `blocked_by(Puzzle, Reason)` | `already_solved`, `missing_item(Item)`, or `no_moves` |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `initial_state` | puzzle | a state id | Where the puzzle starts, and where `valid_sequence` starts from |
+| `current_state` | puzzle | a state id | Where it is now; falls back to `initial_state`. You assert the new state after a move |
+| `solve_state` | puzzle | a state id | A winning state (single). For several, use the relation below |
+| `leads_to` | move | a state id | Where the move goes |
+| `requires_item` | move | an item id | The move is open only if the *puzzle* `player_has` the item |
+| `requires_state` | move | a state id | Read, but redundant: a move is only considered from the state it hangs off, so this can only ever repeat that state |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `move` | state → move | A move available from that state |
+| `solve_state` | puzzle → state | A winning state; any number of these |
+| `player_has` | **puzzle** → item | The item is available to this puzzle. Not the `inventory` battery's `has_item` — mirror the item here |
 
 ## Setup
 
-### States and transitions
+```
+# Structure
+{ type="attribute", entity="chest",  attribute="initial_state", value="locked" }
+{ type="attribute", entity="chest",  attribute="solve_state",   value="open" }
+{ type="relation",  subject="locked", relation="move",          object="use_key" }
+{ type="attribute", entity="use_key", attribute="leads_to",     value="open" }
 
-```lua
--- Define puzzle structure: initial state, solve state, transitions
-dg:assert("my-game", { type="attribute", entity="chest", attribute="initial_state", value="locked" })
-dg:assert("my-game", { type="attribute", entity="chest", attribute="solve_state",   value="open"   })
+# An item gate, and the item made available to the puzzle
+{ type="attribute", entity="use_key", attribute="requires_item", value="brass_key" }
+{ type="relation",  subject="chest",  relation="player_has",     object="brass_key" }
 
-dg:assert("my-game", { type="relation",  subject="locked",  relation="move",     object="use_key" })
-dg:assert("my-game", { type="attribute", entity="use_key",  attribute="leads_to", value="open"    })
+# Several winning states
+{ type="relation", subject="door", relation="solve_state", object="open_left" }
+{ type="relation", subject="door", relation="solve_state", object="open_right" }
+
+# Runtime: after the player makes a move, record where the puzzle is
+{ type="attribute", entity="chest", attribute="current_state", value="open" }
 ```
 
-### Runtime state
+## Querying
 
-```lua
--- Track the puzzle's current state at runtime
--- (defaults to initial_state if not set)
-dg:assert("my-game", { type="attribute", entity="chest", attribute="current_state", value="locked" })
+```
+# What can the player do here?
+can_transition(chest, Move, Next)
+   Move = use_key, Next = open
+
+# Solved?
+puzzle_solved(chest)
+
+# A solution, for a tutorial or auto-solve
+valid_sequence(chest, Moves)
+   Moves = [use_key]
+
+# Stuck why?
+blocked_by(chest, Reason)
+   Reason = missing_item(brass_key)
 ```
 
-### Item-gated transitions
+From Tether, in a loop that already speaks it:
 
 ```lua
--- Move only available if player is carrying the required item
-dg:assert("my-game", { type="attribute", entity="use_key", attribute="requires_item", value="brass_key" })
-dg:assert("my-game", { type="relation",  subject="chest",  relation="player_has",     object="brass_key" })
+dg:query("my-game", "blocked_by(chest, R)", function(r) if r[1] then explain(r[1].R) end end)
 ```
 
-### Multiple solve states
+## Semantics worth knowing
 
-```lua
--- Either state counts as a win
-dg:assert("my-game", { type="relation", subject="door", relation="solve_state", object="open_left"  })
-dg:assert("my-game", { type="relation", subject="door", relation="solve_state", object="open_right" })
-```
+**Items belong to the puzzle here.** `requires_item` is satisfied by
+`relation(Puzzle, player_has, Item)`. When the player picks up the key, assert
+that relation on the puzzle; `inventory`'s `has_item` on the player is not
+consulted.
 
-## Usage
+**Moves do not move.** Nothing here changes `current_state`; apply the move in
+the game and assert the new state.
 
-```lua
--- What moves are available right now?
-dg:query("my-game", "can_transition(chest, Move, NextState)", function(results)
-  for _, r in ipairs(results) do
-    showMoveOption(r.Move, r.NextState)
-  end
-end)
+**`hint_for` is one move.** It commits to the first open move in fact order.
+For all open moves, ask `can_transition` instead.
 
--- Is this puzzle solved?
-dg:query("my-game", "puzzle_solved(chest)", function(results)
-  if #results > 0 then triggerPuzzleComplete() end
-end)
-
--- What should the player do next? (hint system)
-dg:query("my-game", "hint_for(chest, Move)", function(results)
-  if results[1] then showHint(results[1].Move) end
-end)
-
--- Why can't the player progress?
-dg:query("my-game", "blocked_by(chest, Reason)", function(results)
-  if results[1] then
-    local r = results[1].Reason
-    if r == "no_moves" then
-      showMessage("No moves available from this state.")
-    elseif r == "already_solved" then
-      showMessage("Already solved!")
-    else
-      -- missing_item(ItemName)
-      showMessage("You need: " .. tostring(r))
-    end
-  end
-end)
-
--- Find the full solution path (useful for tutorial or auto-solve)
-dg:query("my-game", "valid_sequence(chest, Moves)", function(results)
-  if results[1] then playSolutionSequence(results[1].Moves) end
-end)
-
--- Apply a move: advance current state
-local function applyMove(puzzle, move, nextState)
-  dg:assert("my-game", {
-    type="attribute", entity=puzzle, attribute="current_state", value=nextState
-  })
-end
-```
+**`valid_sequence` uses the puzzle's items as they are now.** A path through a
+gated move is found only if the item is already available; it will not plan
+"get the key, then use it".
 
 ## Blocked Reasons
 
 | Reason | Meaning |
 |---|---|
-| `already_solved` | Puzzle is in a solve state — no further moves needed |
-| `missing_item(Item)` | A move exists but requires Item the player doesn't have |
-| `no_moves` | Current state has no outgoing transitions at all |
+| `already_solved` | Current state is a solve state |
+| `missing_item(Item)` | An outgoing move needs an item the puzzle does not have |
+| `no_moves` | The current state has no `move` at all |
 
 ## Composing with Other Modules
 
-Works naturally with `inventory` (player item checks for `requires_item`), `quests` (puzzle completion as a quest objective), and `fsm` (for puzzles that need full reachability analysis or cycle detection).
+`quests` for solving as an objective; `fsm` for reachability and cycle analysis
+over the same state graph.

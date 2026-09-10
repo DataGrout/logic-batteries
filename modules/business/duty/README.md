@@ -55,6 +55,35 @@ over any verdict below).
 `duty_too_long(Len, Max)`, `insufficient_rest(Rest, Min)`,
 `rolling_limit_exceeded(Total, Limit)`, `missing_qualification(Kind)`.
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `role` | worker | a role id | The worker's role. Having one is what makes a worker rostered: `available_staff` enumerates only workers with a `role` |
+| `start`, `end` | duty period, unavailability window | integers | The interval, half-open `[start, end)`, in the namespace's one time unit |
+| `kind` | qualification | a qualification kind | What the qualification certifies; matched against a task's `requires` |
+| `expires` | qualification | integer | When it lapses. Absent means it never does; a qualification is current at `At` when `expires > At` |
+| `needs_role` | task | a role id | Optional role filter; a task without one accepts any role |
+| `max_duty` | worker, role, `duty_policy` | integer | Longest single duty period. Policy keys resolve worker → role → `duty_policy`; an unconfigured key is **not enforced** (see `policy_gap`) |
+| `min_rest` | worker, role, `duty_policy` | integer | Least rest between a prior duty's end and a new start |
+| `rolling_window` | worker, role, `duty_policy` | integer | Length of the window over which `rolling_limit` is measured, ending at the proposed end |
+| `rolling_limit` | worker, role, `duty_policy` | integer | Most duty time allowed within a `rolling_window`. Only enforced when both are configured |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `duty_period` | worker → period | A committed duty period (past, current, or already scheduled). Conflicts, rest and rolling totals are all computed from these |
+| `unavailable_during` | worker or equipment → window | Leave, training, maintenance. `unavailable` works for any entity, not only people |
+| `holds` | worker → qualification | The worker holds this qualification entity |
+| `requires` | task → qualification kind | The task needs a current qualification of this kind; zero or more per task |
+
+`duty_policy` is a fixed entity name for the global defaults. A `reason` on an
+unavailability window is fine to assert for your own explanations, but no
+clause reads it.
+
 ## Time
 
 Time is an integer in one consistent unit per namespace. Minutes work well for

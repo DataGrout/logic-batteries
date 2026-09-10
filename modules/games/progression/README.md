@@ -1,142 +1,150 @@
 # Module: progression v1.0.0
 
-XP thresholds, level-up detection, stat scaling, unlocks, and prestige conditions.
+Levels from XP along a configurable curve, stats that scale with level,
+level-gated unlocks, and prestige conditions.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["progression"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("progression", "my-game", cb)`.
 
-```lua
-dg:batteries().install("progression", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `level_for_xp(XP, Level)` | Level a player with XP total experience has reached |
-| `xp_to_next_level(Player, Needed)` | XP remaining until Player's next level |
-| `stat_at_level(Stat, Level, Value)` | Value of Stat at a given Level |
-| `unlock_available(Player, Unlock)` | Unlock is available at Player's current level |
-| `can_prestige(Player)` | Player meets all configured prestige conditions |
+| `level_for_xp(XP, Level)` | The highest level whose cumulative XP is at most XP, capped at `max_level` |
+| `xp_to_next_level(Player, Needed)` | XP still needed for the next level; fails at max level |
+| `stat_at_level(Stat, Level, Value)` | A per-level override if one exists, else the stat's curve |
+| `unlock_available(Player, Unlock)` | The player's level meets `unlock_at_level`, and the class gate if any |
+| `can_prestige(Player)` | The configured level condition holds, and the quest gate if any |
 
-## XP Curves
+A player's level is the `level` attribute when present, otherwise derived from
+`xp`. Assert one or the other, not both.
 
-Three curve types, all configured with attribute facts. Default is linear.
+## Facts this battery reads
 
-### Linear (default)
+**Attributes**
 
-```lua
--- Level 2 costs 100 XP, each subsequent level costs 50 more
-dg:assert("my-game", { type="attribute", entity="xp_curve", attribute="type",      value="linear" })
-dg:assert("my-game", { type="attribute", entity="xp_curve", attribute="base_xp",   value=100 })
-dg:assert("my-game", { type="attribute", entity="xp_curve", attribute="increment", value=50 })
--- → Level 2: 100 total, Level 3: 250, Level 4: 450, ...
+| Name | On | Value | Description |
+|---|---|---|---|
+| `xp` | player | integer | Total experience; the level is derived from it when no `level` is set. Absent reads as 0 |
+| `level` | player | integer | Explicit level; takes precedence over `xp` |
+| `class` | player | a class id | Matched against `unlock_requires_class` |
+| `type` | `xp_curve` | `linear` \| `exponential` | Which formula; default `linear` |
+| `base_xp` | `xp_curve` | integer | XP from level 1 to 2; default 100 |
+| `increment` | `xp_curve` | integer | Linear: each further level costs this much more; default 50 |
+| `multiplier` | `xp_curve` | number | Exponential: each further level costs this times more; default 1.5 |
+| `max_level` | `xp_curve` | integer | Cap; default 100 |
+| `xp_required` | `level_<N>` | integer | Cumulative XP to reach level N, on an *entity* named `level_2`, `level_3`, …; overrides the curve for that level |
+| `base_value` | stat | number | The stat's value at level 1; default 0 (linear) or 1 (exponential) |
+| `per_level` | stat | number | Linear: added per level above 1; default 0 |
+| `scale` | stat | `exponential` | Switches the stat to `base × multiplier^(level−1)` |
+| `multiplier` | stat | number | Exponential stat growth; default 1.1 |
+| `level_<N>` | stat | number | Exact value at level N, as an *attribute* named `level_5` on the stat; overrides the formula |
+| `unlock_at_level` | unlock | integer | The level at which the unlock becomes available |
+| `unlock_requires_class` | unlock | a class id | Optional: the player's `class` must match |
+| `requires_max_level` | `prestige` | `true` | Prestige needs the player at `max_level` |
+| `requires_level` | `prestige` | integer | Or at least this level. One of the two must be set or nobody can prestige |
+| `requires_quest` | `prestige` | a quest id | Optional quest gate |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `completed_quest` | player → quest | Satisfies `requires_quest` |
+
+`xp_curve` and `prestige` are fixed entity names. Note the two different
+`level_<N>` shapes: for XP breakpoints it is an *entity* carrying
+`xp_required`; for stat overrides it is an *attribute name* on the stat.
+
+## Setup
+
+```
+# The curve: level 2 at 100, then +50 per level (250, 450, 700, …)
+{ type="attribute", entity="xp_curve", attribute="type",      value="linear" }
+{ type="attribute", entity="xp_curve", attribute="base_xp",   value=100 }
+{ type="attribute", entity="xp_curve", attribute="increment", value=50 }
+{ type="attribute", entity="xp_curve", attribute="max_level", value=50 }
+
+# Or hand-placed breakpoints for particular levels
+{ type="attribute", entity="level_10", attribute="xp_required", value=5000 }
+
+# Stats
+{ type="attribute", entity="strength",    attribute="base_value", value=10 }
+{ type="attribute", entity="strength",    attribute="per_level",  value=5 }
+{ type="attribute", entity="magic_power", attribute="scale",      value="exponential" }
+{ type="attribute", entity="magic_power", attribute="base_value", value=10 }
+{ type="attribute", entity="magic_power", attribute="multiplier", value=1.2 }
+{ type="attribute", entity="max_hp",      attribute="level_3",    value=220 }
+
+# Unlocks
+{ type="attribute", entity="double_jump", attribute="unlock_at_level",       value=5 }
+{ type="attribute", entity="fireball",    attribute="unlock_at_level",       value=10 }
+{ type="attribute", entity="fireball",    attribute="unlock_requires_class", value="mage" }
+
+# Prestige
+{ type="attribute", entity="prestige", attribute="requires_max_level", value=true }
+{ type="attribute", entity="prestige", attribute="requires_quest",     value="defeat_final_boss" }
+
+# The player
+{ type="attribute", entity="alice", attribute="xp",    value=850 }
+{ type="attribute", entity="alice", attribute="class", value="mage" }
 ```
 
-### Exponential
+## Querying
 
-```lua
-dg:assert("my-game", { type="attribute", entity="xp_curve", attribute="type",       value="exponential" })
-dg:assert("my-game", { type="attribute", entity="xp_curve", attribute="base_xp",    value=100 })
-dg:assert("my-game", { type="attribute", entity="xp_curve", attribute="multiplier", value=1.5 })
--- → Level 2: 100 total, Level 3: 250, Level 4: 475, ...
+```
+# Level from raw XP
+level_for_xp(850, L)
+   L = 5
+
+# How far to the next?
+xp_to_next_level(alice, Needed)
+   Needed = 150
+
+# A stat at that level
+stat_at_level(strength, 5, V)
+   V = 30
+
+# What has she unlocked?
+unlock_available(alice, U)
+   U = double_jump
+
+# Ready to prestige?
+can_prestige(alice)
+   false
 ```
 
-### Custom breakpoints
+From Tether, in a loop that already speaks it:
 
 ```lua
--- Explicit cumulative XP per level — overrides curve math entirely
-dg:assert("my-game", { type="attribute", entity="level_2", attribute="xp_required", value=100 })
-dg:assert("my-game", { type="attribute", entity="level_3", attribute="xp_required", value=300 })
-dg:assert("my-game", { type="attribute", entity="level_4", attribute="xp_required", value=700 })
+dg:query("my-game", "unlock_available(alice, U)", function(rs) for _, r in ipairs(rs) do grantUnlock(r.U) end end)
 ```
 
-### Max level
+## Semantics worth knowing
 
-```lua
-dg:assert("my-game", { type="attribute", entity="xp_curve", attribute="max_level", value=50 })
--- default: 100
-```
+**Unlocks gate on `unlock_at_level`, not `requires_level`.** `requires_level`
+is read only on the `prestige` entity. An unlock carrying `requires_level` is
+never available.
 
-## Stat Scaling
+**Breakpoints end the curve.** `level_for_xp` walks upward and stops at the
+first level whose cumulative XP it cannot compute; it does not skip gaps. If you
+mix breakpoints and a curve, the curve fills every level you did not place.
 
-```lua
--- Linear: value = base + (level - 1) * per_level
-dg:assert("my-game", { type="attribute", entity="strength", attribute="base_value", value=10 })
-dg:assert("my-game", { type="attribute", entity="strength", attribute="per_level",  value=5 })
+**`xp_to_next_level` means two things.** With `xp` asserted it is the gap from
+current XP to the next threshold; with only `level` asserted it is the full
+cost of the next level.
 
--- Exponential: value = round(base * multiplier ^ (level - 1))
-dg:assert("my-game", { type="attribute", entity="magic_power", attribute="scale",      value="exponential" })
-dg:assert("my-game", { type="attribute", entity="magic_power", attribute="base_value", value=10 })
-dg:assert("my-game", { type="attribute", entity="magic_power", attribute="multiplier", value=1.2 })
-
--- Custom per-level value (overrides formula)
-dg:assert("my-game", { type="attribute", entity="max_hp", attribute="level_1", value=100 })
-dg:assert("my-game", { type="attribute", entity="max_hp", attribute="level_2", value=150 })
-dg:assert("my-game", { type="attribute", entity="max_hp", attribute="level_3", value=220 })
-```
-
-## Unlocks
-
-```lua
--- Unlock available at or above a level threshold
-dg:assert("my-game", { type="attribute", entity="double_jump",   attribute="requires_level", value=5  })
-dg:assert("my-game", { type="attribute", entity="fire_spell",    attribute="requires_level", value=10 })
-dg:assert("my-game", { type="attribute", entity="prestige_mode", attribute="requires_level", value=50 })
-```
-
-## Prestige
-
-```lua
--- Require max level before prestige is available
-dg:assert("my-game", { type="attribute", entity="prestige", attribute="requires_max_level", value=true })
-
--- Or require a specific level + a completed quest
-dg:assert("my-game", { type="attribute", entity="prestige", attribute="requires_level", value=50 })
-dg:assert("my-game", { type="attribute", entity="prestige", attribute="requires_quest", value="defeat_final_boss" })
-```
-
-## Usage
-
-```lua
--- What level is alice at 850 XP?
-dg:query("my-game", "level_for_xp(850, Level)", function(results)
-  if results[1] then setPlayerLevel(results[1].Level) end
-end)
-
--- How much XP does alice need to level up?
-dg:query("my-game", "xp_to_next_level(alice, Needed)", function(results)
-  if results[1] then showXPBar(results[1].Needed) end
-end)
-
--- What is alice's strength at her current level?
-dg:query("my-game", "player_level(alice, L), stat_at_level(strength, L, V)", function(results)
-  if results[1] then applyStrengthBonus(results[1].V) end
-end)
-
--- What has alice unlocked?
-dg:query("my-game", "unlock_available(alice, Unlock)", function(results)
-  for _, r in ipairs(results) do grantUnlock(r.Unlock) end
-end)
-
--- Can alice prestige?
-dg:query("my-game", "can_prestige(alice)", function(results)
-  if #results > 0 then showPrestigeButton() end
-end)
-```
+**Prestige needs a level rule.** With neither `requires_max_level` nor
+`requires_level` on `prestige`, `can_prestige` fails for everyone.
 
 ## Composing with Other Modules
 
-Works naturally with `combat` (stat values feed damage calculations), `quests` (prestige quest gates), and `inventory` (level-locked equipment).
+`combat` reads stat values you derive here; `quests` asserts
+`completed_quest`; `crafting` reads the player's `level` for discovery.

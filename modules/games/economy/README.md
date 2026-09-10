@@ -1,115 +1,118 @@
 # Module: economy v1.0.0
 
-Crafting recipes, material tracking, buy/sell pricing, and supply-demand adjustments.
+Recipes as material lists, whether a player can craft one and what they lack,
+the gold cost of crafting, and buy and sell prices adjusted for supply and
+demand.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["economy"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("economy", "my-game", cb)`.
 
-```lua
-dg:batteries().install("economy", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `can_craft(Player, Item)` | Player has enough materials to craft Item |
-| `missing_materials(Player, Item, Missing)` | Missing is a list of `material(Name, Need, Have)` tuples |
-| `craft_cost(Item, Cost)` | Gold cost to craft Item (from ingredient prices or flat override) |
-| `buy_price(Item, Price)` | Price to buy Item, adjusted for supply and demand |
-| `sell_price(Item, Price)` | Price a player receives when selling Item |
+| `can_craft(Player, Item)` | The item has at least one ingredient and the player holds enough of every one |
+| `missing_materials(Player, Item, Missing)` | One list of `material(Name, Need, Have)` for each shortfall |
+| `craft_cost(Item, Cost)` | `recipe_gold_cost` if set, else the sum of `quantity × buy_price` over ingredients |
+| `buy_price(Item, Price)` | `round(base_price × supply_factor × demand_factor)` |
+| `sell_price(Item, Price)` | `round(buy_price × sell_ratio)` |
 
-## Crafting
+## Facts this battery reads
 
-### Recipes
+**Attributes**
 
-```lua
--- Register ingredients (one relation per material)
-dg:assert("my-game", { type="relation", subject="iron_sword", relation="requires", object="iron_ingot" })
-dg:assert("my-game", { type="relation", subject="iron_sword", relation="requires", object="wood" })
+| Name | On | Value | Description |
+|---|---|---|---|
+| `<material>_qty` | recipe item | integer | How many of that material the recipe needs: `iron_ingot_qty`. Default 1. Built from the material name, so it does not appear in the source as a literal |
+| `recipe_gold_cost` | recipe item | number | Flat crafting cost; when present the ingredient sum is skipped |
+| `base_price` | item | number | Required for any price; an item without one has no `buy_price` |
+| `supply_factor` | item | multiplier | Default 1.0; below 1 is abundant and cheaper |
+| `demand_factor` | item | multiplier | Default 1.0; above 1 is sought-after and dearer |
+| `sell_ratio` | `economy` | fraction | Fraction of the buy price a vendor pays; default 0.5 |
 
--- Set quantities (attribute name is <material>_qty)
-dg:assert("my-game", { type="attribute", entity="iron_sword", attribute="iron_ingot_qty", value=3 })
-dg:assert("my-game", { type="attribute", entity="iron_sword", attribute="wood_qty",       value=1 })
--- Quantity defaults to 1 if no _qty attribute is set
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `requires` | recipe item → material | One per ingredient |
+| `has_material` | player → material | One unit held. Quantity is the *number of these facts*; three facts mean three units |
+
+`economy` is a fixed entity name for the sell ratio.
+
+## Setup
+
+```
+# A recipe
+{ type="relation",  subject="iron_sword", relation="requires", object="iron_ingot" }
+{ type="relation",  subject="iron_sword", relation="requires", object="wood" }
+{ type="attribute", entity="iron_sword", attribute="iron_ingot_qty", value=3 }
+# wood has no _qty, so 1
+
+# Prices
+{ type="attribute", entity="iron_sword", attribute="base_price",    value=100 }
+{ type="attribute", entity="iron_sword", attribute="supply_factor", value=0.8 }
+{ type="attribute", entity="iron_sword", attribute="demand_factor", value=1.5 }
+{ type="attribute", entity="iron_ingot", attribute="base_price",    value=10 }
+{ type="attribute", entity="wood",       attribute="base_price",    value=2 }
+{ type="attribute", entity="economy",    attribute="sell_ratio",    value=0.7 }
+
+# What alice holds: three ingots, no wood
+{ type="relation", subject="alice", relation="has_material", object="iron_ingot" }
+{ type="relation", subject="alice", relation="has_material", object="iron_ingot" }
+{ type="relation", subject="alice", relation="has_material", object="iron_ingot" }
 ```
 
-### Player materials
+## Querying
 
-```lua
--- Each relation(player, has_material, material) counts as one unit
-dg:assert("my-game", { type="relation", subject="alice", relation="has_material", object="iron_ingot" })
-dg:assert("my-game", { type="relation", subject="alice", relation="has_material", object="iron_ingot" })
-dg:assert("my-game", { type="relation", subject="alice", relation="has_material", object="iron_ingot" })
-dg:assert("my-game", { type="relation", subject="alice", relation="has_material", object="wood" })
+```
+# Can she make it?
+can_craft(alice, iron_sword)
+   false
+
+# What is she short of?
+missing_materials(alice, iron_sword, Missing)
+   Missing = [material(wood, 1, 0)]
+
+# What would it cost to craft, and to buy?
+craft_cost(iron_sword, Cost)
+   Cost = 32
+buy_price(iron_sword, P)
+   P = 120
+sell_price(iron_sword, P)
+   P = 84
 ```
 
-## Pricing
+From Tether, in a loop that already speaks it:
 
 ```lua
--- Base price (required for buy_price / sell_price)
-dg:assert("my-game", { type="attribute", entity="iron_sword", attribute="base_price", value=100 })
-
--- Supply factor: oversupply makes it cheaper
-dg:assert("my-game", { type="attribute", entity="iron_sword", attribute="supply_factor", value=0.8 })
-
--- Demand factor: high demand makes it more expensive
-dg:assert("my-game", { type="attribute", entity="iron_sword", attribute="demand_factor", value=1.5 })
--- buy_price = round(100 * 0.8 * 1.5) = 120
-
--- Custom sell ratio (default: 0.5)
-dg:assert("my-game", { type="attribute", entity="economy", attribute="sell_ratio", value=0.7 })
--- sell_price = round(buy_price * 0.7)
-
--- Flat recipe gold cost (overrides ingredient price sum)
-dg:assert("my-game", { type="attribute", entity="iron_sword", attribute="recipe_gold_cost", value=50 })
+dg:query("my-game", "missing_materials(alice, iron_sword, M)", function(r) if r[1] then showMissing(r[1].M) end end)
 ```
 
-## Usage
+## Semantics worth knowing
 
-```lua
--- Can alice craft an iron sword?
-dg:query("my-game", "can_craft(alice, iron_sword)", function(results)
-  if #results > 0 then showCraftButton() end
-end)
+**Quantity is a count of identical facts.** `has_material` has no amount; three
+units are three identical relation facts. Check that your fact store keeps
+duplicates — a store that collapses identical facts would cap every material at
+one. If that is your situation, model quantities as an attribute and query it
+yourself.
 
--- What is alice missing?
-dg:query("my-game", "missing_materials(alice, iron_sword, Missing)", function(results)
-  if results[1] then
-    for _, m in ipairs(results[1].Missing) do
-      -- m = material(name, needed, have)
-      showMissingMaterial(m)
-    end
-  end
-end)
+**`craft_cost` skips unpriced ingredients silently.** An ingredient with no
+`base_price` contributes nothing to the sum rather than failing the query, so
+a partially priced recipe under-reports. Set `recipe_gold_cost` when that
+matters.
 
--- How much does it cost to craft?
-dg:query("my-game", "craft_cost(iron_sword, Cost)", function(results)
-  if results[1] then showCraftingCost(results[1].Cost) end
-end)
-
--- What is the market price?
-dg:query("my-game", "buy_price(iron_sword, P)", function(results)
-  if results[1] then showBuyPrice(results[1].P) end
-end)
-
-dg:query("my-game", "sell_price(iron_sword, P)", function(results)
-  if results[1] then showSellPrice(results[1].P) end
-end)
-```
+**No ingredients, no craft.** `can_craft` requires at least one `requires`
+relation; an item nobody has given a recipe is uncraftable, not free.
 
 ## Composing with Other Modules
 
-Works naturally with `inventory` (materials come from player inventory), `quests` (crafting a specific item as a quest objective), and `npc-state` (shop availability gated on faction or relationship level).
+`inventory` for what the player holds, `quests` for crafting as an objective,
+`npc-state` for gating a shop on standing.

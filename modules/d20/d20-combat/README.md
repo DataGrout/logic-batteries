@@ -31,6 +31,40 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `disadvantage_on_attack(Attacker, Target)` | Condition or terrain imposes disadvantage |
 | `can_attack(Attacker, Target)` | Both alive, no action-blocking condition, not out of range |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `ac` | entity | integer | Armor class, stated outright. Takes precedence over the computed form |
+| `armor_base_ac` | entity | integer | Armor's base; AC is this plus the Dex modifier (unless `no_dex_to_ac`) plus 2 for a `shield`. Without it the base is 10 |
+| `no_dex_to_ac` | entity | `true` | Heavy armor: the Dex modifier is not added |
+| `shield` | entity | `true` | +2 AC |
+| `hp` | entity | integer | `d20_is_defeated` at 0 or below |
+| `hp_max` | entity | integer | `d20_instant_death` when remaining damage at 0 HP meets or exceeds it |
+| `initiative` | entity | integer | Stated initiative; otherwise the Dex modifier |
+| `damage_type` | attacker | `slashing` \| `piercing` \| `bludgeoning` \| any other type | Default `bludgeoning`. The three physical types also match `<prefix>_physical` resistances |
+| `damage_bonus` | attacker | integer | Flat bonus added to the dice, stated outright |
+| `damage_ability` | attacker | `str` \| `dex` \| … | Which ability's modifier is added when `damage_bonus` is absent. Default `str`, or the better of Str/Dex with `finesse_attack` |
+| `finesse_attack` | attacker | `true` | Damage uses the higher of the Str and Dex modifiers |
+| `immune_<type>`, `resist_<type>`, `vulnerable_<type>` | target | any | Factor 0 / 0.5 / 2.0 for that damage type — `immune_fire`, `resist_physical`. Checked for the specific type first, then its category |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `adjacent_to` | attacker → target | Within reach: advantage against a prone target; without it, disadvantage against one |
+| `can_see` | attacker → target | A frightened attacker who can see the target has disadvantage |
+| `flanking` | attacker → target | Advantage |
+| `has_high_ground_vs` | attacker → target | Advantage |
+| `has_cover_vs` | attacker → target | Disadvantage |
+| `out_of_range` | attacker → target | `d20_can_attack` fails |
+
+Ability scores (`str`, `dex`, …), `level`, `attack_bonus` and the proficiency
+flags are `d20-core`'s facts; conditions (`condition`) are `d20-conditions`'.
+This battery reads them through those batteries' predicates.
+
 ## Key Design Differences from the `combat` Battery
 
 The generic `combat` battery uses flat armor reduction and elemental type charts.

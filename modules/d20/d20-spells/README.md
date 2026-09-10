@@ -42,6 +42,28 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `d20_concentration_dc(Damage, DC)` | CON save DC when damaged while concentrating: max(10, Damage // 2) |
 | `d20_concentration_check(Entity, Damage, Roll, Outcome)` | `holds` \| `broken` |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `prepares_spells` | caster | `true` | A preparing caster (cleric, wizard) knows a levelled spell only while it is `prepared_spell`; a non-preparing caster knows every `knows_spell`. Cantrips always go by `knows_spell` |
+| `slots_l1` … `slots_l5` | caster | integer | Total spell slots of that level |
+| `slots_l1_used` … `slots_l5_used` | caster | integer | Slots spent at that level; absent is 0. You increment these when a spell is cast |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `knows_spell` | caster → spell | The caster has the spell; for cantrips this is the only route |
+| `prepared_spell` | caster → spell | For a caster with `prepares_spells`: today's prepared list |
+
+The spells themselves are the built-in grimoire below, not facts — a spell
+name you assert that is not in it is unknown to every predicate. The caster's
+`spellcasting_ability`, ability scores and `level` are `d20-core`'s facts, read
+through its predicates for save DCs, spell attacks and cantrip scaling.
+
 ## The Grimoire
 
 Cantrips: `fire_bolt` `ray_of_frost` `sacred_flame` ·

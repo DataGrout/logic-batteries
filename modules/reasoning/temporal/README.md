@@ -1,106 +1,117 @@
 # Module: temporal v1.0.0
 
-Temporal reasoning over timestamped facts. Assert timestamps, deadlines, start/end intervals as attributes; query ordering, overlap, gaps, and sequence validity at zero token cost. Works across any domain — tasks, events, sessions, game buffs, log entries.
+Ordering, overlap, gaps and deadlines over timestamped facts. Assert a
+`timestamp` on point events, `start`/`end` on intervals, `deadline` on anything
+with one; ask which came first, what overlaps, what is due. Any domain —
+tasks, sessions, buffs, log entries — and any time unit, as long as it is one
+unit per namespace.
 
 ## Install
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["temporal"],
-    "namespace": "my-namespace"
+    "namespace": "my-ns"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
-
-```lua
-dg:batteries().install_many({"temporal"}, "my-namespace", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
+From Tether: `dg:batteries().install("temporal", "my-ns", cb)`.
 
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `event_before(E1, E2)` | E1's timestamp < E2's timestamp |
-| `event_after(E1, E2)` | E1's timestamp > E2's timestamp |
-| `event_within(Event, Start, End)` | Event timestamp falls in [Start, End] |
-| `event_concurrent(E1, E2)` | E1 and E2 overlap (uses `start`/`end` attributes) |
-| `deadline_passed(Entity, Now)` | Entity's `deadline` attribute < Now |
-| `deadline_imminent(Entity, Now, Window)` | Deadline within Window time units of Now |
-| `duration_between(E1, E2, D)` | D = \|timestamp(E2) − timestamp(E1)\| |
-| `gap_between(E1, E2, Gap)` | Gap = start(E2) − end(E1); negative = overlap |
-| `events_in_order(Events)` | Events list is non-decreasing by timestamp |
-| `next_event(After, Events, Next)` | First event in Events with timestamp > After |
-| `latest_event(Events, Latest)` | Event with highest timestamp |
-| `earliest_event(Events, Earliest)` | Event with lowest timestamp |
+| `event_before(E1, E2)` | `timestamp(E1) < timestamp(E2)` |
+| `event_after(E1, E2)` | The reverse |
+| `event_within(Event, Start, End)` | Timestamp in the **closed** range `[Start, End]` |
+| `event_concurrent(E1, E2)` | Intervals overlap, **half-open**: `start1 < end2` and `end1 > start2`. Touching intervals do not overlap |
+| `deadline_passed(Entity, Now)` | `Now > deadline`, strictly |
+| `deadline_imminent(Entity, Now, Window)` | `Now ≤ deadline ≤ Now + Window` |
+| `duration_between(E1, E2, D)` | `abs(timestamp2 − timestamp1)` |
+| `gap_between(E1, E2, Gap)` | `start(E2) − end(E1)`; negative means they overlap |
+| `events_in_order(Events)` | Timestamps non-decreasing along the list |
+| `next_event(After, Events, Next)` | The earliest event in the list with timestamp strictly after `After` |
+| `latest_event(Events, Latest)` | Highest timestamp in the list |
+| `earliest_event(Events, Earliest)` | Lowest timestamp in the list |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `timestamp` | event | number | When a point event happened. `event_before`/`after`, `event_within`, `duration_between`, `events_in_order`, `next`/`latest`/`earliest_event` compare these |
+| `start`, `end` | interval | numbers | The interval, for `event_concurrent` and `gap_between`. An entity may carry both a `timestamp` and an interval |
+| `deadline` | entity | number | For `deadline_passed` and `deadline_imminent`, against the `Now` you pass |
+
+Numbers in one unit of your choosing — unix seconds, milliseconds, turns,
+ticks. The battery never converts, and mixing units in one namespace compares
+apples with oranges silently.
 
 ## Setup
 
-```lua
--- Point-in-time events (timestamp only)
-dg:assert("my-ns", { type="attribute", entity="deploy_v1", attribute="timestamp", value=1700000000 })
-dg:assert("my-ns", { type="attribute", entity="deploy_v2", attribute="timestamp", value=1700003600 })
+```
+# Point events
+{ type="attribute", entity="deploy_v1", attribute="timestamp", value=1700000000 }
+{ type="attribute", entity="deploy_v2", attribute="timestamp", value=1700003600 }
 
--- Interval events (start + end)
-dg:assert("my-ns", { type="attribute", entity="maintenance", attribute="start", value=1700007200 })
-dg:assert("my-ns", { type="attribute", entity="maintenance", attribute="end",   value=1700010800 })
+# An interval
+{ type="attribute", entity="maintenance", attribute="start", value=1700007200 }
+{ type="attribute", entity="maintenance", attribute="end",   value=1700010800 }
 
--- Deadline-bearing entities
-dg:assert("my-ns", { type="attribute", entity="invoice_001", attribute="deadline", value=1700100000 })
+# Something with a deadline
+{ type="attribute", entity="invoice_001", attribute="deadline", value=1700100000 }
 ```
 
-## Usage
+## Querying
 
-```lua
--- Is deploy_v1 before deploy_v2?
-dg:query("my-ns", "event_before(deploy_v1, deploy_v2)", function(results)
-  print(#results > 0 and "yes" or "no")  -- "yes"
-end)
+```
+# Order
+event_before(deploy_v1, deploy_v2)
 
--- Which events fall within a time window?
-dg:query("my-ns",
-  "event_within(E, 1700000000, 1700010000), entity(E)",
-  function(results)
-    for _, r in ipairs(results) do print(r.E) end
-  end)
+# Everything in a window (unbound Event enumerates timestamped entities)
+event_within(E, 1700000000, 1700010000)
+   E = deploy_v1 ;
+   E = deploy_v2
 
--- How long between deploys?
-dg:query("my-ns", "duration_between(deploy_v1, deploy_v2, D)", function(results)
-  print("Gap: " .. results[1].D .. " seconds")  -- "Gap: 3600 seconds"
-end)
+# How far apart?
+duration_between(deploy_v1, deploy_v2, D)
+   D = 3600
 
--- Are any invoices overdue?
-local now = os.time()
-dg:query("my-ns", "deadline_passed(Invoice, " .. now .. ")", function(results)
-  for _, r in ipairs(results) do
-    print("Overdue: " .. r.Invoice)
-  end
-end)
+# Overdue, and due within the hour, at Now = 1700099000
+deadline_passed(X, 1700099000)
+   false
+deadline_imminent(X, 1700099000, 3600)
+   X = invoice_001
 
--- Upcoming deadlines in the next hour
-dg:query("my-ns", "deadline_imminent(E, " .. now .. ", 3600)", function(results)
-  for _, r in ipairs(results) do print("Due soon: " .. r.E) end
-end)
-
--- Find the most recent event in a set
-dg:query("my-ns",
-  "latest_event([deploy_v1, deploy_v2], Latest)",
-  function(results)
-    print("Latest: " .. results[1].Latest)  -- "deploy_v2"
-  end)
+# Newest of a set
+latest_event([deploy_v1, deploy_v2], L)
+   L = deploy_v2
 ```
 
-## Attribute Conventions
+From Tether, in a loop that already speaks it:
 
-| Attribute | Type | Used by |
-|---|---|---|
-| `timestamp` | integer (unix epoch or any ordinal) | `event_before`, `event_after`, `event_within`, `duration_between`, `events_in_order`, `next_event`, `latest_event`, `earliest_event` |
-| `start` | integer | `event_concurrent`, `gap_between` |
-| `end` | integer | `event_concurrent`, `gap_between` |
-| `deadline` | integer | `deadline_passed`, `deadline_imminent` |
+```lua
+dg:query("my-ns", "deadline_imminent(E, " .. os.time() .. ", 3600)", function(rs) for _, r in ipairs(rs) do dueSoon(r.E) end end)
+```
 
-Time units are intentionally unspecified — use whatever unit is consistent in your namespace (seconds, milliseconds, turns, ticks).
+## Semantics worth knowing
+
+**Two conventions, deliberately different.** `event_within` is closed on both
+ends — an event exactly at `Start` or `End` is within. `event_concurrent` is
+half-open — an interval ending at 1080 and one starting at 1080 do not overlap,
+which is the same convention `duty` and `rostering` use, so shifts asserted
+for those batteries answer `event_concurrent` correctly. `gap_between` on that
+pair returns 0.
+
+**Deadlines: passed is strict, imminent is inclusive.** At `Now` equal to the
+deadline, `deadline_passed` is false and `deadline_imminent` is true for any
+window.
+
+**Ties are collapsed in the list predicates.** `next_event`, `latest_event`
+and `earliest_event` sort by timestamp and drop duplicate timestamps, so of
+two events at the same instant only one is returned — which one follows fact
+order.
+
+**Nothing is a clock.** Every `Now` is an argument you pass; the battery has no
+notion of the current time.

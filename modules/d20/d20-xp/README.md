@@ -32,6 +32,18 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `encounter_difficulty(PartyLevel, PartySize, XPList, Difficulty)` | trivial/easy/medium/hard/deadly |
 | `party_encounter_difficulty(Level, Size, MonsterNames, Difficulty)` | Name-based (requires d20-monsters) |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `xp` | monster | integer | Base XP for the monster, read only by `party_encounter_difficulty/4` when you pass monster names. `d20-monsters` asserts it for its stat blocks; assert it yourself for a custom monster |
+
+Everything else — the CR-to-XP table, the per-level thresholds, the
+action-economy multipliers — is built in. `encounter_difficulty/4` takes a
+list of XP values and reads no facts at all.
+
 ## Usage
 
 ```python

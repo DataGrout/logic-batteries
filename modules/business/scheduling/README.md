@@ -23,6 +23,29 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `next_available_slot(Resource, Date, Slot)` | First open slot on or after Date |
 | `resource_utilization(Resource, Date, Pct)` | Percentage of slots booked on Date |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `slots` | resource | list of slot ids | Every bookable slot on the resource, e.g. `[9,10,11,13]`. Utilisation is booked slots over this list's length |
+| `advance_days` | resource | integer | Earliest booking is `today + advance_days`; default 0 |
+| `max_advance` | resource | integer | Latest booking is `today + max_advance`; default 365. Also bounds how far `next_available_slot` searches |
+| `requires_role` | resource | a role id | Optional: only customers with this `role` can book |
+| `date` | booking, `today` | integer | The day. `today` is a fixed entity name; assert its `date` at query time. The advance window is computed by *adding days to this integer*, so it is only correct for a day-count from an epoch — `YYYYMMDD` values break across month ends |
+| `slot` | booking | a slot id | Which of the resource's `slots` the booking holds |
+| `role` | customer | a role id | Matched against a resource's `requires_role` |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `booked_at` | resource → booking | Attaches an existing booking to the resource |
+
+`capacity` on a resource and `customer` on a booking appear in the source
+comments but no clause reads them.
+
 ## Date Format
 
 Dates are `YYYYMMDD` integers. This makes ordering and arithmetic straightforward without calendar dependencies:

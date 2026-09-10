@@ -1,121 +1,146 @@
 # Module: prob-npc v1.0.0
 
-Probabilistic NPC belief and trust. Models how likely an NPC is to trust a player, share information, assist with tasks, and offer discounts — all driven by faction standing and relationship score. Agents query trust and disposition without token cost instead of asking the LLM to guess.
+How likely an NPC is to trust a player, tell them something, help them, or cut
+them a deal — derived from faction standing and personal relationship, so the
+game asks the cell instead of asking a model to guess.
 
-**Requires:** `npc-state` and `faction` installed in the same namespace.
+**Requires:** `faction` (for `faction_standing/3`) and `npc-state` (for
+`npc_friendly/2`, `npc_hostile/2`, `relationship_level/3`).
 
 ## Install
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["npc-state", "faction", "prob-npc"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
-
-```lua
-dg:batteries().install_many({"npc-state", "faction", "prob-npc"}, "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
+From Tether: `dg:batteries().install_many({"npc-state", "faction", "prob-npc"}, "my-game", cb)`.
 
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `trust_probability(NPC, Player, P)` | P is probability (0.0–1.0) NPC trusts Player |
-| `will_share_info(NPC, Player, Topic)` | Probabilistic: NPC shares Topic with Player |
-| `will_assist(NPC, Player, Task)` | Probabilistic: NPC helps Player with Task |
-| `npc_price_modifier(NPC, Player, Mod)` | Price multiplier (0.70–1.30); below 1.0 = discount |
-| `disposition_probability(NPC, Player, P)` | Overall probability NPC responds positively |
+| `trust_probability(NPC, Player, P)` | Standing base plus `relationship / 500`, clamped to 0.01–0.99 |
+| `will_share_info(NPC, Player, Topic)` | Probabilistic; weight falls with the topic's `sensitivity` and needs trust |
+| `will_assist(NPC, Player, Task)` | Probabilistic; weight falls with the task's `assistance_cost` and needs trust |
+| `npc_price_modifier(NPC, Player, Mod)` | `clamp(1 − (trust − 0.5) × 0.4, 0.70, 1.30)`; below 1 is a discount |
+| `disposition_probability(NPC, Player, P)` | Trust, +0.15 if `npc_friendly`, −0.30 if `npc_hostile`, clamped |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `faction` | NPC | a faction id | Trust starts from the player's standing with this faction (via the `faction` battery). Without one, the base is 0.35 |
+| `sensitivity` | topic | `low` \| `medium` \| `high` \| `secret` | How guarded the topic is: the sharing weight drops 0.90 (none) → 0.75 → 0.50 → 0.25 → 0.05, and from `medium` up a minimum relationship of 25 / 60 / 90 is also required |
+| `assistance_cost` | task | `low` \| `medium` \| `high` | How much the favour costs the NPC: 0.90 (none) → 0.80 → 0.50 → 0.20, with a minimum relationship of 25 for `medium` and 50 for `high` |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `knows_topic` | NPC → topic | The NPC can share the topic at all |
+| `can_assist` | NPC → task | The NPC can help with the task at all |
+
+Standing and relationship are read through the `faction` and `npc-state`
+batteries — `faction_standing/3`, `npc_friendly/2`, `npc_hostile/2`,
+`relationship_level/3` — so the player's `score` facts on `<player>_<faction>`
+and `<npc>_<player>` are what drive this one. Install both.
+
+**The trust base by standing:** exalted 0.90, revered 0.80, honored 0.70,
+friendly 0.55, neutral 0.35, unfriendly 0.10, hostile 0.02. Deterministic
+`trust_probability/3` adds `relationship / 500` to that and clamps to
+0.01–0.99. The ProbLog `npc_trusts/2` has no clause for a faction-less NPC that
+is hostile, so it is simply absent there rather than low.
 
 ## Setup
 
-```lua
--- NPC faction membership
-dg:assert("my-game", { type="attribute", entity="merchant_npc", attribute="faction", value="traders_guild" })
+```
+# The NPC's faction, and the player's standing with it (faction battery)
+{ type="attribute", entity="merchant",              attribute="faction", value="traders_guild" }
+{ type="attribute", entity="alice_traders_guild",   attribute="score",   value=5000 }
 
--- Player faction reputation (handled by faction battery)
-dg:assert("my-game", { type="attribute", entity="alice_traders_guild", attribute="score", value=5000 })
--- → faction_standing(alice, traders_guild, friendly) → trust ~0.58
+# Their personal relationship (npc-state battery), on <npc>_<player>
+{ type="attribute", entity="merchant_alice", attribute="score", value=40 }
 
--- Topics the NPC knows (with optional sensitivity)
-dg:assert("my-game", { type="relation", subject="merchant_npc", relation="knows_topic", object="trade_routes" })
-dg:assert("my-game", { type="attribute", entity="trade_routes", attribute="sensitivity", value="low" })
+# What the merchant knows, and how guarded each topic is
+{ type="relation",  subject="merchant", relation="knows_topic", object="trade_routes" }
+{ type="attribute", entity="trade_routes",    attribute="sensitivity", value="low" }
+{ type="relation",  subject="merchant", relation="knows_topic", object="secret_supplier" }
+{ type="attribute", entity="secret_supplier", attribute="sensitivity", value="secret" }
 
-dg:assert("my-game", { type="relation", subject="merchant_npc", relation="knows_topic", object="secret_supplier" })
-dg:assert("my-game", { type="attribute", entity="secret_supplier", attribute="sensitivity", value="secret" })
-
--- Tasks the NPC can help with
-dg:assert("my-game", { type="relation", subject="blacksmith_npc", relation="can_assist", object="forge_weapon" })
-dg:assert("my-game", { type="attribute", entity="forge_weapon", attribute="assistance_cost", value="medium" })
+# What the blacksmith can do, and what it costs him
+{ type="relation",  subject="blacksmith", relation="can_assist", object="forge_weapon" }
+{ type="attribute", entity="forge_weapon", attribute="assistance_cost", value="medium" }
 ```
 
-## Usage
+## Querying
+
+```
+# friendly (5000 ≥ 3000) → 0.55, plus 40/500
+trust_probability(merchant, alice, P)
+   P = 0.63
+
+# A small discount
+npc_price_modifier(merchant, alice, Mod)
+   Mod = 0.948
+
+# Warmth for the portrait
+disposition_probability(merchant, alice, P)
+   P = 0.78
+
+# Will he tell her? (secret: weight 0.05, and needs relationship ≥ 90 — she has 40)
+probability(will_share_info(merchant, alice, secret_supplier), P)
+   P = 0.0
+```
+
+From Tether, in a loop that already speaks it:
 
 ```lua
--- What is the trust probability for a merchant?
-dg:query("my-game", "trust_probability(merchant_npc, alice, P)", function(results)
-  if results[1] then
-    print(string.format("Trust: %.0f%%", results[1].P * 100))
-  end
-end)
-
--- What price modifier will this merchant apply?
-dg:query("my-game", "npc_price_modifier(merchant_npc, alice, Mod)", function(results)
-  if results[1] then
-    local mod = results[1].Mod
-    if mod < 1.0 then
-      print(string.format("%.0f%% discount", (1.0 - mod) * 100))
-    else
-      print(string.format("%.0f%% markup", (mod - 1.0) * 100))
-    end
-  end
-end)
-
--- Will this NPC share a sensitive topic?
-dg:query("my-game", "probability(will_share_info(merchant_npc, alice, secret_supplier), P)",
-  function(results)
-    print(string.format("Chance of sharing secret: %.0f%%", results[1].P * 100))
-  end)
-
--- Overall disposition check
-dg:query("my-game", "disposition_probability(merchant_npc, alice, P)", function(results)
-  setDialoguePortraitMood(results[1].P)  -- 0 = hostile, 1 = warm
-end)
+dg:query("my-game", "disposition_probability(merchant, alice, P)", function(r) if r[1] then setPortraitMood(r[1].P) end end)
 ```
 
 ## Trust by Faction Standing
 
-| Standing | Base trust probability |
+| Standing | Base |
 |---|---|
-| exalted | 0.90 |
-| revered | 0.80 |
-| honored | 0.70 |
-| friendly | 0.55 |
-| neutral | 0.35 |
-| unfriendly | 0.10 |
-| hostile | 0.02 |
+| `exalted` | 0.90 |
+| `revered` | 0.80 |
+| `honored` | 0.70 |
+| `friendly` | 0.55 |
+| `neutral` | 0.35 |
+| `unfriendly` | 0.10 |
+| `hostile` | 0.02 |
 
-Personal relationship score (from `npc-state`) boosts trust by up to +20% on top of the faction baseline.
+Relationship adds `score / 500` on top — +0.2 at a score of 100.
 
-## Information Sharing by Sensitivity
+## Information and Assistance
 
-| Topic sensitivity | Minimum trust + relationship |
-|---|---|
-| none / low | npc_trusts |
-| medium | npc_trusts + relationship ≥ 25 |
-| high | npc_trusts + relationship ≥ 60 |
-| secret | npc_trusts + relationship ≥ 90 |
+| `sensitivity` / `assistance_cost` | Share weight | Assist weight | Relationship needed |
+|---|---|---|---|
+| none | 0.90 | 0.90 | — |
+| `low` | 0.75 | 0.80 | — |
+| `medium` | 0.50 | 0.50 | ≥ 25 |
+| `high` | 0.25 | 0.20 | ≥ 60 share / ≥ 50 assist |
+| `secret` | 0.05 | — | ≥ 90 |
 
-Base probability for each tier: 0.90 / 0.75 / 0.50 / 0.25 / 0.05.
+Every row also requires `npc_trusts`, itself probabilistic, so the marginal is
+the product.
 
-## Price Modifier Formula
+## Semantics worth knowing
 
-`Mod = clamp(1.0 − (trust − 0.5) × 0.4, 0.70, 1.30)`
+**Two trust models.** `trust_probability/3` is arithmetic. `npc_trusts/2`,
+which `will_share_info` and `will_assist` depend on, is ProbLog-weighted by
+standing (0.90 down to 0.02), or 0.75 / 0.20 for a faction-less NPC that is
+friendly / neither. A faction-less hostile NPC has no `npc_trusts` clause at
+all — sharing and assisting are impossible, not merely unlikely.
 
-At 90% trust → Mod ≈ 0.84 (16% discount). At 10% trust → Mod ≈ 1.16 (16% markup).
+**Disposition can exceed trust.** `npc_friendly` adds a flat 0.15, so a
+friendly NPC in a hostile faction still warms up.
+
+**Relationship gates are hard.** Below the required relationship the sharing or
+assisting clause does not fire regardless of trust; there is no gradual
+fall-off.

@@ -1,81 +1,90 @@
 # Module: world v1.0.0
 
-Time of day, weather, season, and moon phase as queryable facts. Assert world state once per server tick; every other battery reads it automatically.
+Time of day, weather, season and moon phase as facts on one entity, with
+defaults, so every other battery reads the same world.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["world"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("world", "my-game", cb)`.
 
-```lua
-dg:batteries().install("world", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `world_time(Period)` | Current period: `dawn`/`day`/`dusk`/`night` |
-| `world_weather(Condition)` | Current weather: `clear`/`rain`/`storm`/`fog`/`snow` |
-| `world_season(Season)` | Current season: `spring`/`summer`/`autumn`/`winter` |
-| `world_moon(Phase)` | Moon phase: `new`/`crescent`/`quarter`/`gibbous`/`full` |
-| `is_daytime` | Succeeds during `dawn` and `day` |
-| `is_nighttime` | Succeeds during `dusk` and `night` |
+| `world_time(Period)` | `time_of_day` if set, else derived from `hour`, else `day` |
+| `world_weather(Condition)` | `weather`, default `clear` |
+| `world_season(Season)` | `season`, default `summer` |
+| `world_moon(Phase)` | `moon_phase`, default `crescent` |
+| `is_daytime` | Period is `dawn` or `day` |
+| `is_nighttime` | Period is `dusk` or `night` |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `time_of_day` | `world` | `dawn` \| `day` \| `dusk` \| `night` | The period, set explicitly. Takes precedence over `hour` |
+| `hour` | `world` | 0–23 | The period is derived: 5–6 dawn, 7–17 day, 18–20 dusk, otherwise night |
+| `weather` | `world` | `clear` \| `rain` \| `storm` \| `fog` \| `snow` | Nothing validates the value; any atom is returned as asserted |
+| `season` | `world` | `spring` \| `summer` \| `autumn` \| `winter` | Likewise |
+| `moon_phase` | `world` | `new` \| `crescent` \| `quarter` \| `gibbous` \| `full` | Likewise |
+
+`world` is a fixed entity name. Every attribute is optional; the defaults are
+`day`, `clear`, `summer`, `crescent`.
 
 ## Setup
 
-Assert world state as attributes on the atom `world`. Update these on a server tick or whenever conditions change.
+```
+# Either the period…
+{ type="attribute", entity="world", attribute="time_of_day", value="night" }
+# …or the hour, and let the period follow
+{ type="attribute", entity="world", attribute="hour", value=22 }
 
-```lua
-local ns = "my-game"
-
--- Time of day (explicit period)
-dg:assert(ns, { type="attribute", entity="world", attribute="time_of_day", value="night" })
-
--- Or assert the hour and let the module derive the period
-dg:assert(ns, { type="attribute", entity="world", attribute="hour", value=22 })
--- 22:00 → night (dawn 5–6, day 7–17, dusk 18–20, night otherwise)
-
--- Weather, season, moon
-dg:assert(ns, { type="attribute", entity="world", attribute="weather",    value="storm"  })
-dg:assert(ns, { type="attribute", entity="world", attribute="season",     value="winter" })
-dg:assert(ns, { type="attribute", entity="world", attribute="moon_phase", value="full"   })
+{ type="attribute", entity="world", attribute="weather",    value="storm" }
+{ type="attribute", entity="world", attribute="season",     value="winter" }
+{ type="attribute", entity="world", attribute="moon_phase", value="full" }
 ```
 
-**Defaults** (when no facts are asserted): `day`, `clear`, `summer`, `crescent`.
+Update these on a tick or when conditions change; asserting a new value for
+the same attribute replaces the reading.
 
 ## Querying
 
-```lua
--- Check current time period
-dg:query(ns, "world_time(T)", function(result)
-  print(result.T)  -- "night"
-end)
+```
+world_time(T)
+   T = night
 
--- Gate game logic on time
-dg:query(ns, "is_nighttime", function(result)
-  if result then spawnNightEnemies() end
-end)
+is_nighttime
+
+world_weather(W), world_moon(M)
+   W = storm, M = full
 ```
 
-## How Other Batteries Use It
+From Tether, in a loop that already speaks it:
 
-World facts are plain `attribute/3` assertions, so any battery can branch on them by reading the same namespace:
+```lua
+dg:query("my-game", "is_nighttime", function(r) if #r > 0 then spawnNightEnemies() end end)
+```
 
-- **loot-tables**: `condition_met` checks `attribute(world, time_of_day, night)` for night-only drops
-- **ai-director**: threat thresholds can be modulated by weather in custom rules
-- **npc-state**: dialogue variants can check `is_daytime` for time-aware greetings
+## Semantics worth knowing
+
+**Set the period or the hour, not both.** An explicit `time_of_day` wins
+outright; a stale one will mask a live `hour`.
+
+**Other batteries read the facts, not the predicates.** `loot-tables` checks
+`attribute(world, time_of_day, night)` directly, so a world driven only by
+`hour` will not satisfy a `time(night)` loot condition. When another battery
+reads `time_of_day`, assert the period.
 
 ## Why a Separate Battery
 
-Without a world battery, every game module that wants to branch on time or weather needs its own copy of the condition logic, or you end up with duplicate `attribute(world, ...)` reads scattered across modules. Centralising time/weather in a single authoritative namespace means updates propagate automatically to everything else reading the same facts.
+One authoritative place for world state means every battery that branches on
+time or weather reads the same facts, and one assert updates all of them.

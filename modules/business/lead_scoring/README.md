@@ -23,6 +23,35 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `disqualified(Lead, Reason)` | Lead is disqualified; Reason is `competitor`/`student`/`no_budget` |
 | `scoring_factor(Lead, Factor, Points)` | Individual scoring contribution for inspection |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `company_size` | lead | `enterprise` \| `mid_market` | Scores `enterprise_points` or `mid_market_points`. Any other value (`smb`, absent) scores nothing |
+| `budget_confirmed` | lead | `true` \| `false` | `true` scores `budget_points`. `false` **disqualifies** (`no_budget`); absent does neither |
+| `decision_maker` | lead | `true` | Scores `decision_maker_points` |
+| `engagement` | lead | `high` \| `medium` | Scores `high_engagement_points` or `med_engagement_points`; `low` or absent scores nothing |
+| `timeline` | lead | `q1` \| `q2` | Scores `q1_timeline_points` or `q2_timeline_points`; later quarters score nothing |
+| `competitor` | lead | `true` | Disqualifies, reason `competitor` |
+| `student` | lead | `true` | Disqualifies, reason `student` |
+| `enterprise_points` | `scoring` | number | Weight override; default 30 |
+| `mid_market_points` | `scoring` | number | Default 15 |
+| `budget_points` | `scoring` | number | Default 25 |
+| `decision_maker_points` | `scoring` | number | Default 20 |
+| `high_engagement_points` | `scoring` | number | Default 15 |
+| `med_engagement_points` | `scoring` | number | Default 8 |
+| `q1_timeline_points` | `scoring` | number | Default 10 |
+| `q2_timeline_points` | `scoring` | number | Default 5 |
+| `qualified_threshold` | `scoring` | number | Score at or above which `lead_qualified` holds (unless disqualified); default 50 |
+| `hot_threshold` | `scoring` | number | Score at or above which `lead_tier` is `hot`; default 70 |
+| `warm_threshold` | `scoring` | number | Score at or above which it is `warm`; default 40. Below is `cold` |
+
+`scoring` is a fixed entity name: every weight and threshold lives on it, and
+each is optional — assert only the ones you want to change. `industry` appears
+in the source comments but no clause reads it.
+
 ## Default Scoring Weights
 
 | Factor | Points |

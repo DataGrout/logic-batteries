@@ -1,89 +1,110 @@
 # Module: prob-loot v1.0.0
 
-Probabilistic drop resolution. Wraps `loot-tables` with ProbLog-annotated rarity probabilities so agents can query the actual probability of a drop, compute expected yields, and build UIs that show "Boss Key: 15% drop rate" without any token cost.
+Drop odds as numbers. Wraps `loot-tables` so a game or agent can ask the
+probability of a drop, the expected yield over many kills, and whether a drop is
+guaranteed — and, through ProbLog, the marginal probability of `drop_occurs`.
 
-**Requires:** `loot-tables` installed in the same namespace.
+**Requires:** `loot-tables`, for `drops/2`, `rarity_tier/2` and `loot_chance/3`.
 
 ## Install
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["loot-tables", "prob-loot"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
-
-```lua
-dg:batteries().install_many({"loot-tables", "prob-loot"}, "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
+From Tether: `dg:batteries().install_many({"loot-tables", "prob-loot"}, "my-game", cb)`.
 
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `drop_occurs(Source, Item)` | Probabilistic: Item drops from Source (use with ProbLog inference) |
-| `drop_probability(Source, Item, P)` | P is the base probability (0.0–1.0) that Item drops from Source |
-| `expected_drops(Source, Item, N, Expected)` | Expected number of drops from N kills |
+| `drop_occurs(Source, Item)` | Probabilistic, weighted by rarity tier — see the two scales below |
+| `guaranteed_drop(Source, Item)` | The item's `drop_chance` is 100 or more |
+| `drop_probability(Source, Item, P)` | `loot-tables`' `loot_chance` as 0–1 |
+| `expected_drops(Source, Item, N, Expected)` | `N × drop_probability` |
 
-## Default Probabilities by Rarity
+## Facts this battery reads
 
-| Tier | Probability |
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `drop_chance` | item | 0–100 | At 100 or above the drop is `guaranteed_drop`. Also the per-item override `drop_probability` reads through `loot-tables` |
+
+Everything else comes from the `loot-tables` battery: `drops/2` for the table,
+`rarity_tier/2` for the tier, `loot_chance/3` for the deterministic chance. Its
+facts — `can_drop`, `rarity`, `loot_conditions` — are what you assert; see its
+table.
+
+**Two scales.** `drop_occurs/2` is ProbLog-weighted by tier at 0.90 / 0.65 /
+0.35 / 0.10 / **0.15** for common through legendary — note legendary is more
+likely than epic as written. `drop_probability/3` instead converts
+`loot-tables`' deterministic chance (70 / 30 / 10 / 3 / 1 percent, or the
+item's `drop_chance`) to 0–1. The two do not agree; `expected_drops/4` uses the
+second.
+
+## Weights of `drop_occurs` by Rarity
+
+| Tier | Weight |
 |---|---|
-| common | 0.90 (90%) |
-| uncommon | 0.65 (65%) |
-| rare | 0.35 (35%) |
-| epic | 0.10 (10%) |
-| legendary | 0.15 (15%) |
+| `common` | 0.90 |
+| `uncommon` | 0.65 |
+| `rare` | 0.35 |
+| `epic` | 0.10 |
+| `legendary` | 0.15 |
 
-Override per-item with an explicit `drop_chance` attribute (0–100).
+These are the ProbLog weights only. `drop_probability` uses `loot-tables`'
+chances: 70 / 30 / 10 / 3 / 1.
 
 ## Setup
 
-```lua
--- Install both batteries
-dg:batteries().install_many({"loot-tables", "prob-loot"}, "my-game")
+```
+# The table, in loot-tables' shape
+{ type="relation",  subject="warden_boss", relation="can_drop", object="boss_key" }
+{ type="relation",  subject="warden_boss", relation="can_drop", object="gold_coin" }
+{ type="attribute", entity="boss_key",  attribute="rarity",      value="legendary" }
+{ type="attribute", entity="gold_coin", attribute="rarity",      value="common" }
 
--- Register what a source can drop (via loot-tables)
-dg:assert("my-game", { type="relation", subject="warden_boss", relation="can_drop", object="boss_key" })
-dg:assert("my-game", { type="relation", subject="warden_boss", relation="can_drop", object="gold_coin" })
-
--- Set rarity
-dg:assert("my-game", { type="attribute", entity="boss_key", attribute="rarity", value="legendary" })
-dg:assert("my-game", { type="attribute", entity="gold_coin", attribute="rarity", value="common" })
+# A drop that always happens
+{ type="attribute", entity="gold_coin", attribute="drop_chance", value=100 }
 ```
 
-## Usage
+## Querying
 
-```lua
--- What is the probability that boss_key drops?
-dg:query("my-game", "drop_probability(warden_boss, boss_key, P)", function(results)
-  if results[1] then
-    print("Boss Key drop rate: " .. math.floor(results[1].P * 100) .. "%")
-    -- → "Boss Key drop rate: 15%"
-  end
-end)
+```
+# Deterministic odds (legendary is 1% in loot-tables)
+drop_probability(warden_boss, boss_key, P)
+   P = 0.01
 
--- How many kills to expect a drop?
-dg:query("my-game", "expected_drops(warden_boss, boss_key, 100, E)", function(results)
-  print("Expected boss keys from 100 kills: " .. results[1].E)
-  -- → 15.0
-end)
+# Over a hundred kills
+expected_drops(warden_boss, boss_key, 100, E)
+   E = 1.0
 
--- ProbLog inference: is this drop occurring in this instance?
--- (requires ProbLog; returns probability bound to P)
-dg:query("my-game", "probability(drop_occurs(warden_boss, boss_key), P)", function(results)
-  print("Marginal probability: " .. results[1].P)
-end)
+# Always?
+guaranteed_drop(warden_boss, gold_coin)
+
+# Marginal, through ProbLog (legendary weight 0.15)
+probability(drop_occurs(warden_boss, boss_key), P)
 ```
 
-## Composing with Other Batteries
+From Tether, in a loop that already speaks it:
 
-`prob-loot` reads the same `drops/2` and `rarity_tier/2` predicates that `loot-tables` defines. Assert loot tables using the `loot-tables` fact format; `prob-loot` automatically sees them.
+```lua
+dg:query("my-game", "drop_probability(warden_boss, boss_key, P)", function(r) if r[1] then showRate(r[1].P) end end)
+```
 
-Install both batteries then query either deterministic (`drops/2`, `loot_chance/3`) or probabilistic (`drop_occurs/2`, `drop_probability/3`) predicates from the same namespace.
+## Semantics worth knowing
+
+**Ask the scale you mean.** A UI showing "drop rate" wants `drop_probability`
+(and it will say 1% for a legendary). A ProbLog query over `drop_occurs` will
+say 15%. Neither is wrong about itself; do not mix them in one display.
+
+**`guaranteed_drop` needs a number.** A `drop_chance` of `"100"` as text does
+not count; the clause checks `number/1`.
+
+**Conditions are `loot-tables`' business.** Nothing here reads
+`loot_conditions`; `drop_occurs` and `drop_probability` ignore whether the drop
+is currently eligible. Check `eligible_loot` first if that matters.

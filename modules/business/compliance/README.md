@@ -23,6 +23,34 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `consent_required(Action, ConsentType)` | ConsentType must be obtained before performing Action |
 | `consent_given(Customer, ConsentType)` | Customer has granted ConsentType consent |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `<requirement>` | entity | `true`, or any value other than `false` / `none` / `missing` | One attribute per requirement a policy names in `requires`. The attribute's *name* is the requirement (`marketing_consent`, `phi_encryption`); an entity meets it when the attribute is present and not a negative value |
+| `retention_days` | policy | integer | Retention window for `data_retention_ok`; default 2555 (seven years) when the policy has none |
+| `created_day` | record | integer | The record's creation day, in the same units as `today`'s `date` |
+| `date` | `today` | integer | The current day. `today` is a fixed entity name; assert this at query time |
+| `requires_consent` | action | a consent type | The consent that must be held before the action; read by `consent_required` |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `requires` | policy → requirement | Names a requirement of the policy. `violation` reports `missing_requirement(Req)` for each one the entity does not meet |
+| `granted_consent` | customer → consent type | The customer has given this consent; read by `consent_given` |
+
+Day values are compared by subtraction (`date − created_day ≤ retention_days`),
+so `date` and `created_day` must share a unit — a day count from any epoch
+works; `YYYYMMDD` integers do not subtract correctly across month or year
+boundaries.
+
+The `region` / `stricter_than` facts shown in the source comments are not read
+by any clause; regional overrides are yours to express as extra `requires`
+relations on a region-specific policy.
+
 ## Setup
 
 ### Policies and requirements

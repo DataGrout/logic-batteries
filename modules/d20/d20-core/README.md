@@ -38,6 +38,29 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `spell_save_dc(Entity, DC)` | 8 + PB + spellcasting ability modifier |
 | `attack_bonus(Entity, Type, Bonus)` | Melee/ranged/spell attack bonus |
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `str`, `dex`, `con`, `int`, `wis`, `cha` | entity | 1–30 | Ability scores. Every modifier is `(score − 10) div 2`; a missing score counts as modifier 0 |
+| `level` | entity | integer | Drives proficiency bonus: 2 at level 1, +1 every four levels. Default 1 |
+| `proficient_<skill>` | entity | `true` | Adds the proficiency bonus to that skill: `proficient_stealth` |
+| `expertise_<skill>` | entity | `true` | Adds double proficiency; wins over `proficient_<skill>` |
+| `skill_<skill>` | entity | integer | A stated total modifier for the skill, overriding the computed one |
+| `save_<ability>` | entity | `true` | Proficient in that saving throw: `save_dex` |
+| `spellcasting_ability` | entity | `int` \| `wis` \| `cha` \| … | Required for `spell_save_dc` and the `spell` attack bonus |
+| `attack_bonus` | entity | integer | A stated total attack bonus, for every attack type, overriding the computed one |
+| `attack_ability` | entity | an ability | Which ability drives melee (default `str`) or ranged (default `dex`) attacks |
+| `finesse_attack` | entity | `true` | Melee uses the better of Str and Dex |
+| `proficient_attack` | entity | `true` | Adds the proficiency bonus to melee and ranged attacks. Spell attacks always add it |
+
+Skills are the eighteen SRD skills by name (`acrobatics` … `survival`), each
+tied to its ability; a `<skill>` or `<ability>` in an attribute name above is
+one of those. The suffixed names are built at query time and do not appear in
+the source as literals.
+
 ## Setup
 
 ### Ability Scores

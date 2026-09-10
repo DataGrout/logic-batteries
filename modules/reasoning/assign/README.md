@@ -52,6 +52,25 @@ search finished, `best(Assignment, Cost, Explored, budget_exhausted)` when it
 found an incumbent but could not prove it optimal, or the same `unsat` and
 `budget_exhausted` terms as above.
 
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `domain` | variable | a list of candidate values | The values the search may assign to the variable. A variable is anything with a `domain` |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `distinct` | group → variable | Every variable in a group must take a different value. A variable may sit in several groups |
+
+Constraints beyond all-different are not facts but clauses you define:
+`assign_reject/2`, `assign_reject_pair/4` and `assign_cost/3` — see Model. The
+search reads nothing else; `rostering`'s `roster_model/2` emits exactly these
+two fact shapes.
+
 ## Model
 
 ### Variables and domains

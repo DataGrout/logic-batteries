@@ -1,134 +1,128 @@
 # Module: npc-state v1.0.0
 
-Relationship tracking, faction membership, NPC disposition, and dialogue prerequisites.
+A numeric relationship between an NPC and a player, disposition derived from
+it, faction membership, and dialogue topics gated on all three.
 
 ## Install
-
-
-**MCP** (Claude Code, Conduit SDK, any MCP client):
 
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
     "ids": ["npc-state"],
-    "namespace": "my-namespace"
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("npc-state", "my-game", cb)`.
 
-```lua
-dg:batteries().install("npc-state", "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `relationship_level(NPC, Player, Level)` | Numeric relationship score between NPC and Player |
-| `npc_friendly(NPC, Player)` | NPC has a friendly disposition toward Player |
-| `npc_hostile(NPC, Player)` | NPC has a hostile disposition toward Player |
-| `faction_member(Entity, Faction)` | Entity belongs to Faction |
-| `dialogue_available(NPC, Player, Topic)` | Topic is an unlocked conversation option |
+| `relationship_level(NPC, Player, Level)` | The score; 0 when none is set |
+| `npc_friendly(NPC, Player)` | `always_friendly`, or score at or above `friendly_threshold` and not `always_hostile` |
+| `npc_hostile(NPC, Player)` | `always_hostile`, or score at or below `hostile_threshold` and not `always_friendly` |
+| `faction_member(Entity, Faction)` | The entity's `faction` attribute |
+| `dialogue_available(NPC, Player, Topic)` | The NPC `has_dialogue` the topic and the player meets its prerequisites |
 
-## Relationship Scores
+## Facts this battery reads
 
-Scores are numeric. Default is 0 (neutral). Positive scores → friendly, negative → hostile.
+**Attributes**
 
-```lua
--- Set a relationship score (keyed as npc_player)
-dg:assert("my-game", { type="attribute", entity="merchant_alice", attribute="score", value=75 })
-dg:assert("my-game", { type="attribute", entity="bandit_alice",   attribute="score", value=-80 })
+| Name | On | Value | Description |
+|---|---|---|---|
+| `score` | `<npc>_<player>` | number | The relationship, on a composite entity: `merchant_alice`. Absent reads as 0 |
+| `always_friendly` | NPC | `true` | Friendly to everyone regardless of score |
+| `always_hostile` | NPC | `true` | Hostile to everyone regardless of score |
+| `faction` | any entity | a faction id | Membership; one faction per entity |
+| `requires_friendly` | topic | `true` | The NPC must be `npc_friendly` to the player |
+| `requires_relationship` | topic | number | Score must be at least this |
+| `requires_quest` | topic | a quest id | The player must have `completed_quest` it |
+| `requires_item` | topic | an item id | The player must `has_item` it |
+| `friendly_threshold` | `relationship` | number | Default 25 |
+| `hostile_threshold` | `relationship` | number | Default −25. Scores strictly between the two are neutral |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `has_dialogue` | NPC → topic | The NPC can talk about the topic at all |
+| `completed_quest` | player → quest | Satisfies `requires_quest` |
+| `has_item` | player → item | Satisfies `requires_item` |
+
+`relationship` is a fixed entity name for the two thresholds. Faction-to-faction
+relations (`allied_with`, `at_war_with`) are the `faction` battery's; nothing
+here reads them.
+
+## Setup
+
+```
+# Relationships, on <npc>_<player>
+{ type="attribute", entity="merchant_alice", attribute="score", value=75 }
+{ type="attribute", entity="bandit_alice",   attribute="score", value=-80 }
+
+# Fixed dispositions
+{ type="attribute", entity="innkeeper", attribute="always_friendly", value=true }
+{ type="attribute", entity="bandit",    attribute="always_hostile",  value=true }
+
+# Factions
+{ type="attribute", entity="merchant", attribute="faction", value="traders_guild" }
+
+# Topics and their gates
+{ type="relation",  subject="merchant", relation="has_dialogue", object="buy_items" }
+{ type="relation",  subject="merchant", relation="has_dialogue", object="secret_sale" }
+{ type="attribute", entity="secret_sale", attribute="requires_friendly", value=true }
+{ type="relation",  subject="merchant", relation="has_dialogue", object="guild_info" }
+{ type="attribute", entity="guild_info", attribute="requires_relationship", value=60 }
+{ type="relation",  subject="merchant", relation="has_dialogue", object="reward_topic" }
+{ type="attribute", entity="reward_topic", attribute="requires_quest", value="find_artifact" }
+
+# Tuning (optional)
+{ type="attribute", entity="relationship", attribute="friendly_threshold", value=25 }
+{ type="attribute", entity="relationship", attribute="hostile_threshold",  value=-25 }
 ```
 
-### Thresholds
+## Querying
 
-```lua
--- Default thresholds (override to change globally)
--- Friendly: score >= 25
--- Hostile:  score <= -25
-dg:assert("my-game", { type="attribute", entity="relationship", attribute="friendly_threshold", value=25  })
-dg:assert("my-game", { type="attribute", entity="relationship", attribute="hostile_threshold",  value=-25 })
+```
+# How does the merchant feel about alice?
+relationship_level(merchant, alice, L)
+   L = 75
+npc_friendly(merchant, alice)
+
+# What will he talk about? (reward_topic needs the quest)
+dialogue_available(merchant, alice, Topic)
+   Topic = buy_items ;
+   Topic = secret_sale ;
+   Topic = guild_info
+
+# Guild member?
+faction_member(merchant, F)
+   F = traders_guild
 ```
 
-### Always-on overrides
+Changing a relationship is an assert of the new `score`; read the current one
+first if you are adding to it.
+
+From Tether, in a loop that already speaks it:
 
 ```lua
--- Bypass score entirely — always friendly/hostile regardless of score
-dg:assert("my-game", { type="attribute", entity="innkeeper", attribute="always_friendly", value=true })
-dg:assert("my-game", { type="attribute", entity="bandit",    attribute="always_hostile",  value=true })
+dg:query("my-game", "dialogue_available(merchant, alice, T)", function(rs) for _, r in ipairs(rs) do addOption(r.T) end end)
 ```
 
-## Factions
+## Semantics worth knowing
 
-```lua
-dg:assert("my-game", { type="attribute", entity="merchant", attribute="faction", value="traders_guild" })
-dg:assert("my-game", { type="attribute", entity="guard",    attribute="faction", value="city_watch"    })
+**Both flags means both answers.** An NPC with `always_friendly` and
+`always_hostile` set satisfies `npc_friendly` *and* `npc_hostile`; each flag
+short-circuits its own predicate before the other is checked. Set one.
 
--- Faction-level relations (for your own logic — not consumed by this module's predicates)
-dg:assert("my-game", { type="attribute", entity="traders_guild", attribute="allied_with",  value="merchants_guild" })
-dg:assert("my-game", { type="attribute", entity="bandits",       attribute="at_war_with",  value="kingdom"         })
-```
+**Neutral is a band, not a value.** With the defaults, scores from −24 to 24
+are neither friendly nor hostile; both predicates fail.
 
-## Dialogue Prerequisites
-
-```lua
--- Any topic associated with an NPC
-dg:assert("my-game", { type="relation", subject="merchant", relation="has_dialogue", object="buy_items" })
-
--- Requires friendly disposition
-dg:assert("my-game", { type="relation", subject="merchant", relation="has_dialogue", object="secret_sale" })
-dg:assert("my-game", { type="attribute", entity="secret_sale", attribute="requires_friendly", value=true })
-
--- Requires minimum relationship score
-dg:assert("my-game", { type="relation", subject="merchant", relation="has_dialogue", object="guild_info" })
-dg:assert("my-game", { type="attribute", entity="guild_info", attribute="requires_relationship", value=60 })
-
--- Requires a completed quest
-dg:assert("my-game", { type="relation", subject="merchant", relation="has_dialogue", object="reward_topic" })
-dg:assert("my-game", { type="attribute", entity="reward_topic", attribute="requires_quest", value="find_artifact" })
-
--- Requires player to carry an item
-dg:assert("my-game", { type="relation", subject="merchant", relation="has_dialogue", object="members_discount" })
-dg:assert("my-game", { type="attribute", entity="members_discount", attribute="requires_item", value="guild_badge" })
-```
-
-## Usage
-
-```lua
--- What is the current relationship score?
-dg:query("my-game", "relationship_level(merchant, alice, L)", function(results)
-  if results[1] then updateRelationshipBar(results[1].L) end
-end)
-
--- Is the merchant friendly toward alice?
-dg:query("my-game", "npc_friendly(merchant, alice)", function(results)
-  if #results > 0 then showFriendlyGreeting() else showNeutralGreeting() end
-end)
-
--- What dialogue topics are available?
-dg:query("my-game", "dialogue_available(merchant, alice, Topic)", function(results)
-  for _, r in ipairs(results) do addDialogueOption(r.Topic) end
-end)
-
--- Is this NPC a guild member?
-dg:query("my-game", "faction_member(merchant, traders_guild)", function(results)
-  if #results > 0 then showGuildBadge() end
-end)
-
--- Improve relationship after a good deed
-local function improveRelationship(npc, player, amount)
-  dg:query("my-game", "relationship_level(" .. npc .. ", " .. player .. ", Current)", function(results)
-    local current = results[1] and results[1].Current or 0
-    local key = npc .. "_" .. player
-    dg:assert("my-game", {
-      type="attribute", entity=key, attribute="score",
-      value=math.min(100, current + amount)
-    })
-  end)
-end
-```
+**Composite keys.** `<npc>_<player>` joins with `_`, so ids containing `_`
+can collide. Keep ids free of `_`.
 
 ## Composing with Other Modules
 
-Works naturally with `quests` (quest completion unlocks dialogue), `inventory` (carried items gate topics), and `economy` (friendly NPCs offer discounted prices).
+`dialogue` for the lines and choices once a topic is available; `faction` for
+standing between the player and the NPC's faction; `quests` and `inventory` for
+the facts the prerequisites read.

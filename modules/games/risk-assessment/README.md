@@ -1,108 +1,105 @@
 # Module: risk-assessment v1.0.0
 
-Combat risk analysis — survival probability, fight-or-flee recommendations, and encounter breakdowns. Works with the `combat` battery and base HP/damage attributes to give the game (and agents) a zero-token cost way to answer "should my character fight this enemy?"
-
-**Requires:** `combat` installed in the same namespace.
+Should this character fight that enemy? A simple turn-trade model over `hp`
+and `base_damage` gives a survival probability, a recommendation, and how many
+of an enemy a character can chain before dropping — at zero token cost.
 
 ## Install
 
-**MCP** (Claude Code, Conduit SDK, any MCP client):
-
 ```python
 client.perform("data-grout@1/batteries.install_many@1", {
-    "ids": ["combat", "risk-assessment"],
-    "namespace": "my-namespace"
+    "ids": ["risk-assessment"],
+    "namespace": "my-game"
 })
 ```
 
-**Lua / Roblox** — via [Tether](https://github.com/datagrout/tether):
+From Tether: `dg:batteries().install("risk-assessment", "my-game", cb)`.
 
-```lua
-dg:batteries().install_many({"combat", "risk-assessment"}, "my-game", function(result)
-  print("Installed " .. result.predicate_count .. " predicates")
-end)
-```
+The registry lists `combat` as a requirement; no clause here calls it, so it is
+not needed for these predicates to run. Install it too if you use `combat`'s
+`hp` for the same entities — the two read the same attribute.
 
 ## Exported Predicates
 
 | Predicate | Description |
 |---|---|
-| `survival_probability(Player, Enemy, HP, P)` | P is probability (0.0–1.0) Player survives; HP is remaining health |
-| `recommended_action(Player, Enemy, Action)` | `fight` if P > 0.6, `flee` otherwise |
-| `kills_to_exhaust(Player, Enemy, MaxHP, N)` | N enemies defeatable before Player HP reaches 0 |
-| `fight_outcome_summary(Player, Enemy, Turns, Damage, P)` | Full encounter breakdown |
+| `survival_probability(Player, Enemy, HP, P)` | P in 0.05–0.99; HP is what the player has left, floored at 0 |
+| `recommended_action(Player, Enemy, Action)` | `fight` when P > 0.6, else `flee` |
+| `kills_to_exhaust(Player, Enemy, MaxHP, N)` | How many of the enemy the player can kill in sequence starting from MaxHP; at least 1 |
+| `fight_outcome_summary(Player, Enemy, Turns, Damage, P)` | Turns to kill, total damage taken, and P |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `hp` | player, enemy | number | Hit points. Both sides need one; the same attribute `combat` reads |
+| `base_damage` | player, enemy | number | Damage dealt per turn. Must be above 0 on both sides or every predicate fails |
+
+## The Model
+
+```
+Turns  = ceiling(EnemyHP / PlayerDamage)
+Damage = Turns × EnemyDamage
+if Damage <  PlayerHP:  P = min(0.99, 1 − (Damage / PlayerHP) × 0.5)
+if Damage >= PlayerHP:  P = max(0.05, 0.5 − (Damage − PlayerHP) / (2 × PlayerHP))
+```
+
+Both sides hit every turn for exactly `base_damage`; the enemy gets a full
+`Turns` of hits in. No armor, dodge, initiative, or variance — those are what
+you would extend it with.
 
 ## Setup
 
-```lua
--- Assert character stats
-dg:assert("my-game", { type="attribute", entity="player", attribute="hp", value=80 })
-dg:assert("my-game", { type="attribute", entity="player", attribute="base_damage", value=15 })
-
-dg:assert("my-game", { type="attribute", entity="goblin", attribute="hp", value=30 })
-dg:assert("my-game", { type="attribute", entity="goblin", attribute="base_damage", value=10 })
-
-dg:assert("my-game", { type="attribute", entity="warden_boss", attribute="hp", value=200 })
-dg:assert("my-game", { type="attribute", entity="warden_boss", attribute="base_damage", value=45 })
+```
+{ type="attribute", entity="player",      attribute="hp",          value=80 }
+{ type="attribute", entity="player",      attribute="base_damage", value=15 }
+{ type="attribute", entity="goblin",      attribute="hp",          value=30 }
+{ type="attribute", entity="goblin",      attribute="base_damage", value=10 }
+{ type="attribute", entity="warden_boss", attribute="hp",          value=200 }
+{ type="attribute", entity="warden_boss", attribute="base_damage", value=45 }
 ```
 
-## Usage
+## Querying
 
-```lua
--- Should the player fight the goblin?
-dg:query("my-game", "recommended_action(player, goblin, Action)", function(results)
-  if results[1] then
-    print("Recommendation: " .. results[1].Action)  -- "fight"
-  end
-end)
+```
+# The goblin: 2 turns, 20 damage taken
+recommended_action(player, goblin, Action)
+   Action = fight
+survival_probability(player, goblin, HP, P)
+   HP = 60, P = 0.875
 
--- What are the player's odds against the warden boss?
-dg:query("my-game", "survival_probability(player, warden_boss, HP, P)", function(results)
-  if results[1] then
-    local r = results[1]
-    print(string.format("Survival chance: %.0f%% | HP remaining: %d", r.P * 100, r.HP))
-    -- "Survival chance: 23% | HP remaining: 0"
-  end
-end)
+# The boss: 14 turns, 630 damage taken
+fight_outcome_summary(player, warden_boss, Turns, Damage, P)
+   Turns = 14, Damage = 630, P = 0.05
+recommended_action(player, warden_boss, Action)
+   Action = flee
 
--- Full breakdown before committing to a fight
-dg:query("my-game", "fight_outcome_summary(player, warden_boss, Turns, Damage, P)", function(r)
-  if r[1] then
-    print(string.format("%d turns to kill | %d damage taken | %.0f%% survival",
-      r[1].Turns, r[1].Damage, r[1].P * 100))
-  end
-end)
-
--- How many goblins can the player chain-kill before dying?
-dg:query("my-game", "kills_to_exhaust(player, goblin, 80, N)", function(results)
-  print("Can defeat " .. results[1].N .. " goblins before dying")
-end)
+# Goblins before the player drops, from 80 HP
+kills_to_exhaust(player, goblin, 80, N)
+   N = 4
 ```
 
-## How Probability Is Calculated
-
-`survival_probability` simulates a turn-based fight using `base_damage` and `hp` attributes:
-
-1. `TurnsToKill = ceil(EnemyHP / PlayerDamage)` — turns to kill the enemy
-2. `DamageTaken = TurnsToKill × EnemyDamage` — total damage received
-3. If `DamageTaken < PlayerHP`: `P = 1.0 - (DamageTaken / PlayerHP) × 0.5`
-4. If `DamageTaken ≥ PlayerHP` (likely death): `P = max(0.05, ...)`
-
-This is intentionally simple — add `armor`, `dodge_chance`, or `crit_chance` attributes from `combat` to extend it.
-
-## Example Composition In Roblox
+From Tether, in a loop that already speaks it:
 
 ```lua
--- Show risk UI when player targets an enemy
-local function onEnemyTarget(enemy)
-  dg:query("my-game", "fight_outcome_summary(player, " .. enemy .. ", Turns, Damage, P)",
-    function(results)
-      if results[1] then
-        local p = results[1].P
-        -- Pulse screen intensity based on survival probability
-        setDangerGlow(1.0 - p)  -- red = low survival
-        showTooltip(string.format("%.0f%% survival", p * 100))
-      end
-    end)
-end
+dg:query("my-game", "fight_outcome_summary(player, " .. enemy .. ", T, D, P)", function(r) if r[1] then setDangerGlow(1 - r[1].P) end end)
 ```
+
+## Semantics worth knowing
+
+**`kills_to_exhaust` takes the HP you pass, not the player's `hp` fact.** That
+is deliberate: ask about a full-health run or a wounded one without asserting.
+
+**Zero damage is a failure, not zero.** A side with `base_damage = 0` makes
+every predicate fail rather than answer "never".
+
+**P is bounded, not probabilistic.** It is a score in 0.05–0.99 derived from
+the damage ratio; treat the number as a ranking, not as odds.
+
+## What this battery does not do
+
+- No armor, resistances, or status effects — see `combat` for those, and
+  compute an effective damage to pass in if you want them reflected.
+- No randomness; two identical queries always agree.

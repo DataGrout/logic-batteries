@@ -27,4 +27,7 @@ registry:
 check-registry:
 	python3 scripts/build_registry.py --check
 
-check: lint check-pl check-registry
+check: lint check-pl check-registry check-readme
+
+check-readme:
+	python3 scripts/check_readme_vocab.py --check
