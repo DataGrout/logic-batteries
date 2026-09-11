@@ -2,6 +2,18 @@
 
 ## 2026-09-10
 
+### Registry
+
+`make registry` now normalises the category `registry.json` files as well as
+merging them. `installs` is gone — it was a static `0` on every entry that
+nothing incremented, and it rendered as "0 installs" everywhere. `tests_file`
+is filled from `test/<category>/<id>_test.pl` so a reader can see which
+batteries are tested (all 46 are). A category's `updated_at` is bumped when its
+module list changes; `business` had said 2026-05-11 through the addition of
+`duty` and `rostering`. `make check-registry` fails on any stale file and lists
+the batteries with no `license` (44 of 46 at the time of writing) rather than
+guessing one for them.
+
 ### Modules
 
 Writing each README's facts table against the source turned up places where a

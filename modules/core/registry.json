@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-06",
+  "updated_at": "2026-09-10",
   "category": "core",
   "modules": [
     {
@@ -47,7 +47,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/core/core/core.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/core/core",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/core/core_test.pl"
     }
   ]
 }

@@ -42,7 +42,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fsm/fsm.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fsm",
       "install": "platform",
-      "installs": 0
+      "tests_file": "test/fsm_test.pl"
     },
     {
       "id": "temporal",
@@ -74,7 +74,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/temporal/temporal.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/temporal",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/temporal_test.pl"
     },
     {
       "id": "taxonomy",
@@ -104,13 +104,13 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/taxonomy/taxonomy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/taxonomy_test.pl"
     },
     {
       "id": "explain",
       "version": "1.0.0",
       "title": "Explain / Provenance",
-      "description": "Proof-tree meta-interpreter for stored rules and facts: ask not just whether a goal holds but which facts made it true. why/2 gives a deterministic flat list of supporting base/stored facts (the everyday API); explain/2 gives full proof trees with alternatives on backtracking. Handles conjunction, disjunction, if-then-else, negation-as-failure, and whitelisted builtins. Pure ISO — runs on pinned (Scryer) cells.",
+      "description": "Proof-tree meta-interpreter for stored rules and facts: ask not just whether a goal holds but which facts made it true. why/2 gives a deterministic flat list of supporting base/stored facts (the everyday API); explain/2 gives full proof trees with alternatives on backtracking. Handles conjunction, disjunction, if-then-else, negation-as-failure, and whitelisted builtins. Pure ISO \u2014 runs on pinned (Scryer) cells.",
       "category": "reasoning",
       "tags": [
         "provenance",
@@ -132,13 +132,13 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/explain/explain.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/explain",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/explain_test.pl"
     },
     {
       "id": "fixpoint",
       "version": "1.0.1",
       "title": "Fixpoint Evaluation",
-      "description": "Bottom-up (Datalog-style) saturation of stored rules: tabling's termination benefit without tabling. Textbook recursive rules — transitive closure, left-recursive ancestry — work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Pure ISO — runs on SWI and Scryer alike, including ISO-pinned cells where :- table is unavailable.",
+      "description": "Bottom-up (Datalog-style) saturation of stored rules: tabling's termination benefit without tabling. Textbook recursive rules \u2014 transitive closure, left-recursive ancestry \u2014 work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Pure ISO \u2014 runs on SWI and Scryer alike, including ISO-pinned cells where :- table is unavailable.",
       "category": "reasoning",
       "tags": [
         "fixpoint",
@@ -158,7 +158,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fixpoint/fixpoint.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fixpoint",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/fixpoint_test.pl"
     },
     {
       "id": "assign",
@@ -187,7 +187,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/assign/assign.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/assign",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/assign_test.pl"
     }
   ]
 }

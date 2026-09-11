@@ -46,7 +46,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/core/core/core.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/core/core",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/core/core_test.pl"
     },
     {
       "id": "fsm",
@@ -87,7 +87,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fsm/fsm.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fsm",
       "install": "platform",
-      "installs": 0
+      "tests_file": "test/fsm_test.pl"
     },
     {
       "id": "temporal",
@@ -119,7 +119,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/temporal/temporal.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/temporal",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/temporal_test.pl"
     },
     {
       "id": "taxonomy",
@@ -149,7 +149,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/taxonomy/taxonomy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/taxonomy_test.pl"
     },
     {
       "id": "explain",
@@ -177,7 +177,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/explain/explain.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/explain",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/explain_test.pl"
     },
     {
       "id": "fixpoint",
@@ -203,7 +203,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fixpoint/fixpoint.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fixpoint",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/fixpoint_test.pl"
     },
     {
       "id": "assign",
@@ -232,7 +232,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/assign/assign.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/assign",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/reasoning/assign_test.pl"
     },
     {
       "id": "inventory",
@@ -257,7 +257,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/inventory/inventory.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/inventory",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/inventory_test.pl"
     },
     {
       "id": "loot-tables",
@@ -284,7 +284,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/loot-tables/loot_tables.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/loot-tables",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/loot_tables_test.pl"
     },
     {
       "id": "quests",
@@ -310,7 +310,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/quests/quests.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/quests",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/quests_test.pl"
     },
     {
       "id": "combat",
@@ -335,7 +335,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/combat/combat.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/combat",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/combat_test.pl"
     },
     {
       "id": "progression",
@@ -360,7 +360,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/progression/progression.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/progression",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/progression_test.pl"
     },
     {
       "id": "economy",
@@ -385,7 +385,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/economy/economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/economy",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/economy_test.pl"
     },
     {
       "id": "npc-state",
@@ -410,7 +410,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/npc-state/npc_state.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/npc-state",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/npc_state_test.pl"
     },
     {
       "id": "puzzle-fsm",
@@ -434,7 +434,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/puzzle-fsm/puzzle_fsm.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/puzzle-fsm",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/puzzle_fsm_test.pl"
     },
     {
       "id": "world",
@@ -459,7 +459,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/world/world.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/world",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/world_test.pl"
     },
     {
       "id": "faction",
@@ -483,7 +483,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/faction/faction.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/faction",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/faction_test.pl"
     },
     {
       "id": "dialogue",
@@ -508,7 +508,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/dialogue/dialogue.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/dialogue",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/dialogue_test.pl"
     },
     {
       "id": "crafting",
@@ -532,7 +532,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/crafting/crafting.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/crafting",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/crafting_test.pl"
     },
     {
       "id": "permissions",
@@ -556,7 +556,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/permissions/permissions.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/permissions",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/permissions_test.pl"
     },
     {
       "id": "ai-director",
@@ -581,7 +581,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/ai_director/ai_director.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/ai_director",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/ai_director_test.pl"
     },
     {
       "id": "dungeon",
@@ -607,7 +607,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/dungeon/dungeon.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/dungeon",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/dungeon_test.pl"
     },
     {
       "id": "risk-assessment",
@@ -630,7 +630,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/risk-assessment/risk_assessment.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/risk-assessment",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/games/risk_assessment_test.pl"
     },
     {
       "id": "lead-scoring",
@@ -655,7 +655,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/lead_scoring/lead_scoring.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/lead_scoring",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/lead_scoring_test.pl"
     },
     {
       "id": "invoice-rules",
@@ -679,7 +679,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/invoice_rules/invoice_rules.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/invoice_rules",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/invoice_rules_test.pl"
     },
     {
       "id": "approval-chains",
@@ -703,7 +703,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/approval_chains/approval_chains.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/approval_chains",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/approval_chains_test.pl"
     },
     {
       "id": "inventory-mgmt",
@@ -727,7 +727,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/inventory_mgmt/inventory_mgmt.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/inventory_mgmt",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/inventory_mgmt_test.pl"
     },
     {
       "id": "pricing-rules",
@@ -751,7 +751,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/pricing_rules/pricing_rules.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/pricing_rules",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/pricing_rules_test.pl"
     },
     {
       "id": "loyalty",
@@ -775,7 +775,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/loyalty/loyalty.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/loyalty",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/loyalty_test.pl"
     },
     {
       "id": "scheduling",
@@ -799,7 +799,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/scheduling/scheduling.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/scheduling",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/scheduling_test.pl"
     },
     {
       "id": "duty",
@@ -837,7 +837,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/duty/duty.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/duty",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/duty_test.pl"
     },
     {
       "id": "rostering",
@@ -880,7 +880,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/rostering/rostering.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/rostering",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/rostering_test.pl"
     },
     {
       "id": "compliance",
@@ -905,7 +905,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/compliance/compliance.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/compliance",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/business/compliance_test.pl"
     },
     {
       "id": "prob-loot",
@@ -929,7 +929,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-loot/prob_loot.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-loot",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_loot_test.pl"
     },
     {
       "id": "prob-detection",
@@ -954,7 +954,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-detection/prob_detection.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-detection",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_detection_test.pl"
     },
     {
       "id": "prob-economy",
@@ -980,7 +980,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-economy/prob_economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-economy",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_economy_test.pl"
     },
     {
       "id": "prob-npc",
@@ -1006,7 +1006,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-npc/prob_npc.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_npc_test.pl"
     },
     {
       "id": "prob-core-iso",
@@ -1034,7 +1034,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-core-iso/prob_core_iso.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-core-iso",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_core_iso_test.pl"
     },
     {
       "id": "prob-decide",
@@ -1059,7 +1059,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-decide/prob_decide.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-decide",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_decide_test.pl"
     },
     {
       "id": "d20-core",
@@ -1090,7 +1090,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-core/d20_core.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-core",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/d20/d20_core_test.pl"
     },
     {
       "id": "d20-combat",
@@ -1132,7 +1132,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-combat/d20_combat.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-combat",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/d20/d20_combat_test.pl"
     },
     {
       "id": "d20-conditions",
@@ -1161,7 +1161,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-conditions/d20_conditions.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-conditions",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/d20/d20_conditions_test.pl"
     },
     {
       "id": "d20-monsters",
@@ -1191,7 +1191,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-monsters/d20_monsters.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-monsters",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/d20/d20_monsters_test.pl"
     },
     {
       "id": "d20-xp",
@@ -1221,7 +1221,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-xp/d20_xp.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-xp",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/d20/d20_xp_test.pl"
     },
     {
       "id": "d20-grid",
@@ -1256,7 +1256,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-grid/d20_grid.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-grid",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/d20/d20_grid_test.pl"
     },
     {
       "id": "d20-spells",
@@ -1297,7 +1297,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-spells/d20_spells.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-spells",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/d20/d20_spells_test.pl"
     }
   ]
 }

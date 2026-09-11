@@ -25,7 +25,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-loot/prob_loot.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-loot",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_loot_test.pl"
     },
     {
       "id": "prob-detection",
@@ -50,7 +50,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-detection/prob_detection.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-detection",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_detection_test.pl"
     },
     {
       "id": "prob-economy",
@@ -76,7 +76,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-economy/prob_economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-economy",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_economy_test.pl"
     },
     {
       "id": "prob-npc",
@@ -102,7 +102,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-npc/prob_npc.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_npc_test.pl"
     },
     {
       "id": "prob-core-iso",
@@ -130,13 +130,13 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-core-iso/prob_core_iso.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-core-iso",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_core_iso_test.pl"
     },
     {
       "id": "prob-decide",
       "version": "1.0.0",
       "title": "Decision Theory (DTProbLog-lite)",
-      "description": "Expected-utility decision layer over prob-core-iso. Declare action/1 candidates, weighted P::outcome(Action, Outcome) rules, and utility/2 values; eu/2 scores each action as sum(P*U) over its outcomes and best_action/2 picks the argmax. Pure ISO — runs on pinned (Scryer) cells.",
+      "description": "Expected-utility decision layer over prob-core-iso. Declare action/1 candidates, weighted P::outcome(Action, Outcome) rules, and utility/2 values; eu/2 scores each action as sum(P*U) over its outcomes and best_action/2 picks the argmax. Pure ISO \u2014 runs on pinned (Scryer) cells.",
       "category": "probabilistic",
       "tags": [
         "probability",
@@ -155,7 +155,7 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-decide/prob_decide.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-decide",
       "install": "batteries.install_many",
-      "installs": 0
+      "tests_file": "test/probabilistic/prob_decide_test.pl"
     }
   ]
 }
