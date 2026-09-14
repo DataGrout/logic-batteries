@@ -1,0 +1,38 @@
+# fsm battery on scryer-prolog: structured facts as atoms, reachability,
+# structural analysis, paths and validation. Under double_quotes=chars a
+# quoted literal never matches a stored atom, so every fact name is an atom.
+# Facts are grouped by predicate: Scryer treats a second, non-contiguous block
+# of relation/3 clauses as a redefinition of the first.
+modules/reasoning/fsm/fsm.pl
+---
+relation(m, has_state, idle).
+relation(m, has_state, running).
+relation(m, has_state, complete).
+relation(m, has_state, orphan).
+relation(idle, transitions_to, running).
+relation(running, transitions_to, complete).
+relation(cyc, has_state, a).
+relation(cyc, has_state, b).
+relation(a, transitions_to, b).
+relation(b, transitions_to, a).
+attribute(idle, state_type, initial).
+attribute(complete, state_type, terminal).
+attribute(m, machine_type, fsm).
+attribute(idle, on, start_lap).
+attribute(running, on, stop_lap).
+attribute(m, current_state, running).
+attribute(a, state_type, initial).
+lc_flex_match(X, X).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(reachable, (fsm_reachable(m, idle, complete), \+ fsm_reachable(m, complete, idle))),
+    check(reachable_states, (fsm_reachable_states(m, S), S == [complete, idle, running])),
+    check(transition, fsm_transition(m, idle, start_lap, running)),
+    check(status, (fsm_current_state(m, running), \+ fsm_complete(m), \+ fsm_stuck(m))),
+    check(dead_and_unreachable, (fsm_dead_state(m, orphan), fsm_unreachable_state(m, orphan))),
+    check(deterministic, fsm_deterministic(m)),
+    check(path, fsm_shortest_path(m, idle, complete, [idle, running, complete])),
+    check(cycle, (fsm_cycle(cyc, a), \+ fsm_cycle(m, idle))),
+    check(machines, fsm_machines([m])),
+    check(validate, (fsm_validate(m, Issues), Issues == [dead_state(orphan), unreachable_state(orphan)])),
+    write(smoke_ok), nl, halt.

@@ -1,0 +1,31 @@
+# fixpoint battery on scryer-prolog: bottom-up saturation over cyclic and
+# left-recursive rules read back through clause/2, base goals called natively.
+modules/reasoning/fixpoint/fixpoint.pl
+---
+:- dynamic(edge/2).
+:- dynamic(reach/2).
+:- dynamic(parent/2).
+:- dynamic(anc/2).
+:- dynamic(age/2).
+:- dynamic(adult_anc/2).
+edge(a, b).
+edge(b, a).
+edge(b, c).
+reach(X, Y) :- edge(X, Y).
+reach(X, Y) :- reach(X, Z), edge(Z, Y).
+parent(tom, bob).
+parent(bob, ann).
+parent(bob, sue).
+anc(X, Y) :- anc(X, Z), parent(Z, Y).
+anc(X, Y) :- parent(X, Y).
+age(ann, 25).
+age(sue, 9).
+adult_anc(X, Y) :- anc(X, Y), age(Y, A), A >= 18.
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(cyclic_closure, (fixpoint_answers(reach(a, Y), Ys), sort(Ys, [reach(a, a), reach(a, b), reach(a, c)]))),
+    check(solve_member, (fixpoint_solve(reach(b, c)), \+ fixpoint_solve(reach(c, a)))),
+    check(left_recursive, (fixpoint_answers(anc(tom, D), Ds), sort(Ds, [anc(tom, ann), anc(tom, bob), anc(tom, sue)]))),
+    check(base_filters, fixpoint_answers(adult_anc(tom, W), [adult_anc(tom, ann)])),
+    check(explicit_derived, fixpoint_solve(anc(bob, ann), [anc/2])),
+    write(smoke_ok), nl, halt.

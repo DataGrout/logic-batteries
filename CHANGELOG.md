@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-14
+
+### Modules
+
+**fsm** v1.1.0 — runs on Scryer. Every fact name the rules match
+(`has_state`, `transitions_to`, `state_type`, …) is now an atom. They were
+double-quoted, which is a string on SWI but a character list on Scryer, so on
+that engine no rule ever matched a stored fact. The raw-Prolog fallback
+(`catch(logic_cell:Goal, …)` over a goal built at run time) is gone: it was
+SWI-only, and a cell's rule vetting refuses an unbound goal anyway. Describe
+machines with structured `relation`/`attribute` facts, as the README shows.
+
+### Scryer smoke
+
+`test/scryer/fsm.smoke` and `test/scryer/fixpoint.smoke` run both batteries on
+scryer-prolog under `make scryer-smoke`. fixpoint needed no change; it needs a
+host that admits `catch/3`, `clause/2`, `predicate_property/2` (built_in and
+dynamic) and `throw/1` to user rules, which DataGrout cells now do on both
+engines.
+
 ## 2026-09-10
 
 ### Registry

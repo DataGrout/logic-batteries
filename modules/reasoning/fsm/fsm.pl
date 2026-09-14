@@ -8,45 +8,45 @@
 %% Standard predicates (agents assert these via logic.assert):
 %%
 %%   Structural (assert once when defining the machine):
-%%     relation(Machine, "has_state", State)     - machine owns this state
-%%     relation(State,   "transitions_to", Next) - edge from State to Next
-%%     attribute(State,  "on", Event)            - edge fires on Event
-%%     attribute(State,  "state_type", "initial")   - initial state marker
-%%     attribute(State,  "state_type", "terminal")  - terminal state marker
-%%     attribute(Machine, "machine_type", "fsm")    - marks entity as an FSM
+%%     relation(Machine, has_state, State)     - machine owns this state
+%%     relation(State,   transitions_to, Next) - edge from State to Next
+%%     attribute(State,  on, Event)            - edge fires on Event
+%%     attribute(State,  state_type, initial)   - initial state marker
+%%     attribute(State,  state_type, terminal)  - terminal state marker
+%%     attribute(Machine, machine_type, fsm)    - marks entity as an FSM
 %%
 %%   Runtime (assert as the machine runs):
-%%     attribute(Machine, "current_state", State)   - machine's live state
-%%     relation(Machine,  "visited", State)         - states visited so far
-%%     relation(Machine,  "trace_step", StepId)     - ordered trace entries
-%%     attribute(StepId,  "from_state", From)       - trace: prior state
-%%     attribute(StepId,  "to_state",   To)         - trace: next state
-%%     attribute(StepId,  "event",      Event)      - trace: triggering event
-%%     attribute(StepId,  "step_index", N)          - trace: sequence number
+%%     attribute(Machine, current_state, State)   - machine's live state
+%%     relation(Machine,  visited, State)         - states visited so far
+%%     relation(Machine,  trace_step, StepId)     - ordered trace entries
+%%     attribute(StepId,  from_state, From)       - trace: prior state
+%%     attribute(StepId,  to_state,   To)         - trace: next state
+%%     attribute(StepId,  event,      Event)      - trace: triggering event
+%%     attribute(StepId,  step_index, N)          - trace: sequence number
 %%
 %% Usage:
-%%   Agent asserts structural facts into a namespace (e.g. "bench", "_plan_fsm"),
+%%   Agent asserts structural facts into a namespace (e.g. bench, "_plan_fsm"),
 %%   then queries using these rules via logic.query with prolog: "...".
 %%
 %% Example — Lumen benchmark lap lifecycle:
 %%
-%%   relation("lap_fsm", "has_state", "idle").
-%%   relation("lap_fsm", "has_state", "running").
-%%   relation("lap_fsm", "has_state", "complete").
-%%   relation("lap_fsm", "has_state", "compared").
-%%   attribute("idle",     "state_type", "initial").
-%%   attribute("compared", "state_type", "terminal").
-%%   relation("idle",     "transitions_to", "running").
-%%   attribute("idle",    "on", "start_lap").
-%%   relation("running",  "transitions_to", "complete").
-%%   attribute("running", "on", "stop_lap").
-%%   relation("complete", "transitions_to", "compared").
-%%   attribute("complete","on", "compare").
-%%   attribute("lap_fsm", "current_state", "running").
+%%   relation(lap_fsm, has_state, idle).
+%%   relation(lap_fsm, has_state, running).
+%%   relation(lap_fsm, has_state, complete).
+%%   relation(lap_fsm, has_state, compared).
+%%   attribute(idle,     state_type, initial).
+%%   attribute(compared, state_type, terminal).
+%%   relation(idle,     transitions_to, running).
+%%   attribute(idle,    on, start_lap).
+%%   relation(running,  transitions_to, complete).
+%%   attribute(running, on, stop_lap).
+%%   relation(complete, transitions_to, compared).
+%%   attribute(complete,on, compare).
+%%   attribute(lap_fsm, current_state, running).
 %%
-%%   ?- fsm_reachable("lap_fsm", "idle", "compared").   % true
-%%   ?- fsm_dead_state("lap_fsm", S).                   % false (all states have exits or are terminal)
-%%   ?- fsm_deterministic("lap_fsm").                   % true (one event per state)
+%%   ?- fsm_reachable(lap_fsm, idle, compared).   % true
+%%   ?- fsm_dead_state(lap_fsm, S).                   % false (all states have exits or are terminal)
+%%   ?- fsm_deterministic(lap_fsm).                   % true (one event per state)
 %% ============================================================================
 
 :- module(fsm, [
@@ -77,53 +77,32 @@
 :- use_module(logic_cell, [relation/3, attribute/3, lc_flex_match/2]).
 
 %% Manifest (version tracked here, in the registry, and in the README).
-battery_module('fsm', '1.0.1', auto).
+battery_module('fsm', '1.1.0', auto).
 
 %% ── Bridge Predicates ────────────────────────────────────────────────────────
 %%
-%% Agents may assert raw Prolog or structured JSON facts. Both are handled.
+%% Machines are described with structured relation/3 and attribute/3 facts.
+%% Their names are atoms: a cell canonicalises stored strings to atoms on both
+%% engines, and a double-quoted literal here would be a string on SWI but a
+%% character list on Scryer, matching nothing.
 
 fsm_has_state(Machine, State) :-
-    relation(Machine, "has_state", State).
-fsm_has_state(Machine, State) :-
-    raw_fsm_2(has_state, Machine, State).
+    relation(Machine, has_state, State).
 
 fsm_edge(From, To) :-
-    relation(From, "transitions_to", To).
-fsm_edge(From, To) :-
-    raw_fsm_2(transitions_to, From, To).
+    relation(From, transitions_to, To).
 
 fsm_edge_event(State, Event) :-
-    attribute(State, "on", Event).
-fsm_edge_event(State, Event) :-
-    raw_fsm_attr(on, State, Event).
+    attribute(State, on, Event).
 
 fsm_state_type(State, Type) :-
-    attribute(State, "state_type", Type).
-fsm_state_type(State, Type) :-
-    raw_fsm_attr(state_type, State, Type).
+    attribute(State, state_type, Type).
 
 fsm_current_attr(Machine, State) :-
-    attribute(Machine, "current_state", State).
-fsm_current_attr(Machine, State) :-
-    raw_fsm_attr(current_state, Machine, State).
+    attribute(Machine, current_state, State).
 
 fsm_visited_attr(Machine, State) :-
-    relation(Machine, "visited", State).
-fsm_visited_attr(Machine, State) :-
-    raw_fsm_2(visited, Machine, State).
-
-raw_fsm_2(Functor, A, B) :-
-    Goal =.. [Functor, RA, RB],
-    catch(logic_cell:Goal, _, fail),
-    lc_flex_match(RA, A),
-    lc_flex_match(RB, B).
-
-raw_fsm_attr(Functor, Entity, Value) :-
-    Goal =.. [Functor, RE, RV],
-    catch(logic_cell:Goal, _, fail),
-    lc_flex_match(RE, Entity),
-    lc_flex_match(RV, Value).
+    relation(Machine, visited, State).
 
 %% ── Core State Queries ───────────────────────────────────────────────────────
 
@@ -141,13 +120,13 @@ fsm_current_state(Machine, State) :-
 %% State is marked as the initial state for Machine.
 fsm_initial_state(Machine, State) :-
     fsm_has_state(Machine, State),
-    fsm_state_type(State, "initial").
+    fsm_state_type(State, initial).
 
 %% fsm_terminal_state(+Machine, ?State)
 %% State is marked as a terminal (accepting) state.
 fsm_terminal_state(Machine, State) :-
     fsm_has_state(Machine, State),
-    fsm_state_type(State, "terminal").
+    fsm_state_type(State, terminal).
 
 %% ── Transition Queries ───────────────────────────────────────────────────────
 
@@ -277,10 +256,10 @@ fsm_visited(Machine, State) :-
 %% fsm_trace(+Machine, ?From, ?Event, ?To)
 %% A recorded trace step: Machine moved from From to To on Event.
 fsm_trace(Machine, From, Event, To) :-
-    relation(Machine, "trace_step", StepId),
-    attribute(StepId, "from_state", From),
-    attribute(StepId, "to_state", To),
-    ( attribute(StepId, "event", E) -> Event = E ; Event = unspecified ).
+    relation(Machine, trace_step, StepId),
+    attribute(StepId, from_state, From),
+    attribute(StepId, to_state, To),
+    ( attribute(StepId, event, E) -> Event = E ; Event = unspecified ).
 
 %% fsm_trace_length(+Machine, ?N)
 %% Number of recorded trace steps for Machine.
@@ -322,8 +301,8 @@ fsm_all_paths(Machine, From, To, Paths) :-
 %% All entities in the LC that are known FSMs.
 fsm_machines(Machines) :-
     findall(M, (
-        attribute(M, "machine_type", T),
-        lc_flex_match(T, "fsm")
+        attribute(M, machine_type, T),
+        lc_flex_match(T, fsm)
     ), Raw),
     sort(Raw, Machines).
 

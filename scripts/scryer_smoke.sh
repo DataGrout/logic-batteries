@@ -5,8 +5,9 @@
 # root) one per line, then a line '---', then Prolog facts and a smoke/0 goal
 # that writes 'smoke_ok' as its last line on success and halts. The script
 # concatenates the batteries and the facts into one file — the same shape a
-# cell install produces — stripping :- dynamic directives (declared once in the
-# header) so Scryer does not treat later clause blocks as redefinitions.
+# cell install produces — stripping the batteries' directives (module headers,
+# use_module, dynamic) the way an install does; the common dynamics are
+# declared once in the header so later clause blocks are not redefinitions.
 #
 # Usage: ./scripts/scryer_smoke.sh [spec ...]
 
@@ -17,6 +18,16 @@ SCRYER="${SCRYER:-$(command -v scryer-prolog || echo "$HOME/.cargo/bin/scryer-pr
 if [[ ! -x "$SCRYER" ]]; then
   echo "scryer-prolog not found (set SCRYER=/path/to/scryer-prolog)"; exit 2
 fi
+
+# Drop every directive from a battery file — one-liners and the multi-line
+# `:- module(name, [ ... ]).` header alike — which is what a cell install does.
+strip_directives() {
+  awk '
+    skip { if ($0 ~ /\.[ \t]*$/) skip = 0; next }
+    /^:-/ { if ($0 !~ /\.[ \t]*$/) skip = 1; next }
+    { print }
+  ' "$1"
+}
 
 specs=("$@")
 if (( ${#specs[@]} == 0 )); then
@@ -38,7 +49,7 @@ for spec in "${specs[@]}"; do
       elif [[ "$line" == "---" ]]; then
         in_facts=true
       elif [[ -n "$line" && ! "$line" =~ ^# ]]; then
-        grep -v '^:- dynamic' "$ROOT/$line"
+        strip_directives "$ROOT/$line"
       fi
     done < "$spec"
   } > "$tmp"
