@@ -4,12 +4,14 @@
 %% Needed for probabilistic battery files that use ProbLog annotated disjunction syntax.
 :- op(1100, xfx, ::).
 
-%% All module files define battery_module/3 and battery_export/3 facts, and
-%% probabilistic modules define (::)/2 clauses (ProbLog annotation syntax).
-%% Declaring them multifile here (loaded first) lets each module add its own
-%% clauses without "redefined static procedure" warnings.
+%% All module files define battery_module/3 and battery_export/3 facts, some
+%% declare battery_fact_shape/4, and probabilistic modules define (::)/2
+%% clauses (ProbLog annotation syntax). Declaring them multifile here (loaded
+%% first) lets each module add its own clauses without "redefined static
+%% procedure" warnings.
 :- multifile battery_module/3.
 :- multifile battery_export/3.
+:- multifile battery_fact_shape/4.
 :- multifile (::)/2.
 :- multifile setup_standard_customer/0.
 

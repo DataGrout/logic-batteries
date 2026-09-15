@@ -1,4 +1,4 @@
-# Module: assign v1.0.0
+# Module: assign v1.0.1
 
 Budgeted constraint search over facts already in the cell. Declare variables
 with candidate values, group the ones that must differ, and constrain them
@@ -65,6 +65,12 @@ found an incumbent but could not prove it optimal, or the same `unsat` and
 | Name | Subject → Object | Description |
 |---|---|---|
 | `distinct` | group → variable | Every variable in a group must take a different value. A variable may sit in several groups |
+
+> **`distinct` is group membership, not a pairwise statement.** Assert one fact
+> per member: `relation(g1, distinct, x)` *and* `relation(g1, distinct, y)` is
+> what makes `x` and `y` differ. Writing `relation(x, distinct, y)` reads as
+> "the group `x` contains `y`", which stores cleanly, constrains nothing, and
+> raises no error — the assignment then comes back with no violation.
 
 Constraints beyond all-different are not facts but clauses you define:
 `assign_reject/2`, `assign_reject_pair/4` and `assign_cost/3` — see Model. The

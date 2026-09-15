@@ -1,4 +1,4 @@
-%% Battery: assign v1.0.0
+%% Battery: assign v1.0.1
 %% Requires: (nothing)
 %% Exports: assign_domain/2, assign_solve/2, assign_solve/3, assign_best/3,
 %%          assign_violations/2, assign_reject/2, assign_reject_pair/4, assign_cost/3
@@ -9,7 +9,7 @@
 :- dynamic(assign_reject_pair/4).
 :- dynamic(assign_cost/3).
 
-battery_module(assign, '1.0.0', auto).
+battery_module(assign, '1.0.1', auto).
 
 battery_export(assign, 'assign_domain/2',
     'assign_domain(Var, Values) — the candidate values of Var that survive the unary assign_reject/2 hook').
@@ -33,7 +33,11 @@ battery_export(assign, 'assign_cost/3',
 %% Variables and domains:
 %%   attribute(slot_mon_am, domain, [alvarez, chen, okafor]).
 %%
-%% All-different groups (a variable may sit in several):
+%% All-different groups. The SUBJECT is the group and the OBJECT is a member —
+%% one fact per member, not a pairwise statement. Writing
+%% `relation(slot_mon_am, distinct, slot_mon_pm)` reads as "the group
+%% slot_mon_am contains slot_mon_pm", which constrains nothing and raises no
+%% error. A variable may sit in several groups:
 %%   relation(monday, distinct, slot_mon_am).
 %%   relation(monday, distinct, slot_mon_pm).
 %%
@@ -53,6 +57,18 @@ battery_export(assign, 'assign_cost/3',
 %% next variable; forward checking prunes the others after every choice;
 %% values are tried cheapest first when assign_cost/3 is hooked.
 %% Instances are expected to be small — dozens of variables, dozens of values.
+
+%% ── Declared fact shapes ─────────────────────────────────────────────────────
+%%
+%% The host derives `relation(Subject, distinct, Object)` from the rule text,
+%% and that generic wording invites "x is distinct from y" — which parses,
+%% stores, constrains nothing and raises no error. Say what the arguments mean.
+
+battery_fact_shape(relation, distinct, 'relation(Group, distinct, Var)',
+    'Group membership, not a pairwise statement: one fact per member. relation(g1, distinct, x) together with relation(g1, distinct, y) makes x and y take different values. A group holds any number of members, and a variable may sit in several groups.').
+
+battery_fact_shape(attribute, domain, 'attribute(Var, domain, [Value, ...])',
+    'The list of values this variable may take. A variable with no domain fact is unsolvable: assign_solve reports unsat(empty_domain(Var)).').
 
 %% ── Hook base clauses ────────────────────────────────────────────────────────
 

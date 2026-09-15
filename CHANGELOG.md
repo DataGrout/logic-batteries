@@ -4,6 +4,15 @@
 
 ### Modules
 
+**assign** v1.0.1 — declares its own fact shapes. The host derives
+`relation(Subject, distinct, Object)` from the rule text, and a tester reading
+that asserted `relation(x, distinct, y)`, meaning "x and y must differ". The
+battery reads the subject as the GROUP, so that fact says the group `x`
+contains `y`: it stores cleanly, constrains nothing, and reports no violation.
+A battery can now say what its arguments mean with `battery_fact_shape/4`, and
+`assign` declares `relation(Group, distinct, Var)` and its `domain` attribute.
+The README carries the same warning.
+
 **fsm** v1.1.0 — runs on Scryer. Every fact name the rules match
 (`has_state`, `transitions_to`, `state_type`, …) is now an atom. They were
 double-quoted, which is a string on SWI but a character list on Scryer, so on

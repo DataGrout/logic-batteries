@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-10",
+  "updated_at": "2026-09-14",
   "modules": [
     {
       "id": "core",
@@ -50,7 +50,7 @@
     },
     {
       "id": "fsm",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "title": "Finite State Machine",
       "description": "General-purpose FSM reasoning library. Assert machine structure once; query reachability, determinism, dead states, shortest paths, and structural issues at zero token cost. Supports runtime trace recording and cycle detection.",
       "category": "reasoning",
@@ -207,7 +207,7 @@
     },
     {
       "id": "assign",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Assign",
       "description": "Budgeted constraint search over cell facts: variables with domains, all-different groups, and reject/pair/cost hooks whose bodies can call any other battery. Returns one consistent assignment, the cheapest by branch and bound, or the violations in a given assignment. Explicit node budget; small instances.",
       "category": "reasoning",
