@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-14",
+  "updated_at": "2026-09-27",
   "category": "reasoning",
   "modules": [
     {
@@ -187,7 +187,80 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/assign/assign.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/assign",
       "install": "batteries.install_many",
-      "tests_file": "test/reasoning/assign_test.pl"
+      "tests_file": "test/reasoning/assign_test.pl",
+      "probes": [
+        {
+          "predicate": "assign_domain/2",
+          "facts": [
+            "attribute(s1, domain, [a, b, c])"
+          ],
+          "goal": "assign_domain(s1, D)",
+          "expect": "D == [a, b, c]"
+        },
+        {
+          "predicate": "assign_solve/2",
+          "facts": [
+            "attribute(s1, domain, [a, b, c])",
+            "attribute(s2, domain, [a, b, c])",
+            "attribute(s3, domain, [a, b, c])",
+            "relation(day, distinct, s1)",
+            "relation(day, distinct, s2)",
+            "relation(day, distinct, s3)"
+          ],
+          "goal": "assign_solve([s1, s2, s3], R)",
+          "expect": "R = solution(A, _), findall(X, member(_-X, A), Xs), msort(Xs, [a, b, c])"
+        },
+        {
+          "predicate": "assign_solve/3",
+          "facts": [
+            "attribute(s1, domain, [a, b, c])",
+            "attribute(s2, domain, [a, b, c])",
+            "attribute(s3, domain, [a, b, c])",
+            "relation(day, distinct, s1)",
+            "relation(day, distinct, s2)",
+            "relation(day, distinct, s3)"
+          ],
+          "goal": "assign_solve([s1, s2, s3], 100, R)",
+          "expect": "R = solution(_, N), N > 0"
+        },
+        {
+          "predicate": "assign_solve/2",
+          "facts": [
+            "attribute(s1, domain, [a, b])",
+            "attribute(s2, domain, [a, b])",
+            "attribute(s3, domain, [a, b])",
+            "relation(day, distinct, s1)",
+            "relation(day, distinct, s2)",
+            "relation(day, distinct, s3)"
+          ],
+          "goal": "assign_solve([s1, s2, s3], R)",
+          "expect": "R = unsat(_)"
+        },
+        {
+          "predicate": "assign_best/3",
+          "facts": [
+            "attribute(s1, domain, [a, b, c])"
+          ],
+          "goal": "assign_best([s1], 100, R)",
+          "expect": "R = best([s1-b], 1, _, complete)",
+          "rules": [
+            "assign_cost(s1, V, C) :- member(V-C, [a-5, b-1, c-3])."
+          ]
+        },
+        {
+          "predicate": "assign_violations/2",
+          "facts": [
+            "attribute(s1, domain, [a, b, c])",
+            "attribute(s2, domain, [a, b, c])",
+            "attribute(s3, domain, [a, b, c])",
+            "relation(day, distinct, s1)",
+            "relation(day, distinct, s2)",
+            "relation(day, distinct, s3)"
+          ],
+          "goal": "assign_violations([s1-a, s2-a], V)",
+          "expect": "V \\== []"
+        }
+      ]
     }
   ]
 }

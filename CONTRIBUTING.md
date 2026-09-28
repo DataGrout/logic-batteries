@@ -59,6 +59,20 @@ A battery is a directory under `modules/<category>/<id>/` containing:
    `license` field only if your battery's license differs from the repository
    default.
 
+5. **Probes** (optional, in the registry entry): bound goals with the facts
+   they need, which `batteries.validate` runs in a scratch namespace with the
+   battery installed fresh and reports under `behaviour`. Each probe is
+   `{"predicate": "name/arity", "facts": [...raw clauses...], "goal": "...",
+   "expect": "..."}`; `expect` is an optional conjunct over the goal's
+   bindings and may use the sandbox's builtins (`==`, `=:=`, `findall`,
+   `msort`, ...). Facts are asserted before the goal and retracted after it,
+   so each probe sees only its own. A hook's clauses go under `rules` (stored
+   through constrain, which is how a user defines a hook); a probe with rules
+   runs in a namespace of its own. A probe that fails is reported as a fault
+   in the battery on that engine, never in the user's data, so write probes
+   the way you would write a test: known facts, one bound goal, the answer
+   you expect.
+
 ## Portability: two engines
 
 Batteries run on SWI-Prolog and on Scryer. Directives do not survive

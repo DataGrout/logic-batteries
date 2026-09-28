@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-10",
+  "updated_at": "2026-09-27",
   "category": "games",
   "modules": [
     {
@@ -350,7 +350,57 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/ai_director/ai_director.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/ai_director",
       "install": "batteries.install_many",
-      "tests_file": "test/games/ai_director_test.pl"
+      "tests_file": "test/games/ai_director_test.pl",
+      "probes": [
+        {
+          "predicate": "threat_level/2",
+          "facts": [
+            "attribute(forest, threat, 45)"
+          ],
+          "goal": "threat_level(forest, L)",
+          "expect": "L =:= 45"
+        },
+        {
+          "predicate": "threat_level/2",
+          "facts": [],
+          "goal": "threat_level(nowhere, L)",
+          "expect": "L =:= 0"
+        },
+        {
+          "predicate": "pacing_state/2",
+          "facts": [
+            "attribute(forest, threat, 45)"
+          ],
+          "goal": "pacing_state(forest, S)",
+          "expect": "S == building"
+        },
+        {
+          "predicate": "difficulty_modifier/2",
+          "facts": [
+            "attribute(forest, threat, 85)"
+          ],
+          "goal": "difficulty_modifier(forest, M)",
+          "expect": "M =:= 1.6"
+        },
+        {
+          "predicate": "spawn_eligible/2",
+          "facts": [
+            "attribute(forest, threat, 45)",
+            "attribute(goblin, min_threat, 10)",
+            "attribute(goblin, max_threat, 60)"
+          ],
+          "goal": "spawn_eligible(goblin, forest)"
+        },
+        {
+          "predicate": "director_event/2",
+          "facts": [
+            "attribute(forest, threat, 90)",
+            "attribute(director, peak_event, boss_spawn)"
+          ],
+          "goal": "director_event(forest, E)",
+          "expect": "E == boss_spawn"
+        }
+      ]
     },
     {
       "id": "dungeon",
