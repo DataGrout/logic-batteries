@@ -165,19 +165,19 @@ bom_compliant(Bom, Policy) :-
 
 %% ── part_risk/3 ───────────────────────────────────────────────────────────────
 
-%% The level is computed, then unified, so part_risk(P, Pol, ok) is false for
-%% a part that has a reason (a bound Level must not skip the clauses that
-%% would have decided otherwise).
+%% Cut-free on purpose: the provenance meta-interpreters (why/2, explain/2)
+%% do not honour cuts, and a level decided by a cut explained as `ok` for a
+%% blocked part. Negation is explained faithfully. Double negation keeps one
+%% solution when several reasons hold.
 
-part_risk(Part, Policy, Level) :-
-    bom_risk_level(Part, Policy, Computed),
-    Level = Computed.
-
-bom_risk_level(Part, Policy, blocked) :-
-    bom_blocking_reason(Part, Policy, _), !.
-bom_risk_level(Part, Policy, warn) :-
-    bom_warning_reason(Part, Policy, _), !.
-bom_risk_level(_Part, _Policy, ok).
+part_risk(Part, Policy, blocked) :-
+    \+ \+ bom_blocking_reason(Part, Policy, _).
+part_risk(Part, Policy, warn) :-
+    \+ bom_blocking_reason(Part, Policy, _),
+    \+ \+ bom_warning_reason(Part, Policy, _).
+part_risk(Part, Policy, ok) :-
+    \+ bom_blocking_reason(Part, Policy, _),
+    \+ bom_warning_reason(Part, Policy, _).
 
 %% ── part_alternate/3 ──────────────────────────────────────────────────────────
 
