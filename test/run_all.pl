@@ -37,6 +37,7 @@
     'business/duty_test',
     'business/rostering_test',
     'business/compliance_test',
+    'business/bom_policy_test',
     %% Reasoning
     'reasoning/taxonomy_test',
     'reasoning/temporal_test',

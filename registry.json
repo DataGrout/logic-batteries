@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-27",
+  "updated_at": "2026-09-30",
   "modules": [
     {
       "id": "core",
@@ -1029,6 +1029,228 @@
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/compliance",
       "install": "batteries.install_many",
       "tests_file": "test/business/compliance_test.pl"
+    },
+    {
+      "id": "bom-policy",
+      "version": "1.0.0",
+      "title": "BOM Policy",
+      "description": "Bill-of-materials policy over part-intelligence facts: lifecycle stage, end-of-life and last-time-buy dates, source count, compliance and qualification flags, declared alternates. Which parts block a build, which are due for a last-time buy, which alternate is usable; thresholds as facts, waivers as a hook.",
+      "category": "business",
+      "tags": [
+        "bom",
+        "obsolescence",
+        "compliance",
+        "supply-chain",
+        "lifecycle",
+        "electronics",
+        "business"
+      ],
+      "predicates": [
+        "bom_violation/4",
+        "bom_compliant/2",
+        "part_risk/3",
+        "part_alternate/3",
+        "last_time_buy_due/4",
+        "bom_risk_summary/5",
+        "source_count/2",
+        "part_exempt/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/bom_policy/bom_policy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/bom_policy",
+      "install": "batteries.install_many",
+      "probes": [
+        {
+          "predicate": "bom_compliant/2",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, mcu_ok)",
+            "attribute(mcu_ok, lifecycle, active)",
+            "attribute(mcu_ok, rohs, compliant)",
+            "attribute(mcu_ok, aec_qualified, true)",
+            "relation(mcu_ok, sourced_from, dist_a)",
+            "relation(mcu_ok, sourced_from, dist_b)"
+          ],
+          "goal": "bom_compliant(board, auto)"
+        },
+        {
+          "predicate": "bom_violation/4",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, reg_old)",
+            "attribute(reg_old, lifecycle, obsolete)",
+            "attribute(reg_old, rohs, compliant)",
+            "attribute(reg_old, aec_qualified, true)",
+            "relation(reg_old, sourced_from, dist_a)",
+            "relation(reg_old, sourced_from, dist_b)",
+            "relation(reg_old, cross, reg_new)",
+            "attribute(reg_new, lifecycle, active)",
+            "attribute(reg_new, rohs, compliant)",
+            "attribute(reg_new, aec_qualified, true)"
+          ],
+          "goal": "bom_violation(board, auto, reg_old, R)",
+          "expect": "R == lifecycle(obsolete)"
+        },
+        {
+          "predicate": "bom_violation/4",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, cap_x)",
+            "attribute(cap_x, lifecycle, active)",
+            "attribute(cap_x, rohs, compliant)",
+            "relation(cap_x, sourced_from, dist_a)"
+          ],
+          "goal": "findall(R, bom_violation(board, auto, cap_x, R), Rs)",
+          "expect": "memberchk(missing(aec_qualified), Rs), memberchk(sources(1, 2), Rs)"
+        },
+        {
+          "predicate": "part_risk/3",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, fet_eol)",
+            "attribute(fet_eol, lifecycle, eol)",
+            "attribute(fet_eol, rohs, compliant)",
+            "attribute(fet_eol, aec_qualified, true)",
+            "relation(fet_eol, sourced_from, dist_a)",
+            "relation(fet_eol, sourced_from, dist_b)",
+            "attribute(fet_eol, eol_day, 20400)",
+            "attribute(fet_eol, ltb_day, 20100)"
+          ],
+          "goal": "part_risk(fet_eol, auto, L)",
+          "expect": "L == warn"
+        },
+        {
+          "predicate": "part_alternate/3",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, reg_old)",
+            "attribute(reg_old, lifecycle, obsolete)",
+            "attribute(reg_old, rohs, compliant)",
+            "attribute(reg_old, aec_qualified, true)",
+            "relation(reg_old, sourced_from, dist_a)",
+            "relation(reg_old, sourced_from, dist_b)",
+            "relation(reg_old, cross, reg_new)",
+            "attribute(reg_new, lifecycle, active)",
+            "attribute(reg_new, rohs, compliant)",
+            "attribute(reg_new, aec_qualified, true)"
+          ],
+          "goal": "part_alternate(reg_old, auto, Alt)",
+          "expect": "Alt == reg_new"
+        },
+        {
+          "predicate": "last_time_buy_due/4",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, fet_eol)",
+            "attribute(fet_eol, lifecycle, eol)",
+            "attribute(fet_eol, rohs, compliant)",
+            "attribute(fet_eol, aec_qualified, true)",
+            "relation(fet_eol, sourced_from, dist_a)",
+            "relation(fet_eol, sourced_from, dist_b)",
+            "attribute(fet_eol, eol_day, 20400)",
+            "attribute(fet_eol, ltb_day, 20100)"
+          ],
+          "goal": "last_time_buy_due(board, auto, P, D)",
+          "expect": "P == fet_eol, D =:= 100"
+        },
+        {
+          "predicate": "bom_risk_summary/5",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, mcu_ok)",
+            "attribute(mcu_ok, lifecycle, active)",
+            "attribute(mcu_ok, rohs, compliant)",
+            "attribute(mcu_ok, aec_qualified, true)",
+            "relation(mcu_ok, sourced_from, dist_a)",
+            "relation(mcu_ok, sourced_from, dist_b)",
+            "relation(board, includes, reg_old)",
+            "attribute(reg_old, lifecycle, obsolete)",
+            "attribute(reg_old, rohs, compliant)",
+            "attribute(reg_old, aec_qualified, true)",
+            "relation(reg_old, sourced_from, dist_a)",
+            "relation(reg_old, sourced_from, dist_b)",
+            "relation(reg_old, cross, reg_new)",
+            "attribute(reg_new, lifecycle, active)",
+            "attribute(reg_new, rohs, compliant)",
+            "attribute(reg_new, aec_qualified, true)",
+            "relation(board, includes, fet_eol)",
+            "attribute(fet_eol, lifecycle, eol)",
+            "attribute(fet_eol, rohs, compliant)",
+            "attribute(fet_eol, aec_qualified, true)",
+            "relation(fet_eol, sourced_from, dist_a)",
+            "relation(fet_eol, sourced_from, dist_b)",
+            "attribute(fet_eol, eol_day, 20400)",
+            "attribute(fet_eol, ltb_day, 20100)"
+          ],
+          "goal": "bom_risk_summary(board, auto, B, W, O)",
+          "expect": "B =:= 1, W =:= 1, O =:= 1"
+        },
+        {
+          "predicate": "source_count/2",
+          "facts": [
+            "relation(board, includes, mcu_ok)",
+            "attribute(mcu_ok, lifecycle, active)",
+            "attribute(mcu_ok, rohs, compliant)",
+            "attribute(mcu_ok, aec_qualified, true)",
+            "relation(mcu_ok, sourced_from, dist_a)",
+            "relation(mcu_ok, sourced_from, dist_b)"
+          ],
+          "goal": "source_count(mcu_ok, N)",
+          "expect": "N =:= 2"
+        },
+        {
+          "predicate": "part_exempt/2",
+          "facts": [
+            "attribute(today, date, 20000)",
+            "relation(auto, requires, rohs)",
+            "relation(auto, requires, aec_qualified)",
+            "attribute(auto, min_sources, 2)",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, reg_old)",
+            "attribute(reg_old, lifecycle, obsolete)",
+            "attribute(reg_old, rohs, compliant)",
+            "attribute(reg_old, aec_qualified, true)",
+            "relation(reg_old, sourced_from, dist_a)",
+            "relation(reg_old, sourced_from, dist_b)",
+            "relation(reg_old, cross, reg_new)",
+            "attribute(reg_new, lifecycle, active)",
+            "attribute(reg_new, rohs, compliant)",
+            "attribute(reg_new, aec_qualified, true)"
+          ],
+          "rules": [
+            "part_exempt(board, reg_old) :- true."
+          ],
+          "goal": "bom_compliant(board, auto)"
+        }
+      ],
+      "tests_file": "test/business/bom_policy_test.pl"
     },
     {
       "id": "prob-loot",
