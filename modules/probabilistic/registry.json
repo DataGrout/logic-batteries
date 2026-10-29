@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-10",
+  "updated_at": "2026-10-28",
   "category": "probabilistic",
   "modules": [
     {
@@ -9,6 +9,7 @@
       "title": "Probabilistic Loot",
       "description": "ProbLog-annotated drop probabilities layered on top of loot-tables. Query the exact probability an item drops, compute expected yields, and build drop-rate UIs without any LLM calls. Requires loot-tables in the same namespace.",
       "category": "probabilistic",
+      "license": "Elastic-2.0",
       "tags": [
         "loot",
         "probability",
@@ -33,6 +34,7 @@
       "title": "Probabilistic Detection",
       "description": "Guard perception and stealth probability. Annotates detection likelihood based on perception tier, alert state, environmental conditions (light, weather, noise), and player stealth bonus. Requires combat in the same namespace.",
       "category": "probabilistic",
+      "license": "Elastic-2.0",
       "tags": [
         "stealth",
         "detection",
@@ -58,6 +60,7 @@
       "title": "Probabilistic Economy",
       "description": "Market uncertainty for simulation games. Models supply disruption and demand spike probabilities from world state (weather, seasons, conflict), then derives price ranges and expected prices. Requires economy in the same namespace.",
       "category": "probabilistic",
+      "license": "Elastic-2.0",
       "tags": [
         "economy",
         "market",
@@ -84,6 +87,7 @@
       "title": "Probabilistic NPC Trust",
       "description": "NPC belief and trust probability based on faction standing and relationship score. Query the likelihood an NPC will share information, assist with tasks, or offer a price discount. Requires npc-state and faction in the same namespace.",
       "category": "probabilistic",
+      "license": "Elastic-2.0",
       "tags": [
         "npc",
         "trust",
@@ -138,6 +142,7 @@
       "title": "Decision Theory (DTProbLog-lite)",
       "description": "Expected-utility decision layer over prob-core-iso. Declare action/1 candidates, weighted P::outcome(Action, Outcome) rules, and utility/2 values; eu/2 scores each action as sum(P*U) over its outcomes and best_action/2 picks the argmax. Pure ISO \u2014 runs on pinned (Scryer) cells.",
       "category": "probabilistic",
+      "license": "Elastic-2.0",
       "tags": [
         "probability",
         "decision-theory",

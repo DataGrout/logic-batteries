@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-27",
+  "updated_at": "2026-10-28",
   "category": "games",
   "modules": [
     {
@@ -9,6 +9,7 @@
       "title": "Inventory System",
       "description": "Item carrying, weight limits, and slot constraints. Works out of the box with sensible defaults \u2014 override per-player or per-item by asserting attribute facts.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "items",
         "rpg",
@@ -34,6 +35,7 @@
       "title": "Loot Tables",
       "description": "Rarity tiers, condition-gated drops, and drop chance calculation. Supports time-of-day, weather, moon phase, player level, and item prerequisites as conditions.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "items",
         "drops",
@@ -61,6 +63,7 @@
       "title": "Quest System",
       "description": "Quest availability, prerequisite chains, ordered objective tracking, and turn-in detection. Supports level requirements, item requirements, and quest dependencies.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "quests",
         "rpg",
@@ -87,6 +90,7 @@
       "title": "Combat System",
       "description": "Damage calculation, resistances, weaknesses, status effects, and turn order. Supports elemental types, armor classes, and buff/debuff stacking.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "combat",
         "rpg",
@@ -112,6 +116,7 @@
       "title": "Progression & Leveling",
       "description": "XP thresholds, level-up triggers, stat unlocks, and prestige conditions. Configurable XP curve \u2014 linear, exponential, or custom breakpoints.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "progression",
         "rpg",
@@ -137,6 +142,7 @@
       "title": "Economy & Crafting",
       "description": "Crafting recipes, buy/sell pricing, supply-demand adjustments, and trade validation. Supports material substitutions and quality tiers.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "economy",
         "crafting",
@@ -162,6 +168,7 @@
       "title": "NPC State & Dialogue",
       "description": "Relationship tracking, faction membership, dialogue prerequisites, and NPC disposition.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "npc",
         "dialogue",
@@ -187,6 +194,7 @@
       "title": "Puzzle & FSM",
       "description": "Finite state machine transitions, win/loss condition detection, hint generation, and sequence validation.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "puzzle",
         "fsm",
@@ -211,6 +219,7 @@
       "title": "World State",
       "description": "Time of day, weather, season, and moon phase reasoning. Assert world conditions once; all other batteries (loot tables, NPC dialogue, spawning) can branch on them automatically.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "world",
         "environment",
@@ -236,6 +245,7 @@
       "title": "Faction System",
       "description": "Numeric reputation tracking, standing tier derivation, faction alliances, wars, and area access gating. Standing tiers from hostile to exalted with configurable thresholds.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "faction",
         "reputation",
@@ -260,6 +270,7 @@
       "title": "Dialogue System",
       "description": "Context-aware NPC line selection, player choice filtering with prerequisites, topic navigation, and conversation memory. Pairs naturally with npc-state for relationship-gated dialogue.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "dialogue",
         "npc",
@@ -285,6 +296,7 @@
       "title": "Crafting System",
       "description": "Recipe knowledge, skill requirements, automatic discovery via level/quest/item, and craftability checks. Supports direct recipes, starter recipes, and discoverable recipes.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "crafting",
         "skills",
@@ -309,6 +321,7 @@
       "title": "Permissions",
       "description": "Role-based access control with inheritance, ownership checks, and public resource handling. Roles inherit permissions from parent roles; ownership always grants access.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "permissions",
         "roles",
@@ -333,6 +346,7 @@
       "title": "AI Director",
       "description": "Dynamic difficulty and pacing for games. Derives pacing state (calm/building/tense/peak/recovery) from zone threat levels, adjusts difficulty multipliers, controls enemy spawning windows, and fires director events.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "ai",
         "difficulty",
@@ -408,6 +422,7 @@
       "title": "Dungeon Navigation",
       "description": "Room connectivity, key-locked access, DFS pathfinding through accessible rooms, clearance tracking, and dungeon completion detection.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "dungeon",
         "navigation",
@@ -434,6 +449,7 @@
       "title": "Risk Assessment",
       "description": "Combat risk analysis \u2014 survival probability, fight-or-flee recommendations, and encounter breakdowns. Reads the same hp attribute combat does, so the two compose; depends on nothing.",
       "category": "games",
+      "license": "Elastic-2.0",
       "tags": [
         "combat",
         "rpg",

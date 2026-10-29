@@ -55,9 +55,9 @@ A battery is a directory under `modules/<category>/<id>/` containing:
    test bodies (plunit compiles bodies into a per-unit module).
 
 4. **A registry entry** in `modules/<category>/registry.json` — id, version,
-   title, description, tags, predicates, `rules_url`, `readme_url`. Add a
-   `license` field only if your battery's license differs from the repository
-   default.
+   title, description, tags, predicates, `rules_url`, `readme_url`, and
+   `license` as an SPDX identifier: `Elastic-2.0`, the repository default,
+   unless your battery is licensed differently.
 
 5. **Probes** (optional, in the registry entry): bound goals with the facts
    they need, which `batteries.validate` runs in a scratch namespace with the

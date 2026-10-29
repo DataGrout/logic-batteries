@@ -9,6 +9,7 @@
       "title": "Lead Scoring",
       "description": "Weighted scoring across company size, budget, decision-maker status, engagement, and timeline. Automatic disqualification for competitors and students. Hot/warm/cold tier derivation with configurable thresholds.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "sales",
         "crm",
@@ -34,6 +35,7 @@
       "title": "Invoice Rules",
       "description": "Overdue detection, days-overdue calculation, late fee computation (flat or percentage with cap), escalation levels (reminder/warning/collections), and total amount due.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "invoicing",
         "billing",
@@ -58,6 +60,7 @@
       "title": "Approval Chains",
       "description": "Multi-step approval workflows with delegation, rejection tracking, and automatic amount-based approver escalation. Finds next pending approver, checks full approval, and surfaces blocking reasons.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "approvals",
         "workflow",
@@ -82,6 +85,7 @@
       "title": "Inventory Management",
       "description": "Stock level classification (adequate/low/critical/stockout), reorder triggers, order quantity calculation, preferred supplier selection, and days-of-stock forecasting.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "inventory",
         "supply-chain",
@@ -106,6 +110,7 @@
       "title": "Pricing Rules",
       "description": "Customer tier pricing, percentage and flat discounts, tier-gated discounts, bulk quantity breaks, floor/ceiling clamping, and final effective price calculation.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "pricing",
         "discounts",
@@ -130,6 +135,7 @@
       "title": "Loyalty Program",
       "description": "Lifetime points accumulation, tier derivation (bronze/silver/gold/platinum), reduced redemption costs at higher tiers, reward eligibility, and inherited tier benefits.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "loyalty",
         "rewards",
@@ -154,6 +160,7 @@
       "title": "Scheduling",
       "description": "Time slot availability, booking conflict detection, advance window enforcement, role-gated booking prerequisites, and resource utilization percentage.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "scheduling",
         "calendar",
@@ -178,6 +185,7 @@
       "title": "Duty",
       "description": "Duty conflicts, unavailability windows (leave, maintenance), maximum duty length, minimum rest, rolling cumulative limits, qualification currency, and role gating for people and the equipment they use. Ask whether a proposed duty is clean, who is available for it, and exactly why someone is not.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "scheduling",
         "duty",
@@ -216,6 +224,7 @@
       "title": "Rostering",
       "description": "Roster coverage, violations, candidate ranking, greedy fill, replacements, swaps, and load balance over the duty battery, plus an assign-battery model for exact fill of open seats. Proposals come back as terms to assert; nothing is written.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "rostering",
         "scheduling",
@@ -259,6 +268,7 @@
       "title": "Compliance",
       "description": "Policy compliance checks, violation surfacing by requirement, data retention window validation, consent type mapping to actions, and consent registry queries.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "compliance",
         "gdpr",
@@ -284,6 +294,7 @@
       "title": "BOM Policy",
       "description": "Bill-of-materials policy over part-intelligence facts: lifecycle stage, end-of-life and last-time-buy dates, source count, compliance and qualification flags, declared alternates. Which parts block a build, which are due for a last-time buy, which alternate is usable; thresholds as facts, waivers as a hook.",
       "category": "business",
+      "license": "Elastic-2.0",
       "tags": [
         "bom",
         "obsolescence",

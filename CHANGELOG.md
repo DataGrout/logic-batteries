@@ -16,6 +16,16 @@ before. Integer inputs behave as they did. The conversion is cut-free, so
 runs the battery, ISO dates included, under `make scryer-smoke`, and a tenth
 validate probe covers mixed date forms.
 
+### Registry
+
+Every content battery's entry now states `"license": "Elastic-2.0"`, the
+repository default it was already under; `core` and `prob-core-iso` keep
+`Apache-2.0`. A consumer reading one entry no longer has to know the
+repository's fallback rule. The seven `d20` entries are left without one for
+now: their category file says `CC BY 4.0` while the repository README says
+Elastic 2.0 incorporating SRD 5.1 content under CC BY 4.0, and which of the two
+the entries should carry is an open decision.
+
 ## 2026-09-14
 
 ### Modules
