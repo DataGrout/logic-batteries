@@ -173,5 +173,5 @@ Three deliberate tiers — permissive tooling and runtime, protected content:
 | [d20 category](./modules/d20/) | Elastic 2.0, incorporating SRD 5.1 content under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | Stat blocks, tables, and mechanics from the Systems Reference Document 5.1, © Wizards of the Coast LLC — attribution travels with every module and the registry |
 
 Registry entries carry an explicit `license` field, an SPDX identifier
-(`Elastic-2.0` for content batteries). Where one is absent, the repository
+(`Elastic-2.0` for content batteries, `Elastic-2.0 AND CC-BY-4.0` for d20). Where one is absent, the repository
 default (Elastic License 2.0) applies.

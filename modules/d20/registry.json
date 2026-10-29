@@ -1,8 +1,8 @@
 {
   "version": "1",
-  "updated_at": "2026-09-10",
+  "updated_at": "2026-10-28",
   "category": "d20",
-  "license": "CC BY 4.0",
+  "license": "Elastic-2.0 AND CC-BY-4.0",
   "srd_note": "All stat blocks and mechanics are from the Systems Reference Document 5.1, published under the Creative Commons Attribution 4.0 International License by Wizards of the Coast LLC.",
   "modules": [
     {
@@ -11,6 +11,7 @@
       "title": "d20 Core Rules",
       "description": "Ability scores, ability modifiers, proficiency bonus by level, skill modifiers with proficiency/expertise, saving throws, passive perception, spell save DC, and attack bonus for melee/ranged/spell. The foundation battery \u2014 install this first; all other d20 batteries depend on it.",
       "category": "d20",
+      "license": "Elastic-2.0 AND CC-BY-4.0",
       "tags": [
         "d20",
         "srd",
@@ -42,6 +43,7 @@
       "title": "d20 Combat",
       "description": "AC-based hit resolution (natural 1/20 rules), damage calculation with ability modifier, critical hits, physical damage subcategory grouping (slashing/piercing/bludgeoning \u2192 physical), resistance/immunity/vulnerability, initiative ordering via keysort, advantage/disadvantage derivation from conditions and terrain, and action gating.",
       "category": "d20",
+      "license": "Elastic-2.0 AND CC-BY-4.0",
       "tags": [
         "d20",
         "srd",
@@ -84,6 +86,7 @@
       "title": "d20 Conditions",
       "description": "All 15 SRD conditions (blinded, charmed, deafened, frightened, grappled, incapacitated, invisible, paralyzed, petrified, poisoned, prone, restrained, stunned, unconscious) plus all 6 exhaustion levels. Each condition exposes its mechanical effects as queryable facts for UI, AI, and rule-engine use.",
       "category": "d20",
+      "license": "Elastic-2.0 AND CC-BY-4.0",
       "tags": [
         "d20",
         "srd",
@@ -113,6 +116,7 @@
       "title": "d20 Monster Stat Blocks",
       "description": "SRD 5.1 monster stat blocks as attribute facts \u2014 AC, HP, speed, ability scores, damage type, immunities, resistances, and vulnerabilities. Includes 16 monsters from CR 0 to CR 13: commoner, bandit, guard, goblin, skeleton, zombie, orc, shadow, ghoul, giant_spider, ogre, manticore, minotaur, troll, stone_golem, vampire. Override any attribute for custom variants.",
       "category": "d20",
+      "license": "Elastic-2.0 AND CC-BY-4.0",
       "tags": [
         "d20",
         "srd",
@@ -143,6 +147,7 @@
       "title": "d20 Encounter XP",
       "description": "SRD 5.1 encounter building tools. XP by CR (full table CR 0\u201330), difficulty thresholds per party level (easy/medium/hard/deadly), action-economy XP multiplier by monster count, adjusted XP calculation, and encounter difficulty rating. With d20-monsters installed, rate difficulty by monster name list directly.",
       "category": "d20",
+      "license": "Elastic-2.0 AND CC-BY-4.0",
       "tags": [
         "d20",
         "srd",
@@ -173,6 +178,7 @@
       "title": "d20 Grid Combat Geometry",
       "description": "Square-grid combat geometry: Chebyshev distance and range (SRD basic rule \u2014 diagonals count as one), Bresenham line of sight over blocking terrain, cover derivation (none/half/total) with SRD AC bonuses, forced-movement push resolution, burst areas, and occupancy. Standalone; pairs naturally with d20-combat for AC handling and targeting.",
       "category": "d20",
+      "license": "Elastic-2.0 AND CC-BY-4.0",
       "tags": [
         "d20",
         "srd",
@@ -208,6 +214,7 @@
       "title": "d20 Spellcasting",
       "description": "Spellcasting mechanics: spell slots per level with expenditure tracking, the full casting gate (known \u2192 prepared \u2192 slot free), upcasting, save resolution against the caster's DC, concentration DCs and checks, and a starter grimoire of 14 SRD spells (3 cantrips, 7 first-level, 4 second-level) with cantrip scaling at levels 5/11/17. The application rolls the dice; the cell owns the ruling.",
       "category": "d20",
+      "license": "Elastic-2.0 AND CC-BY-4.0",
       "tags": [
         "d20",
         "srd",
