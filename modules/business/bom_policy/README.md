@@ -2,7 +2,7 @@
 
 Bill-of-materials policy over part-intelligence facts: lifecycle stage, end-of-life and last-time-buy dates, source count, compliance and qualification flags, and declared alternates. The rules turn a part feed into decisions — which parts block a build, which are due for a last-time buy, which alternate is usable — with the thresholds as facts, so a policy changes without a redeploy. Waivers are a hook.
 
-The vocabulary is generic. A part-intelligence feed (SiliconExpert, Z2Data, IHS, an in-house PLM export) maps onto it one attribute per field: lifecycle stage, estimated end-of-life, last-time-buy date, RoHS, REACH, AEC qualification, and whatever else a policy names.
+The vocabulary is generic: a part-intelligence feed or a PLM export maps onto it one attribute or relation per field. [Mapping a feed](#mapping-a-feed) shows which.
 
 ## Install
 
@@ -54,6 +54,23 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `warns_lifecycle` | policy → stage | Stages that warn. When a policy declares none, `nrnd` and `eol` warn. A stage that both blocks and warns blocks |
 
 A date is either an ISO `YYYY-MM-DD` date — an atom such as `'2027-03-31'`, a string, or a character list — or an integer day number. ISO dates are converted to days since 1970-01-01, so `date`, `eol_day` and `ltb_day` may each use either form and still compare; an integer that sits beside ISO dates must count from 1970-01-01 too, while integers used only with each other may count from any epoch. A value that is neither — `'2027-02-30'`, a timestamp with a time part, `soon` — reads as absent, the way an unrecognised flag value reads as missing: an unusable `ltb_day` raises no last-time-buy reason and `last_time_buy_due` falls back to `eol_day`, and an unusable `date` on `today` turns every date check off. `YYYYMMDD` integers such as `20270331` are day numbers to the battery and do not subtract correctly across months; pass them as ISO dates instead.
+
+## Mapping a feed
+
+What a part-intelligence feed or PLM export provides, and the fact each field becomes. Map field by field; the battery never sees the feed itself.
+
+| Feed field | Fact | Notes |
+|---|---|---|
+| BOM line items | `relation(Bom, includes, Part)` | One per part on the bill of materials |
+| Lifecycle stage | `attribute(Part, lifecycle, Stage)` | Map the feed's stages onto `active`, `nrnd`, `eol` and `obsolete`, or keep its own names and list them in the policy's `blocks_lifecycle` and `warns_lifecycle` |
+| Estimated end-of-life date | `attribute(Part, eol_day, Date)` | The ISO date as delivered, or a day number |
+| Last-time-buy date | `attribute(Part, ltb_day, Date)` | Same forms as `eol_day` |
+| Compliance flags (RoHS, REACH, …) | `attribute(Part, rohs, compliant)`, one per flag | The attribute name is the flag a policy names in `requires`. Only `compliant`, `true`, `yes` and `qualified` pass; decide how the feed's other values (exemptions, unknown, not assessed) map before asserting |
+| Qualification (AEC-Q100, AEC-Q200, …) | `attribute(Part, aec_qualified, true)`, one per qualification | Same rule as a compliance flag; name the attribute after the qualification the policy requires |
+| Supplier or source list | `relation(Part, sourced_from, Supplier)`, one per supplier | Duplicates collapse; `source_count` counts distinct suppliers |
+| Form-fit-function alternates | `relation(Part, cross, Alt)` | `part_alternate` judges the alternate on its own facts, so assert its lifecycle and flags too |
+
+Fields a policy does not name are ignored, so assert what the feed has. The clock is not a feed field: assert `today`'s `date` at query time.
 
 ## Setup
 
