@@ -194,3 +194,140 @@ test(bom_compliant_fails_on_a_blocked_part, [setup((setup_today, setup_auto_poli
     assertion(\+ bom_compliant(board, auto)).
 
 :- end_tests(bom_policy_actions).
+
+%% ── Dates: ISO YYYY-MM-DD and day numbers ───────────────────────────────────
+
+%% The eol-soon part with ISO dates: today 2024-10-04 is day 20000, so the
+%% end-of-life and last-time-buy dates are the same 400 and 100 days out.
+setup_iso_today :-
+    assertz(attribute(today, date, '2024-10-04')).
+
+setup_iso_eol_soon_part :-
+    assertz(relation(board, includes, fet_iso)),
+    assertz(attribute(fet_iso, lifecycle, eol)),
+    assertz(attribute(fet_iso, rohs, compliant)),
+    assertz(attribute(fet_iso, aec_qualified, true)),
+    assertz(relation(fet_iso, sourced_from, dist_a)),
+    assertz(relation(fet_iso, sourced_from, dist_b)),
+    assertz(attribute(fet_iso, eol_day, '2025-11-08')),
+    assertz(attribute(fet_iso, ltb_day, '2025-01-12')).
+
+%% Last-time-buy 2024-06-26, day 19900, against an integer today.
+setup_iso_ltb_passed_part :-
+    assertz(relation(board, includes, osc_iso)),
+    assertz(attribute(osc_iso, lifecycle, eol)),
+    assertz(attribute(osc_iso, rohs, compliant)),
+    assertz(attribute(osc_iso, aec_qualified, true)),
+    assertz(relation(osc_iso, sourced_from, dist_a)),
+    assertz(relation(osc_iso, sourced_from, dist_b)),
+    assertz(attribute(osc_iso, ltb_day, '2024-06-26')).
+
+%% Across February in a leap year: two days from the 28th to March 1st.
+setup_leap_today :-
+    assertz(attribute(today, date, '2024-02-28')).
+
+setup_leap_part :-
+    assertz(relation(board, includes, leap)),
+    assertz(attribute(leap, lifecycle, active)),
+    assertz(attribute(leap, ltb_day, '2024-03-01')).
+
+%% A string today and a character-list end-of-life date, as SWI and Scryer
+%% hand text over.
+setup_text_dates :-
+    assertz(attribute(today, date, "2024-10-04")),
+    atom_chars('2025-11-08', Chars),
+    assertz(relation(board, includes, chars_part)),
+    assertz(attribute(chars_part, lifecycle, active)),
+    assertz(attribute(chars_part, eol_day, Chars)).
+
+%% An unparseable last-time-buy date beside a good end-of-life date.
+setup_bad_date_part :-
+    assertz(relation(board, includes, garbled)),
+    assertz(attribute(garbled, lifecycle, active)),
+    assertz(attribute(garbled, rohs, compliant)),
+    assertz(attribute(garbled, aec_qualified, true)),
+    assertz(relation(garbled, sourced_from, dist_a)),
+    assertz(relation(garbled, sourced_from, dist_b)),
+    assertz(attribute(garbled, ltb_day, '2024-02-30')),
+    assertz(attribute(garbled, eol_day, '2025-11-08')).
+
+setup_bad_today :-
+    assertz(attribute(today, date, soon)).
+
+:- begin_tests(bom_policy_dates).
+
+test(iso_converts_to_days_since_1970) :-
+    assertion(bom_day('1970-01-01', 0)),
+    assertion(bom_day('2024-10-04', 20000)),
+    assertion(bom_day('2000-02-29', 11016)),
+    assertion(bom_day('2100-03-01', 47541)),
+    assertion(bom_day(20000, 20000)),
+    %% Exclusive clauses: one day per date, so no reason is reported twice.
+    findall(D, bom_day('2000-02-29', D), Ds),
+    assertion(Ds == [11016]).
+
+test(month_year_and_leap_boundaries, [nondet]) :-
+    bom_day('2024-10-31', Oct31), bom_day('2024-11-01', Nov1),
+    assertion(Nov1 - Oct31 =:= 1),
+    bom_day('2025-12-31', Dec31), bom_day('2026-01-01', Jan1),
+    assertion(Jan1 - Dec31 =:= 1),
+    bom_day('2024-02-28', Feb28), bom_day('2024-02-29', Feb29), bom_day('2024-03-01', Mar1),
+    assertion(Feb29 - Feb28 =:= 1),
+    assertion(Mar1 - Feb28 =:= 2),
+    bom_day('2023-02-28', Feb28b), bom_day('2023-03-01', Mar1b),
+    assertion(Mar1b - Feb28b =:= 1).
+
+test(invalid_dates_do_not_convert) :-
+    assertion(\+ bom_day('2024-02-30', _)),
+    assertion(\+ bom_day('2023-02-29', _)),
+    assertion(\+ bom_day('2100-02-29', _)),
+    assertion(\+ bom_day('2024-13-01', _)),
+    assertion(\+ bom_day('2024-00-10', _)),
+    assertion(\+ bom_day('2024-10-00', _)),
+    assertion(\+ bom_day('2024-1-5', _)),
+    assertion(\+ bom_day('2024/10/04', _)),
+    assertion(\+ bom_day('2024-10-04T00:00:00Z', _)),
+    assertion(\+ bom_day(soon, _)),
+    assertion(\+ bom_day(date(2024, 10, 4), _)).
+
+test(iso_dates_match_day_numbers, [setup((setup_iso_today, setup_auto_policy, setup_iso_eol_soon_part)), cleanup(bom_cleanup_all)]) :-
+    findall(R, bom_violation(board, auto, fet_iso, R), Rs),
+    assertion(memberchk(eol_within(400), Rs)),
+    assertion(memberchk(ltb_within(100), Rs)),
+    assertion(part_risk(fet_iso, auto, warn)),
+    findall(P-D, last_time_buy_due(board, auto, P, D), Due),
+    assertion(Due == [fet_iso-100]).
+
+test(iso_part_against_integer_today, [setup((setup_today, setup_auto_policy, setup_iso_ltb_passed_part)), cleanup(bom_cleanup_all)]) :-
+    assertion(bom_violation(board, auto, osc_iso, ltb_passed(100))),
+    assertion(part_risk(osc_iso, auto, blocked)).
+
+test(integer_part_against_iso_today, [setup((setup_iso_today, setup_auto_policy, setup_eol_soon_part, setup_ltb_passed_part)), cleanup(bom_cleanup_all)]) :-
+    findall(P-D, last_time_buy_due(board, auto, P, D), Due0),
+    sort(Due0, Due),
+    assertion(Due == [fet_eol-100, osc_late-(-100)]).
+
+test(leap_day_counts, [setup((setup_leap_today, setup_leap_part)), cleanup(bom_cleanup_all)]) :-
+    assertion(bom_violation(board, plain, leap, ltb_within(2))).
+
+test(string_and_char_list_dates, [setup((setup_text_dates, setup_auto_policy)), cleanup(bom_cleanup_all)]) :-
+    assertion(bom_violation(board, auto, chars_part, eol_within(400))),
+    findall(D, last_time_buy_due(board, auto, chars_part, D), Ds),
+    assertion(Ds == [400]).
+
+test(unparseable_date_reads_as_absent, [setup((setup_iso_today, setup_auto_policy, setup_bad_date_part)), cleanup(bom_cleanup_all)]) :-
+    findall(R, bom_violation(board, auto, garbled, R), Rs),
+    assertion(\+ memberchk(ltb_passed(_), Rs)),
+    assertion(\+ memberchk(ltb_within(_), Rs)),
+    assertion(memberchk(eol_within(400), Rs)),
+    %% No usable last-time-buy date, so the buy list falls back to end of life.
+    findall(D, last_time_buy_due(board, auto, garbled, D), Ds),
+    assertion(Ds == [400]).
+
+test(unparseable_today_drops_date_reasons, [setup((setup_bad_today, setup_auto_policy, setup_eol_soon_part)), cleanup(bom_cleanup_all)]) :-
+    findall(R, bom_violation(board, auto, fet_eol, R), Rs),
+    assertion(\+ memberchk(eol_within(_), Rs)),
+    assertion(\+ memberchk(ltb_within(_), Rs)),
+    assertion(\+ last_time_buy_due(board, auto, fet_eol, _)).
+
+:- end_tests(bom_policy_dates).

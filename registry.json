@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-09-30",
+  "updated_at": "2026-10-28",
   "modules": [
     {
       "id": "core",
@@ -1032,7 +1032,7 @@
     },
     {
       "id": "bom-policy",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": "BOM Policy",
       "description": "Bill-of-materials policy over part-intelligence facts: lifecycle stage, end-of-life and last-time-buy dates, source count, compliance and qualification flags, declared alternates. Which parts block a build, which are due for a last-time buy, which alternate is usable; thresholds as facts, waivers as a hook.",
       "category": "business",
@@ -1248,6 +1248,22 @@
             "part_exempt(board, reg_old) :- true."
           ],
           "goal": "bom_compliant(board, auto)"
+        },
+        {
+          "predicate": "last_time_buy_due/4",
+          "facts": [
+            "attribute(today, date, '2024-10-04')",
+            "attribute(auto, eol_horizon_days, 730)",
+            "relation(board, includes, fet_eol)",
+            "attribute(fet_eol, lifecycle, eol)",
+            "attribute(fet_eol, eol_day, '2025-11-08')",
+            "attribute(fet_eol, ltb_day, 20100)",
+            "relation(board, includes, osc_late)",
+            "attribute(osc_late, lifecycle, eol)",
+            "attribute(osc_late, ltb_day, '2024-06-26')"
+          ],
+          "goal": "findall(P-D, last_time_buy_due(board, auto, P, D), Due)",
+          "expect": "sort(Due, Sorted), Sorted == [fet_eol-100, osc_late-(-100)]"
         }
       ],
       "tests_file": "test/business/bom_policy_test.pl"

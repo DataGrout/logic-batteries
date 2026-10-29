@@ -1,4 +1,4 @@
-# Module: bom-policy v1.0.0
+# Module: bom-policy v1.1.0
 
 Bill-of-materials policy over part-intelligence facts: lifecycle stage, end-of-life and last-time-buy dates, source count, compliance and qualification flags, and declared alternates. The rules turn a part feed into decisions — which parts block a build, which are due for a last-time buy, which alternate is usable — with the thresholds as facts, so a policy changes without a redeploy. Waivers are a hook.
 
@@ -35,10 +35,10 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | Name | On | Value | Description |
 |---|---|---|---|
 | `lifecycle` | part | `active`, `nrnd`, `eol`, `obsolete`, or any stage name | The part's lifecycle stage. Absent reads as `lifecycle(unknown)`, a warning |
-| `eol_day` | part | integer | Estimated end-of-life, as a day number in the same unit as `today`'s `date` |
-| `ltb_day` | part | integer | Last-time-buy date, same unit. Past means `ltb_passed`, a blocking reason |
+| `eol_day` | part | ISO date or integer day | Estimated end-of-life date |
+| `ltb_day` | part | ISO date or integer day | Last-time-buy date. Past means `ltb_passed`, a blocking reason |
 | `<flag>` | part | `compliant`, `true`, `yes` or `qualified` | One attribute per flag a policy names in `requires` (`rohs`, `reach`, `aec_qualified`, …). Any other value, or absence, is `missing(Flag)`, a blocking reason |
-| `date` | `today` | integer | The current day. `today` is a fixed entity name; assert this at query time |
+| `date` | `today` | ISO date or integer day | The current day. `today` is a fixed entity name; assert this at query time |
 | `min_sources` | policy | integer | Fewer distinct suppliers than this is `sources(N, Min)`, a warning; default 2 |
 | `eol_horizon_days` | policy | integer | An end-of-life or last-time-buy date within this many days is due; default 365 |
 
@@ -53,7 +53,7 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `blocks_lifecycle` | policy → stage | Stages that block. When a policy declares none, `obsolete` blocks |
 | `warns_lifecycle` | policy → stage | Stages that warn. When a policy declares none, `nrnd` and `eol` warn. A stage that both blocks and warns blocks |
 
-Day values are compared by subtraction, so `date`, `eol_day` and `ltb_day` must share a unit — a day count from any epoch works; `YYYYMMDD` integers do not subtract correctly across month or year boundaries.
+A date is either an ISO `YYYY-MM-DD` date — an atom such as `'2027-03-31'`, a string, or a character list — or an integer day number. ISO dates are converted to days since 1970-01-01, so `date`, `eol_day` and `ltb_day` may each use either form and still compare; an integer that sits beside ISO dates must count from 1970-01-01 too, while integers used only with each other may count from any epoch. A value that is neither — `'2027-02-30'`, a timestamp with a time part, `soon` — reads as absent, the way an unrecognised flag value reads as missing: an unusable `ltb_day` raises no last-time-buy reason and `last_time_buy_due` falls back to `eol_day`, and an unusable `date` on `today` turns every date check off. `YYYYMMDD` integers such as `20270331` are day numbers to the battery and do not subtract correctly across months; pass them as ISO dates instead.
 
 ## Setup
 
@@ -66,12 +66,12 @@ Day values are compared by subtraction, so `date`, `eol_day` and `ltb_day` must 
 { type="attribute", entity="mcu_1", attribute="lifecycle",     value="active" }
 { type="attribute", entity="mcu_1", attribute="rohs",          value="compliant" }
 { type="attribute", entity="mcu_1", attribute="aec_qualified", value=true }
-{ type="attribute", entity="mcu_1", attribute="eol_day",       value=20500 }
+{ type="attribute", entity="mcu_1", attribute="eol_day",       value="2026-02-16" }
 { type="relation",  subject="mcu_1", relation="sourced_from", object="supplier_x" }
 { type="relation",  subject="mcu_1", relation="sourced_from", object="supplier_y" }
 { type="relation",  subject="mcu_1", relation="cross",        object="mcu_1b" }
 
-{ type="attribute", entity="today", attribute="date", value=20000 }
+{ type="attribute", entity="today", attribute="date", value="2024-10-04" }
 ```
 
 ### A policy

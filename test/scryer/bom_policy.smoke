@@ -1,0 +1,64 @@
+# bom-policy on scryer-prolog: integer day numbers, ISO date atoms, a
+# double-quoted date (a character list on Scryer), and a date that is not one
+modules/business/bom_policy/bom_policy.pl
+---
+attribute(today, date, '2024-10-04').
+attribute(auto, min_sources, 2).
+attribute(auto, eol_horizon_days, 730).
+attribute(mcu_ok, lifecycle, active).
+attribute(mcu_ok, rohs, compliant).
+attribute(mcu_ok, aec_qualified, true).
+attribute(reg_old, lifecycle, obsolete).
+attribute(reg_old, rohs, compliant).
+attribute(reg_old, aec_qualified, true).
+attribute(reg_new, lifecycle, active).
+attribute(reg_new, rohs, compliant).
+attribute(reg_new, aec_qualified, true).
+attribute(fet_eol, lifecycle, eol).
+attribute(fet_eol, rohs, compliant).
+attribute(fet_eol, aec_qualified, true).
+attribute(fet_eol, eol_day, '2025-11-08').
+attribute(fet_eol, ltb_day, 20100).
+attribute(osc_late, lifecycle, eol).
+attribute(osc_late, rohs, compliant).
+attribute(osc_late, aec_qualified, true).
+attribute(osc_late, ltb_day, "2024-06-26").
+attribute(garbled, lifecycle, active).
+attribute(garbled, rohs, compliant).
+attribute(garbled, aec_qualified, true).
+attribute(garbled, ltb_day, '2023-02-29').
+attribute(garbled, eol_day, '2026-01-01').
+relation(auto, requires, rohs).
+relation(auto, requires, aec_qualified).
+relation(board, includes, mcu_ok).
+relation(board, includes, reg_old).
+relation(board, includes, fet_eol).
+relation(board, includes, osc_late).
+relation(board, includes, garbled).
+relation(mcu_ok, sourced_from, dist_a).
+relation(mcu_ok, sourced_from, dist_b).
+relation(reg_old, sourced_from, dist_a).
+relation(reg_old, sourced_from, dist_b).
+relation(reg_old, cross, reg_new).
+relation(fet_eol, sourced_from, dist_a).
+relation(fet_eol, sourced_from, dist_b).
+relation(osc_late, sourced_from, dist_a).
+relation(osc_late, sourced_from, dist_b).
+relation(garbled, sourced_from, dist_a).
+relation(garbled, sourced_from, dist_b).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(epoch, bom_day('1970-01-01', 0)),
+    check(today, bom_day('2024-10-04', 20000)),
+    check(leap, (bom_day('2024-02-28', A), bom_day('2024-03-01', B), B - A =:= 2)),
+    check(year, (bom_day('2025-12-31', C), bom_day('2026-01-01', D), D - C =:= 1)),
+    check(invalid, \+ bom_day('2023-02-29', _)),
+    check(ok, part_risk(mcu_ok, auto, ok)),
+    check(blocked, part_risk(reg_old, auto, blocked)),
+    check(alternate, part_alternate(reg_old, auto, reg_new)),
+    check(warn, (findall(R, bom_violation(board, auto, fet_eol, R), Rs), Rs == [lifecycle(eol), eol_within(400), ltb_within(100)])),
+    check(passed, bom_violation(board, auto, osc_late, ltb_passed(100))),
+    check(garbled, (findall(R2, bom_violation(board, auto, garbled, R2), Rs2), Rs2 == [eol_within(454)])),
+    check(due, (findall(P-Dl, last_time_buy_due(board, auto, P, Dl), Due), Due == [fet_eol-100, osc_late-(-100), garbled-454])),
+    check(summary, (bom_risk_summary(board, auto, Bl, W, O), Bl-W-O == 2-2-1)),
+    write(smoke_ok), nl, halt.

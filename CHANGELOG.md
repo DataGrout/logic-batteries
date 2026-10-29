@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-28
+
+### Modules
+
+**bom-policy** v1.1.0 — accepts ISO dates. `eol_day`, `ltb_day` and `today`'s
+`date` may each be an ISO `YYYY-MM-DD` date (an atom, a string, or a character
+list) or an integer day number, and the forms mix: an ISO date converts to days
+since 1970-01-01 in plain ISO arithmetic. Part-intelligence feeds deliver ISO
+dates, and the only integer form they offer, `YYYYMMDD`, does not subtract
+across months. A date that does not parse (`2027-02-30`, a timestamp, `soon`)
+reads as absent, as an unrecognised flag value does; it raised a type error
+before. Integer inputs behave as they did. The conversion is cut-free, so
+`why/2` follows a date reason to the facts behind it. `test/scryer/bom_policy.smoke`
+runs the battery, ISO dates included, under `make scryer-smoke`, and a tenth
+validate probe covers mixed date forms.
+
 ## 2026-09-14
 
 ### Modules
