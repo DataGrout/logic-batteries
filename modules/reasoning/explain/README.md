@@ -2,15 +2,16 @@
 
 Provenance / "why" battery: a meta-interpreter producing **proof trees** for any goal provable from the cell's stored rules and facts. Ask not just *whether* something holds, but *which facts made it true*. Pure ISO — runs on SWI and Scryer alike, including ISO-pinned cells.
 
+**In a DataGrout cell, `why/2` and `explain/2` are already available and need no install.** DataGrout loads its own implementation into every cell, so installing this battery there is a no-op. The platform version goes further than this file: its clause access is sandbox-safe, it honours a cut in a stored clause, and it proves the inner goal of `findall/3` through the interpreter instead of calling it directly. This file is the standalone reference implementation, for plain SWI-Prolog or Scryer outside DataGrout.
+
 **Requires:** nothing.
 
 ## Install
 
-```python
-client.perform("data-grout@1/batteries.install_many@1", {
-    "ids": ["explain"],
-    "namespace": "my-namespace"
-})
+Nothing to install in a DataGrout cell. Standalone, vendor it with the CLI (`battery install explain --dir my-app/`) or consult it directly:
+
+```prolog
+:- consult('modules/reasoning/explain/explain').
 ```
 
 ## Exported Predicates

@@ -158,7 +158,7 @@
       "id": "explain",
       "version": "1.0.0",
       "title": "Explain / Provenance",
-      "description": "Proof-tree meta-interpreter for stored rules and facts: ask not just whether a goal holds but which facts made it true. why/2 gives a deterministic flat list of supporting base/stored facts (the everyday API); explain/2 gives full proof trees with alternatives on backtracking. Handles conjunction, disjunction, if-then-else, negation-as-failure, and whitelisted builtins. Pure ISO \u2014 runs on pinned (Scryer) cells.",
+      "description": "DataGrout cells already provide why/2 and explain/2, so installing this in a cell is a no-op; this is the standalone reference implementation for SWI-Prolog or Scryer outside DataGrout. Proof-tree meta-interpreter for stored rules and facts: ask not just whether a goal holds but which facts made it true. why/2 gives a deterministic flat list of supporting base/stored facts (the everyday API); explain/2 gives full proof trees with alternatives on backtracking. Handles conjunction, disjunction, if-then-else, negation-as-failure, and whitelisted builtins. Pure ISO \u2014 runs on pinned (Scryer) cells.",
       "category": "reasoning",
       "license": "Elastic-2.0",
       "tags": [
