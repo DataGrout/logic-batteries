@@ -10,8 +10,9 @@ list) or an integer day number, and the forms mix: an ISO date converts to days
 since 1970-01-01 in plain ISO arithmetic. Part-intelligence feeds deliver ISO
 dates, and the only integer form they offer, `YYYYMMDD`, does not subtract
 across months. A date that does not parse (`2027-02-30`, a timestamp, `soon`)
-reads as absent, as an unrecognised flag value does; it raised a type error
-before. Integer inputs behave as they did. The conversion is cut-free, so
+is the warning `unreadable(Field, Value)`, and an unreadable `today` puts
+`unreadable(today, Value)` on every dated part, since it switches off every
+date check; it raised a type error before. Integer inputs behave as they did. The conversion is cut-free, so
 `why/2` follows a date reason to the facts behind it. `test/scryer/bom_policy.smoke`
 runs the battery, ISO dates included, under `make scryer-smoke`, and a tenth
 validate probe covers mixed date forms.

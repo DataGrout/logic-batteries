@@ -19,7 +19,7 @@ client.perform("data-grout@1/batteries.install_many@1", {
 
 | Predicate | Description |
 |---|---|
-| `bom_violation(Bom, Policy, Part, Reason)` | Part on Bom fails Policy for Reason, one solution per reason. Blocking reasons: `lifecycle(Stage)` for a blocked stage, `missing(Flag)` for a required flag, `ltb_passed(Days)`. Warnings: `lifecycle(Stage)` for a warned stage, `lifecycle(unknown)`, `eol_within(Days)`, `ltb_within(Days)`, `sources(N, Min)` |
+| `bom_violation(Bom, Policy, Part, Reason)` | Part on Bom fails Policy for Reason, one solution per reason. Blocking reasons: `lifecycle(Stage)` for a blocked stage, `missing(Flag)` for a required flag, `ltb_passed(Days)`. Warnings: `lifecycle(Stage)` for a warned stage, `lifecycle(unknown)`, `eol_within(Days)`, `ltb_within(Days)`, `sources(N, Min)`, `unreadable(Field, Value)` for an `eol_day` or `ltb_day` that is not a date, and `unreadable(today, Value)` on every dated part when today's date is not one |
 | `bom_compliant(Bom, Policy)` | No part on Bom has a blocking reason. Warnings do not fail a BOM |
 | `part_risk(Part, Policy, Level)` | `blocked`, `warn` or `ok` |
 | `part_alternate(Part, Policy, Alt)` | Alt is a declared `cross` of Part that is not itself blocked under Policy |
@@ -53,7 +53,7 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `blocks_lifecycle` | policy → stage | Stages that block. When a policy declares none, `obsolete` blocks |
 | `warns_lifecycle` | policy → stage | Stages that warn. When a policy declares none, `nrnd` and `eol` warn. A stage that both blocks and warns blocks |
 
-A date is either an ISO `YYYY-MM-DD` date — an atom such as `'2027-03-31'`, a string, or a character list — or an integer day number. ISO dates are converted to days since 1970-01-01, so `date`, `eol_day` and `ltb_day` may each use either form and still compare; an integer that sits beside ISO dates must count from 1970-01-01 too, while integers used only with each other may count from any epoch. A value that is neither — `'2027-02-30'`, a timestamp with a time part, `soon` — reads as absent, the way an unrecognised flag value reads as missing: an unusable `ltb_day` raises no last-time-buy reason and `last_time_buy_due` falls back to `eol_day`, and an unusable `date` on `today` turns every date check off. `YYYYMMDD` integers such as `20270331` are day numbers to the battery and do not subtract correctly across months; pass them as ISO dates instead.
+A date is either an ISO `YYYY-MM-DD` date — an atom such as `'2027-03-31'`, a string, or a character list — or an integer day number. ISO dates are converted to days since 1970-01-01, so `date`, `eol_day` and `ltb_day` may each use either form and still compare; an integer that sits beside ISO dates must count from 1970-01-01 too, while integers used only with each other may count from any epoch. A value that is neither — `'2027-02-30'`, a timestamp with a time part, `soon` — is the warning `unreadable(Field, Value)`, so a garbled date never passes for "no deadline". The date checks that need it are skipped (`last_time_buy_due` falls back to `eol_day` when `ltb_day` will not read), and an unreadable `date` on `today`, which switches every date check off, puts `unreadable(today, Value)` on every part that has a date. `YYYYMMDD` integers such as `20270331` are day numbers to the battery and do not subtract correctly across months; pass them as ISO dates instead.
 
 ## Mapping a feed
 

@@ -315,17 +315,22 @@ test(string_and_char_list_dates, [setup((setup_text_dates, setup_auto_policy)), 
     findall(D, last_time_buy_due(board, auto, chars_part, D), Ds),
     assertion(Ds == [400]).
 
-test(unparseable_date_reads_as_absent, [setup((setup_iso_today, setup_auto_policy, setup_bad_date_part)), cleanup(bom_cleanup_all)]) :-
+test(unparseable_date_is_a_warning, [setup((setup_iso_today, setup_auto_policy, setup_bad_date_part)), cleanup(bom_cleanup_all)]) :-
     findall(R, bom_violation(board, auto, garbled, R), Rs),
+    assertion(memberchk(unreadable(ltb_day, '2024-02-30'), Rs)),
     assertion(\+ memberchk(ltb_passed(_), Rs)),
     assertion(\+ memberchk(ltb_within(_), Rs)),
     assertion(memberchk(eol_within(400), Rs)),
+    assertion(part_risk(garbled, auto, warn)),
     %% No usable last-time-buy date, so the buy list falls back to end of life.
     findall(D, last_time_buy_due(board, auto, garbled, D), Ds),
     assertion(Ds == [400]).
 
-test(unparseable_today_drops_date_reasons, [setup((setup_bad_today, setup_auto_policy, setup_eol_soon_part)), cleanup(bom_cleanup_all)]) :-
+test(unparseable_today_warns_on_each_dated_part, [setup((setup_bad_today, setup_auto_policy, setup_eol_soon_part, setup_clean_part)), cleanup(bom_cleanup_all)]) :-
     findall(R, bom_violation(board, auto, fet_eol, R), Rs),
+    assertion(memberchk(unreadable(today, soon), Rs)),
+    %% A part with no dates loses nothing, so it gets no warning about today.
+    assertion(\+ bom_violation(board, auto, mcu_ok, unreadable(today, _))),
     assertion(\+ memberchk(eol_within(_), Rs)),
     assertion(\+ memberchk(ltb_within(_), Rs)),
     assertion(\+ last_time_buy_due(board, auto, fet_eol, _)).

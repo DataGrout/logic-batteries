@@ -196,10 +196,28 @@ bom_warning_reason(Part, Policy, ltb_within(Days)) :-
     Days >= 0,
     Days =< Horizon.
 
+%% A date that is present but will not read is a warning, not silence: a
+%% garbled last-time-buy date must not pass for "no deadline". An unreadable
+%% today switches off every date check, so each part with a date says so.
+bom_warning_reason(Part, _Policy, unreadable(Field, Value)) :-
+    member(Field, [eol_day, ltb_day]),
+    attribute(Part, Field, Value),
+    \+ bom_day(Value, _).
+
+bom_warning_reason(Part, _Policy, unreadable(today, Value)) :-
+    attribute(today, date, Value),
+    \+ bom_day(Value, _),
+    \+ \+ bom_dated(Part).
+
 bom_warning_reason(Part, Policy, sources(N, Min)) :-
     bom_policy_min_sources(Policy, Min),
     source_count(Part, N),
     N < Min.
+
+bom_dated(Part) :-
+    attribute(Part, eol_day, _).
+bom_dated(Part) :-
+    attribute(Part, ltb_day, _).
 
 bom_flag_met(Part, Flag) :-
     attribute(Part, Flag, Value),

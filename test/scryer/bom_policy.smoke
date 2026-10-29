@@ -58,7 +58,7 @@ smoke :-
     check(alternate, part_alternate(reg_old, auto, reg_new)),
     check(warn, (findall(R, bom_violation(board, auto, fet_eol, R), Rs), Rs == [lifecycle(eol), eol_within(400), ltb_within(100)])),
     check(passed, bom_violation(board, auto, osc_late, ltb_passed(100))),
-    check(garbled, (findall(R2, bom_violation(board, auto, garbled, R2), Rs2), Rs2 == [eol_within(454)])),
+    check(garbled, (findall(R2, bom_violation(board, auto, garbled, R2), Rs2), Rs2 == [eol_within(454), unreadable(ltb_day, '2023-02-29')])),
     check(due, (findall(P-Dl, last_time_buy_due(board, auto, P, Dl), Due), Due == [fet_eol-100, osc_late-(-100), garbled-454])),
     check(summary, (bom_risk_summary(board, auto, Bl, W, O), Bl-W-O == 2-2-1)),
     write(smoke_ok), nl, halt.
