@@ -22,7 +22,7 @@ Insert a battery into a logic cell and it has new capabilities immediately — n
 | [fsm](./modules/reasoning/fsm/) | 25 | General-purpose finite state machine — reachability, shortest paths, cycle detection |
 | [temporal](./modules/reasoning/temporal/) | 12 | Event ordering, overlap, gaps, and deadline reasoning over timestamped facts |
 | [taxonomy](./modules/reasoning/taxonomy/) | 10 | Hierarchical classification with transitive membership and property inheritance |
-| [explain](./modules/reasoning/explain/) | 6 | Provenance meta-interpreter — `why/2` returns the facts supporting any conclusion; `explain/2` returns full proof trees |
+| [explain](./modules/reasoning/explain/) | 6 | Provenance meta-interpreter — `why/2` returns the facts supporting any conclusion; `explain/2` returns full proof trees. Built into every DataGrout cell; this module is the standalone version |
 | [fixpoint](./modules/reasoning/fixpoint/) | 4 | Bottom-up Datalog saturation — tabling's termination benefit without tabling; cyclic/left-recursive rules work verbatim |
 | [assign](./modules/reasoning/assign/) | 8 | Budgeted constraint search — domains, all-different groups, reject/pair/cost hooks, branch and bound, violation checking |
 
@@ -73,6 +73,7 @@ Query exact probabilities instead of thresholds — zero LLM calls per tick. Wei
 | [duty](./modules/business/duty/) | 16 | Duty conflicts, rest and rolling limits, qualification currency, who is fit and why not |
 | [rostering](./modules/business/rostering/) | 18 | Coverage, violations, ranked candidates, greedy fill, replacements, swaps, load balance; assign model for exact fill |
 | [compliance](./modules/business/compliance/) | 5 | Policy checks, retention windows, consent registry |
+| [bom-policy](./modules/business/bom_policy/) | 8 | Bill-of-materials policy over part lifecycle, end-of-life and last-time-buy dates, compliance flags, sources and alternates; blocking and warning reasons kept apart |
 
 ### d20
 
