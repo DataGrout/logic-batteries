@@ -22,7 +22,7 @@ From Tether: `dg:batteries().install("taxonomy", "my-ns", cb)`.
 | Predicate | Description |
 |---|---|
 | `isa(Entity, Class)` | Direct or transitive `is_a` |
-| `inherits_property(Entity, Property, Value)` | The attribute on the entity, else on the nearest ancestor that has it |
+| `inherits_property(Entity, Property, Value)` | The attribute on the entity, else on the nearest ancestor that has it; one answer per property. Unbound Property lists each property the entity has or inherits |
 | `most_specific_class(Entity, Class)` | A direct parent that is not an ancestor of another direct parent |
 | `common_ancestor(E1, E2, Ancestor)` | Every class both are `isa` |
 | `siblings(E1, E2)` | Two different things with the same direct parent |
@@ -108,8 +108,15 @@ dg:query("my-ns", "inherits_property(" .. mob .. ", loot_multiplier, M)", functi
 
 1. An attribute on the entity itself — always wins.
 2. Otherwise the same attribute on a direct parent.
-3. Otherwise on ancestors, depth-first along the first parent chain that has
-   it.
+3. Otherwise on the closest ancestor that has it, by `is_a` hops, whichever
+   parent chain it sits on.
+
+Resolution is per property and gives one value. A bound Value is checked
+against that value, so `inherits_property(goblin, has_soul, true)` fails when
+goblin sets its own `has_soul` to `false`, whatever its ancestors say. With
+Property unbound, each property the entity has or inherits comes back once,
+with its nearest value; with Entity unbound, every subject that carries an
+attribute or an `is_a` edge is tried.
 
 So a class default can be overridden on any subclass or instance:
 
@@ -128,8 +135,9 @@ returns goblins and wolves alongside `humanoid` and `beast`; nothing marks a
 node as a leaf. If you need only classes, keep instances out of the query by
 naming convention or a marker attribute.
 
-**Multiple parents, first-found inheritance.** With two parents that both carry
-a property, `inherits_property` returns the first in fact order and stops.
+**Multiple parents, nearest inheritance.** With two parent chains that both
+carry a property, the definition fewer `is_a` hops away wins; at equal
+distance, the first in fact order. Either way there is one answer.
 
 **Cycles terminate.** `isa`, `inherits_property` and `depth_in_hierarchy` all
 walk `is_a` with a visited set. A cycle makes its members mutually `isa` each

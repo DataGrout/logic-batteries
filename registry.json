@@ -1050,7 +1050,7 @@
           "name": "hp",
           "type": "number",
           "presence": "key",
-          "note": "Current hit points, the same attribute combat reads; the player's must be above 0."
+          "note": "Current hit points, the same attribute combat reads. A player at 0 or below does not survive (P is 0); kills_to_exhaust fails for an enemy at 0 or below."
         },
         {
           "role": "combatant",
@@ -1751,7 +1751,7 @@
           "name": "pct_off",
           "type": "number",
           "presence": "key",
-          "note": "Percent off the base price (20 is 20%); wins over flat_off."
+          "note": "Percent of the base price (20 is 20%) taken off the tier price, so it adds to the tier multiplier rather than compounding (member 0.9 with 20 off 100 pays 70); wins over flat_off."
         },
         {
           "role": "discount",

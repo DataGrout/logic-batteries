@@ -1,4 +1,4 @@
-%% Battery: permissions v1.0.0
+%% Battery: permissions v1.0.1
 %% Exports: has_role/2, role_grants/2, is_owner/2, permission_granted/2, can_access/2
 
 battery_module(permissions, '1.0.1', auto).

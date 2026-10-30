@@ -116,13 +116,20 @@ reward_eligible(Customer, Reward) :-
     points_to_redeem(Customer, Reward, Cost),
     Balance >= Cost.
 
-%% tier_benefit(+Customer, +Benefit, -Value)
+%% tier_benefit(+Customer, ?Benefit, -Value)
+%% A benefit attached to several of the tiers the customer holds or outranks is
+%% reported once.
 tier_benefit(Customer, Benefit, Value) :-
     loyalty_tier(Customer, Tier),
-    ( relation(Tier, has_benefit, Benefit)
-    ; ( relation(ParentTier, has_benefit, Benefit),
-        tier_outranks(Tier, ParentTier) ) ),
+    setof(B, loyalty_benefit_at(Tier, B), Benefits),
+    member(Benefit, Benefits),
     attribute(Benefit, benefit_value, Value).
+
+loyalty_benefit_at(Tier, Benefit) :-
+    relation(Tier, has_benefit, Benefit).
+loyalty_benefit_at(Tier, Benefit) :-
+    relation(Lower, has_benefit, Benefit),
+    tier_outranks(Tier, Lower).
 
 tier_outranks(platinum, gold).
 tier_outranks(platinum, silver).

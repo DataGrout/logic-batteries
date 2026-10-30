@@ -80,9 +80,16 @@ approval_required_step(Request, Approver, auto) :-
     Amt > Limit.
 
 %% approval_granted(+Request, ?Approver)  — including delegated
+%% Unbound, Approver ranges over everyone whose approval is on record: each
+%% direct approver, and each required approver whose delegate approved. An
+%% approver granted both ways is reported once.
 approval_granted(Request, Approver) :-
-    relation(Request, approved_by, Approver), !.
-approval_granted(Request, Approver) :-
+    setof(A, approval_granted_by(Request, A), Approvers),
+    member(Approver, Approvers).
+
+approval_granted_by(Request, Approver) :-
+    relation(Request, approved_by, Approver).
+approval_granted_by(Request, Approver) :-
     approval_required(Request, Approver),
     relation(Approver, delegated_to, Delegate),
     relation(Request, approved_by, Delegate).
@@ -97,7 +104,7 @@ fully_approved(Request) :-
 next_approver(Request, Approver) :-
     \+ relation(Request, rejected_by, _),
     findall(Step-App, approval_required_step(Request, App, Step), Pairs),
-    msort(Pairs, Sorted),
+    sort(Pairs, Sorted),                   %% numbered steps, then auto (atoms sort after numbers)
     member(_-Approver, Sorted),
     \+ approval_granted(Request, Approver), !.
 

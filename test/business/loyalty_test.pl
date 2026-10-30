@@ -125,3 +125,32 @@ test(bronze_no_gold_benefit, [setup(setup_bronze_customer_with_gold_benefit), cl
     assertion(\+ tier_benefit(customer_123, early_access, _)).
 
 :- end_tests(loyalty_benefits).
+
+%% ── tier_benefit returns each benefit once ──────────────────────────────────
+
+loyalty_setup_benefit_on_several_tiers :-
+    setup_platinum_customer,
+    assertz(relation(platinum, has_benefit, early_access)),
+    assertz(relation(gold, has_benefit, early_access)),
+    assertz(relation(silver, has_benefit, early_access)),
+    assertz(relation(gold, has_benefit, free_shipping)),
+    assertz(relation(bronze, has_benefit, free_shipping)),
+    assertz(relation(platinum, has_benefit, dedicated_support)),
+    assertz(attribute(early_access, benefit_value, true)),
+    assertz(attribute(free_shipping, benefit_value, true)),
+    assertz(attribute(dedicated_support, benefit_value, priority)).
+
+:- begin_tests(loyalty_benefits_once).
+
+test(each_benefit_once, [setup(loyalty_setup_benefit_on_several_tiers), cleanup(clear_facts)]) :-
+    findall(B-V, tier_benefit(customer_123, B, V), Bs),
+    msort(Bs, Sorted),
+    assertion(Sorted == [dedicated_support-priority, early_access-true, free_shipping-true]),
+    length(Bs, N),
+    assertion(N == 3).
+
+test(bound_benefit_once, [setup(loyalty_setup_benefit_on_several_tiers), cleanup(clear_facts)]) :-
+    findall(V, tier_benefit(customer_123, early_access, V), Vs),
+    assertion(Vs == [true]).
+
+:- end_tests(loyalty_benefits_once).

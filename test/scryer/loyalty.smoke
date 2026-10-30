@@ -1,0 +1,21 @@
+# loyalty on scryer-prolog: tier_benefit reports a benefit once even when it is
+# attached to several tiers the customer holds or outranks.
+modules/business/loyalty/loyalty.pl
+---
+attribute(cust, lifetime_points, 6000).
+attribute(early_access, benefit_value, true).
+attribute(free_shipping, benefit_value, true).
+attribute(support, benefit_value, priority).
+relation(platinum, has_benefit, early_access).
+relation(gold, has_benefit, early_access).
+relation(silver, has_benefit, early_access).
+relation(gold, has_benefit, free_shipping).
+relation(bronze, has_benefit, free_shipping).
+relation(platinum, has_benefit, support).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(once, (findall(B-V, tier_benefit(cust, B, V), Bs),
+        Bs == [early_access-true, free_shipping-true, support-priority])),
+    check(bound, (findall(V, tier_benefit(cust, early_access, V), Vs), Vs == [true])),
+    check(tier, loyalty_tier(cust, platinum)),
+    write(smoke_ok), nl.

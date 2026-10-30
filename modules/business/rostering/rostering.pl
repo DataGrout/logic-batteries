@@ -29,7 +29,7 @@ battery_export(rostering, 'roster_valid/1',
 battery_export(rostering, 'candidates/3',
     'candidates(Shift, Role, Workers) — rostered workers with Role who are fit for Shift (duty battery) and not already on Shift or on an incompatible assigned shift; in roster order').
 battery_export(rostering, 'candidate_score/3',
-    'candidate_score(Shift, Worker, Score) — ranking key k(PrefRank, NegHeadroom, Load, NegSeniority): prefers=0/none=1/avoids=2, then more duty headroom, then fewer assigned shifts in the rolling window, then seniority; lower sorts first').
+    'candidate_score(Shift, Worker, Score) — ranking key k(PrefRank, NegHeadroom, Load, NegSeniority): prefers=0/none=1/avoids=2, then more duty headroom (a worker with no rolling limit counts as one more than the largest rolling_limit, so above every limited worker), then fewer assigned shifts in the rolling window, then seniority; lower sorts first').
 battery_export(rostering, 'rank_candidates/3',
     'rank_candidates(Shift, Role, Ranked) — candidates ordered best first by candidate_score/3').
 battery_export(rostering, 'fill_shift/3',
@@ -231,9 +231,27 @@ rostering_pref_rank(Shift, Worker, Rank) :-
     ;   Rank = 1
     ).
 
+%% A worker with no rolling limit (duty_headroom/3 fails: no rolling_window or
+%% no rolling_limit at any level) has unlimited headroom. The key must stay a
+%% number, so unlimited is reported as one more than the largest rolling_limit
+%% any rostered worker has: a limited worker's headroom never exceeds its own
+%% limit, so every unlimited worker ranks above every limited one and the
+%% order among limited workers is untouched.
 rostering_headroom(Shift, Worker, H) :-
     rostering_window(Shift, _, E),
-    (   duty_headroom(Worker, E, H0) -> H = H0 ; H = 0 ).
+    (   duty_headroom(Worker, E, H0) -> H = H0
+    ;   rostering_unlimited_headroom(H)
+    ).
+
+rostering_unlimited_headroom(H) :-
+    findall(L, ( attribute(W, role, _), duty_limit(W, rolling_limit, L) ), Ls),
+    rostering_max(Ls, 0, Max),
+    H is Max + 1.
+
+rostering_max([], M, M).
+rostering_max([X|Xs], M0, M) :-
+    M1 is max(M0, X),
+    rostering_max(Xs, M1, M).
 
 %% Assigned shifts of Worker inside the rolling window ending at the shift's
 %% end (all assigned shifts when no rolling_window is configured).

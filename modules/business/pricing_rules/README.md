@@ -138,10 +138,17 @@ bulk_discount(widget, 25, PctOff)
 
 ## Calculation Order
 
-1. Apply tier multiplier to base price → `TierPrice`
-2. Sum all applicable discount amounts (flat or pct of base)
+1. Apply tier multiplier to base price → `TierPrice = round(base × multiplier)`
+2. Sum all applicable discount amounts: `round(base × pct_off / 100)` for a
+   percentage discount, `flat_off` otherwise
 3. `FinalPrice = max(0, TierPrice - TotalDiscounts)`
 4. If `price_capped` is used, clamp to `[floor, ceil]`
+
+Percentage discounts are a share of the **base** price, not of the tier price,
+so the tier multiplier and the discounts add rather than compound: a member
+(0.9) with a 20% sale on a 100 item pays `90 - 20 = 70`, not `100 × 0.9 × 0.8 = 72`;
+a VIP (0.8) pays `80 - 20 = 60`. Several percentage discounts add the same
+way (two 20% sales take 40 off the base).
 
 ## Agent Use Cases
 

@@ -139,5 +139,6 @@ its required skills, or stays unbound when nothing above 0 is required.
 
 ## Pairs Well With
 
-`progression` for `level`, `quests` for `completed_quest`, `inventory` for
-`has_item` — each asserts the fact this battery reads.
+`progression` for `level` and `inventory` for `has_item`. `completed_quest`
+is asserted by the caller or game on turn-in: `quests` records completion as
+`attribute(<player>_<quest>, status, complete)` and does not write it.

@@ -529,7 +529,7 @@
           "name": "hp",
           "type": "number",
           "presence": "key",
-          "note": "Current hit points, the same attribute combat reads; the player's must be above 0."
+          "note": "Current hit points, the same attribute combat reads. A player at 0 or below does not survive (P is 0); kills_to_exhaust fails for an enemy at 0 or below."
         },
         {
           "role": "combatant",

@@ -29,7 +29,7 @@ battery_input(pricing_rules, item, attribute(price_floor), number, optional,
 battery_input(pricing_rules, item, attribute(price_ceil), number, optional,
     'Highest price price_capped returns.').
 battery_input(pricing_rules, discount, attribute(pct_off), number, key,
-    'Percent off the base price (20 is 20%); wins over flat_off.').
+    'Percent of the base price (20 is 20%) taken off the tier price, so it adds to the tier multiplier rather than compounding (member 0.9 with 20 off 100 pays 70); wins over flat_off.').
 battery_input(pricing_rules, discount, attribute(flat_off), number, key,
     'Flat amount off, used when the discount has no pct_off.').
 battery_input(pricing_rules, discount, attribute(requires_tier), enum([standard, member, vip]), optional,
@@ -117,14 +117,19 @@ bulk_discount(Item, Qty, PctOff) :-
             (bulk_tier(Item, Threshold, Pct), Qty >= Threshold),
             Tiers),
     Tiers \= [],
-    msort(Tiers, Sorted),
-    last(Sorted, _-PctOff), !.
+    sort(Tiers, Sorted),                   %% highest threshold (then pct) last
+    pricing_last(Sorted, _-PctOff), !.
 bulk_discount(_, _, 0).
+
+pricing_last([X], X) :- !.
+pricing_last([_|Xs], X) :- pricing_last(Xs, X).
 
 bulk_tier(Item, Threshold, Pct) :-
     member(N, [1,2,3,4,5]),
-    atom_concat(bulk_qty_, N, QAttr),
-    atom_concat(bulk_pct_, N, PAttr),
+    number_codes(N, Cs),                   %% Scryer's atom_concat/3 takes atoms only
+    atom_codes(NA, Cs),
+    atom_concat(bulk_qty_, NA, QAttr),
+    atom_concat(bulk_pct_, NA, PAttr),
     attribute(Item, QAttr, Threshold),
     attribute(Item, PAttr, Pct).
 

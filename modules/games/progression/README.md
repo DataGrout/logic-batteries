@@ -58,7 +58,7 @@ A player's level is the `level` attribute when present, otherwise derived from
 
 | Name | Subject → Object | Description |
 |---|---|---|
-| `completed_quest` | player → quest | Satisfies `requires_quest` |
+| `completed_quest` | player → quest | Satisfies `requires_quest`. The caller (or the game) asserts it; no battery does |
 
 `xp_curve` and `prestige` are fixed entity names. Note the two different
 `level_<N>` shapes: for XP breakpoints it is an *entity* carrying
@@ -148,8 +148,13 @@ cost of the next level.
 
 ## Composing with Other Modules
 
-`combat` reads stat values you derive here; `quests` asserts
-`completed_quest`; `crafting` reads the player's `level` for discovery.
+`combat` reads stat values you derive here; `crafting` reads the player's
+`level` for discovery.
+
+The prestige quest gate reads `relation(Player, completed_quest, Quest)`, which
+the caller (or the game) asserts when a quest is done. `quests` does not assert
+it: it records completion as `attribute(<player>_<quest>, status, complete)`,
+so a game using both asserts `completed_quest` alongside that status.
 
 ## Changes
 

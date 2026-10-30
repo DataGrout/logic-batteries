@@ -163,13 +163,18 @@ fsm_terminal_state(Machine, State) :-
 %% ── Transition Queries ───────────────────────────────────────────────────────
 
 %% fsm_transition(+Machine, ?From, ?Event, ?To)
-%% There is an edge From → To that fires on Event in Machine.
-%% Event is unbound if none was asserted.
+%% There is an edge From → To in Machine and Event is one of From's events.
+%% Events sit on states, not edges, so a state with several events reports
+%% each distinct one on each of its exits; the facts do not say which event
+%% takes which exit. Event is `unspecified` when From has none.
 fsm_transition(Machine, From, Event, To) :-
     fsm_has_state(Machine, From),
     fsm_edge(From, To),
     fsm_has_state(Machine, To),
-    ( fsm_edge_event(From, E) -> Event = E ; Event = unspecified ).
+    (   setof(E, fsm_edge_event(From, E), Events)
+    ->  member(Event, Events)
+    ;   Event = unspecified
+    ).
 
 %% ── Reachability ─────────────────────────────────────────────────────────────
 

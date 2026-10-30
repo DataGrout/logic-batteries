@@ -116,7 +116,11 @@ compared by Prolog's standard order of terms, so ranking needs no weights and
 makes no assumptions about your time unit:
 
 1. **Preference class**: `prefers` this shift (0), no opinion (1), `avoids` it (2).
-2. **Headroom**: more remaining duty in the rolling window ranks higher (from `duty_headroom/3`; 0 when no rolling policy is configured).
+2. **Headroom**: more remaining duty in the rolling window ranks higher (from `duty_headroom/3`).
+   A worker with no rolling limit (no `rolling_window` or no `rolling_limit` at any level) has
+   unlimited headroom and ranks above every limited worker: the key stays a number, one more
+   than the largest `rolling_limit` any rostered worker has, so `NegHeadroom` is
+   `-(MaxLimit + 1)` (`-1` when no one has a limit).
 3. **Load**: fewer assigned shifts inside the rolling window ranks higher, spreading work.
 4. **Seniority**: higher `seniority` attribute ranks higher; 0 when absent.
 

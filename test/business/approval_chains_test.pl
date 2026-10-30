@@ -126,3 +126,46 @@ test(blocked_by_rejection, [setup(setup_chain_rejected), cleanup(clear_facts)]) 
     assertion(Reason == rejected(finance, "Budget exceeded")).
 
 :- end_tests(approval_blocked).
+
+%% ── Unbound Approver: approval_granted lists every approver once ─────────────
+
+ac_setup_mixed_grants :-
+    setup_two_step_chain,
+    assertz(relation(req_001, approved_by, finance)),
+    assertz(relation(manager, delegated_to, deputy)),
+    assertz(relation(req_001, approved_by, deputy)).
+
+ac_setup_double_grant :-
+    setup_two_step_chain,
+    assertz(relation(req_001, approved_by, manager)),
+    assertz(relation(manager, delegated_to, deputy)),
+    assertz(relation(req_001, approved_by, deputy)).
+
+ac_setup_steps_done_over_threshold :-
+    setup_fully_approved,
+    assertz(attribute(high_value_rule, threshold, 10000)),
+    assertz(attribute(high_value_rule, approver,  cfo)),
+    assertz(attribute(req_001, amount, 15000)).
+
+:- begin_tests(approval_granted_unbound).
+
+test(lists_direct_and_delegated, [setup(ac_setup_mixed_grants), cleanup(clear_facts)]) :-
+    findall(A, approval_granted(req_001, A), As0),
+    msort(As0, As),
+    assertion(As == [deputy, finance, manager]).
+
+test(direct_and_delegated_counted_once, [setup(ac_setup_double_grant), cleanup(clear_facts)]) :-
+    findall(A, approval_granted(req_001, A), As0),
+    msort(As0, As),
+    assertion(As == [deputy, manager]).
+
+test(bound_still_semidet_answer, [setup(ac_setup_double_grant), cleanup(clear_facts)]) :-
+    findall(x, approval_granted(req_001, manager), Xs),
+    assertion(Xs == [x]),
+    assertion(\+ approval_granted(req_001, finance)).
+
+test(next_approver_threshold_after_steps, [setup(ac_setup_steps_done_over_threshold), cleanup(clear_facts)]) :-
+    next_approver(req_001, A),
+    assertion(A == cfo).
+
+:- end_tests(approval_granted_unbound).

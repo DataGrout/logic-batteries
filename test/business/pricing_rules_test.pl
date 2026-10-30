@@ -112,7 +112,8 @@ test(flat_discount_applied, [setup(setup_discount_flat_10), cleanup(clear_facts)
     effective_price(widget, unknown_customer, P), assertion(P == 90).
 
 test(member_only_discount_applies_for_member, [setup((setup_discount_member_only, setup_member_customer)), cleanup(clear_facts)]) :-
-    %% standard tier 100, member tier 90, then member_sale 15% off 90 = ~76
+    %% standard tier 100, member tier 90, then member_sale takes 15% of the base
+    %% price (15) off that: 75. Discounts add; they do not compound (README).
     effective_price(widget, customer_123, P), assertion(P =< 90).
 
 test(member_only_discount_skipped_for_standard, [setup(setup_discount_member_only), cleanup(clear_facts)]) :-
@@ -164,3 +165,46 @@ test(effective_price_lists_every_customer, [setup(pricing_setup_two_customers), 
     assertion(Pairs == [cust_m-90, cust_v-80]).
 
 :- end_tests(pricing_unbound_customer).
+
+%% ── Stacking: pct_off is a share of the base price, taken off the tier price ─
+
+pricing_setup_member_with_sale :-
+    setup_discount_20pct,
+    setup_member_customer.
+
+pricing_setup_vip_with_sale :-
+    setup_discount_20pct,
+    setup_vip_customer.
+
+:- begin_tests(pricing_stacking).
+
+test(member_pct_off_base_not_compounded, [setup(pricing_setup_member_with_sale), cleanup(clear_facts)]) :-
+    %% round(100 * 0.9) - round(100 * 20 / 100) = 90 - 20 = 70, not 72
+    effective_price(widget, customer_123, P), assertion(P == 70).
+
+test(vip_pct_off_base_not_compounded, [setup(pricing_setup_vip_with_sale), cleanup(clear_facts)]) :-
+    %% 80 - 20 = 60, not 64
+    effective_price(widget, customer_123, P), assertion(P == 60).
+
+:- end_tests(pricing_stacking).
+
+%% ── bulk_discount: highest threshold reached wins, any tier numbering ───────
+
+pricing_setup_bulk_unordered :-
+    setup_widget_base,
+    assertz(attribute(widget, bulk_qty_1, 100)),
+    assertz(attribute(widget, bulk_pct_1, 20)),
+    assertz(attribute(widget, bulk_qty_2, 10)),
+    assertz(attribute(widget, bulk_pct_2, 5)),
+    assertz(attribute(widget, bulk_qty_4, 50)),
+    assertz(attribute(widget, bulk_pct_4, 12)).
+
+:- begin_tests(pricing_bulk_order).
+
+test(bulk_unordered_tiers, [setup(pricing_setup_bulk_unordered), cleanup(clear_facts)]) :-
+    bulk_discount(widget, 9, P0),   assertion(P0 == 0),
+    bulk_discount(widget, 10, P1),  assertion(P1 == 5),
+    bulk_discount(widget, 75, P2),  assertion(P2 == 12),
+    bulk_discount(widget, 500, P3), assertion(P3 == 20).
+
+:- end_tests(pricing_bulk_order).

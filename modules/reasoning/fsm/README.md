@@ -34,7 +34,7 @@ end)
 ### Transition Queries
 | Predicate | Description |
 |---|---|
-| `fsm_transition(Machine, From, Event, To)` | Edge From→To fires on Event |
+| `fsm_transition(Machine, From, Event, To)` | Edge From→To, once for each distinct event on From (`unspecified` when it has none) |
 
 ### Reachability
 | Predicate | Description |
@@ -151,6 +151,11 @@ with at least as many events as exits — `review` on `approve` and `reject`,
 leaving for `approved` and `rejected` — is not flagged: a one-to-one reading
 exists, though the facts cannot confirm it. Each ambiguous state is reported
 once. `fsm_deterministic/1` is the absence of any such state.
+
+For the same reason `fsm_transition/4` pairs every exit of a state with every
+distinct event on it: `review` on `approve` and `reject`, leaving for
+`approved` and `rejected`, gives four answers, since nothing says which event
+takes which exit.
 
 **Shortest means fewest edges.** `fsm_shortest_path/4` searches breadth-first
 with a visited set, so it terminates on cycles and fails when To is

@@ -271,3 +271,39 @@ test(model_solves_with_assign, [setup((ro_base, ro_hooks)), cleanup(ro_cleanup)]
     assign_violations(A, Vs), assertion(Vs == []).
 
 :- end_tests(rostering_model).
+
+%% ── Ranking: a worker with no rolling limit has the most headroom ──────────
+%%
+%% Limits are set per worker here so that diaz can have none: alvarez 3600,
+%% chen 2400, diaz unlimited.
+
+ro_mixed_limits :-
+    ro_roster, ro_quals, ro_shifts,
+    assertz(attribute(duty_policy, max_duty, 840)),
+    assertz(attribute(duty_policy, min_rest, 600)),
+    assertz(attribute(alvarez, rolling_window, 10080)),
+    assertz(attribute(alvarez, rolling_limit, 3600)),
+    assertz(attribute(chen, rolling_window, 10080)),
+    assertz(attribute(chen, rolling_limit, 2400)).
+
+ro_mixed_limits_chen_prefers :-
+    ro_mixed_limits,
+    assertz(relation(chen, prefers, sh_next)).
+
+:- begin_tests(rostering_unlimited_headroom).
+
+test(unlimited_ranks_first, [setup(ro_mixed_limits), cleanup(ro_cleanup)]) :-
+    rank_candidates(sh_next, nurse, R),
+    assertion(R == [diaz, alvarez, chen]).
+
+test(unlimited_score_beats_every_limit, [setup(ro_mixed_limits), cleanup(ro_cleanup), nondet]) :-
+    candidate_score(sh_next, diaz, k(_, NegH, _, _)),
+    candidate_score(sh_next, alvarez, k(_, NegA, _, _)),
+    assertion(NegA == -3600),
+    assertion(NegH < NegA).
+
+test(preference_still_outranks_headroom, [setup(ro_mixed_limits_chen_prefers), cleanup(ro_cleanup)]) :-
+    rank_candidates(sh_next, nurse, R),
+    assertion(R == [chen, diaz, alvarez]).
+
+:- end_tests(rostering_unlimited_headroom).

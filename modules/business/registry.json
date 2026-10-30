@@ -692,7 +692,7 @@
           "name": "pct_off",
           "type": "number",
           "presence": "key",
-          "note": "Percent off the base price (20 is 20%); wins over flat_off."
+          "note": "Percent of the base price (20 is 20%) taken off the tier price, so it adds to the tier multiplier rather than compounding (member 0.9 with 20 off 100 pays 70); wins over flat_off."
         },
         {
           "role": "discount",

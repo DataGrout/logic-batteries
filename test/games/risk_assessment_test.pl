@@ -99,3 +99,51 @@ test(zero_player_damage_fails, [nondet, setup((setup_goblin, assertz(attribute(p
     assertion(\+ fight_outcome_summary(pacifist, goblin, _, _, _)).
 
 :- end_tests(risk_summary).
+
+%% ── A player at 0 hp, an enemy at 0 hp ───────────────────────────────────────
+%% Every ratio here divides by the player's hp (P) or by the damage one kill
+%% costs (kills_to_exhaust); both used to raise zero_divisor at 0.
+
+setup_downed_player :-
+    setup_goblin,
+    assertz(attribute(downed, hp, 0)),
+    assertz(attribute(downed, base_damage, 15)).
+
+setup_negative_hp_player :-
+    setup_goblin,
+    assertz(attribute(overkilled, hp, -10)),
+    assertz(attribute(overkilled, base_damage, 15)).
+
+setup_husk_enemy :-
+    setup_player,
+    assertz(attribute(husk, hp, 0)),
+    assertz(attribute(husk, base_damage, 10)).
+
+:- begin_tests(risk_zero_hp).
+
+test(downed_player_does_not_survive, [setup(setup_downed_player), cleanup(clear_facts)]) :-
+    survival_probability(downed, goblin, HP, P),
+    assertion(HP == 0),
+    assertion(P =:= 0).
+
+test(downed_player_summary, [setup(setup_downed_player), cleanup(clear_facts)]) :-
+    fight_outcome_summary(downed, goblin, Turns, Damage, P),
+    assertion(Turns == 2),
+    assertion(Damage == 20),
+    assertion(P =:= 0).
+
+test(downed_player_flees, [setup(setup_downed_player), cleanup(clear_facts)]) :-
+    findall(A, recommended_action(downed, goblin, A), As),
+    assertion(As == [flee]).
+
+test(negative_hp_player_does_not_survive, [setup(setup_negative_hp_player), cleanup(clear_facts)]) :-
+    %% below 0 used to divide by a negative and score P above 1
+    survival_probability(overkilled, goblin, HP, P),
+    assertion(HP == 0),
+    assertion(P =:= 0).
+
+test(zero_hp_enemy_has_no_kill_count, [setup(setup_husk_enemy), cleanup(clear_facts)]) :-
+    %% a kill that costs no damage gives no finite count
+    assertion(\+ kills_to_exhaust(player, husk, 80, _)).
+
+:- end_tests(risk_zero_hp).
