@@ -1,0 +1,38 @@
+# hierarchy battery on scryer-prolog: multi-level subtotals, structure, and a
+# loop that must terminate and be reported. Names are atoms (double_quotes=
+# chars) and each predicate's facts are one contiguous block.
+modules/reasoning/hierarchy/hierarchy.pl
+---
+relation(utilities, child_of, expenses).
+relation(job_expenses, child_of, expenses).
+relation(rent, child_of, expenses).
+relation(gas, child_of, utilities).
+relation(phone, child_of, utilities).
+relation(job_materials, child_of, job_expenses).
+relation(pipe, child_of, job_materials).
+relation(valves, child_of, job_materials).
+relation(a, child_of, b).
+relation(b, child_of, a).
+metric(gas, amount, 100.5).
+metric(phone, amount, 50.25).
+metric(job_expenses, amount, 10).
+metric(job_materials, amount, 5).
+metric(pipe, amount, 20).
+metric(valves, amount, 30.75).
+metric(rent, amount, 400).
+metric(a, amount, 1).
+metric(b, amount, 2).
+near(X, Y) :- D is X - Y, D < 0.000001, D > -0.000001.
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(utilities, (hier_subtotal(utilities, U), near(U, 150.75))),
+    check(job_expenses, (hier_subtotal(job_expenses, J), near(J, 65.75))),
+    check(expenses, (hier_subtotal(expenses, E), near(E, 616.5))),
+    check(unknown, \+ hier_subtotal(marketing, _)),
+    check(descendants, hier_descendants(job_expenses, [job_materials, pipe, valves])),
+    check(path, hier_path(pipe, expenses, [pipe, job_materials, job_expenses, expenses])),
+    check(depth, (hier_depth(pipe, 3), hier_depth(expenses, 0))),
+    check(loop_subtotal, (hier_subtotal(a, A), near(A, 3))),
+    check(loop_reported, hier_cycle(a)),
+    check(problems, (hier_problems(Ps), member(cycle(b), Ps))),
+    write(smoke_ok), nl.
