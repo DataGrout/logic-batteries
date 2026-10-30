@@ -199,3 +199,47 @@ test(depth_of_a_cycle_with_no_root_fails, [setup(setup_tax_fix_cycle), cleanup(c
     assertion(\+ depth_in_hierarchy(x_cls, _)).
 
 :- end_tests(taxonomy_cycle).
+
+%% ── inherits_property: the nearest definition wins, per property ─────────────
+%% goblin → humanoid → creature → being; goblin overrides has_soul. A second
+%% parent chain puts a closer definition behind a farther one in fact order.
+
+setup_tax_nearest :-
+    setup_direct_overrides_ancestor,
+    assertz(attribute(being, has_soul, maybe)),
+    assertz(relation(imp, is_a, deep_a)),
+    assertz(relation(imp, is_a, near_b)),
+    assertz(relation(deep_a, is_a, deep_a2)),
+    assertz(attribute(deep_a2, size, huge)),
+    assertz(attribute(near_b, size, small)).
+
+:- begin_tests(taxonomy_inherits_nearest).
+
+test(bound_value_from_ancestor_does_not_override_own, [setup(setup_tax_nearest), cleanup(clear_facts)]) :-
+    assertion(\+ inherits_property(goblin, has_soul, true)),
+    assertion(\+ inherits_property(goblin, has_soul, maybe)),
+    assertion(inherits_property(goblin, has_soul, false)).
+
+test(bound_value_on_class_takes_its_nearest, [setup(setup_tax_nearest), cleanup(clear_facts)]) :-
+    assertion(inherits_property(humanoid, has_soul, true)),
+    assertion(\+ inherits_property(humanoid, has_soul, maybe)).
+
+test(unbound_value_is_one_answer, [setup(setup_tax_nearest), cleanup(clear_facts)]) :-
+    findall(V, inherits_property(goblin, has_soul, V), Vs),
+    assertion(Vs == [false]).
+
+test(unbound_property_enumerates_each_once, [setup(setup_tax_nearest), cleanup(clear_facts)]) :-
+    findall(P-V, inherits_property(goblin, P, V), PVs),
+    msort(PVs, Sorted),
+    assertion(Sorted == [color-green, has_soul-false, speaks_language-true]).
+
+test(closest_ancestor_beats_earlier_parent_chain, [setup(setup_tax_nearest), cleanup(clear_facts)]) :-
+    findall(V, inherits_property(imp, size, V), Vs),
+    assertion(Vs == [small]).
+
+test(unbound_entity_lists_each_subject_property, [setup(setup_tax_nearest), cleanup(clear_facts)]) :-
+    findall(E-V, inherits_property(E, has_soul, V), EVs),
+    msort(EVs, Sorted),
+    assertion(Sorted == [being-maybe, creature-true, goblin-false, humanoid-true]).
+
+:- end_tests(taxonomy_inherits_nearest).

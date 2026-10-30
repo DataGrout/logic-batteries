@@ -1,0 +1,25 @@
+# approval_chains on scryer-prolog: approval_granted lists every approver once
+# (direct and by delegation), and next_approver walks numbered steps before the
+# threshold approver without msort/2.
+modules/business/approval_chains/approval_chains.pl
+---
+attribute(s1, request, req_1).
+attribute(s1, approver, manager).
+attribute(s1, step, 1).
+attribute(s2, request, req_1).
+attribute(s2, approver, finance).
+attribute(s2, step, 2).
+attribute(big, threshold, 10000).
+attribute(big, approver, cfo).
+attribute(req_1, amount, 15000).
+relation(req_1, approved_by, manager).
+relation(req_1, approved_by, deputy).
+relation(manager, delegated_to, deputy).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(granted, (findall(A, approval_granted(req_1, A), As), length(As, 2), sort(As, [deputy, manager]))),
+    check(bound, (approval_granted(req_1, manager), \+ approval_granted(req_1, finance))),
+    check(next, next_approver(req_1, finance)),
+    check(blocked, approval_blocked(req_1, awaiting(finance))),
+    check(not_full, \+ fully_approved(req_1)),
+    write(smoke_ok), nl.

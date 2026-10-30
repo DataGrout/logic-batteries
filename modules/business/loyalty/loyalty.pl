@@ -10,6 +10,36 @@ battery_export(loyalty, 'reward_eligible/2',   'reward_eligible(Customer, Reward
 battery_export(loyalty, 'points_to_redeem/3',  'points_to_redeem(Customer, Reward, Points) — Points required to claim Reward, accounting for tier multiplier').
 battery_export(loyalty, 'tier_benefit/3',      'tier_benefit(Customer, Benefit, Value) — a named benefit the Customer receives at their tier').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A customer is
+%% anything with lifetime points, a reward anything with a points cost. Tiers
+%% are the literal subjects platinum, gold, silver and bronze; thresholds and
+%% multipliers live on the fixed subject `loyalty` and all have defaults.
+
+battery_input(loyalty, customer, attribute(lifetime_points), integer, key,
+    'Points ever earned: sets the tier and is the base of the balance.').
+battery_input(loyalty, customer, attribute(redeemed_points), integer, default(0),
+    'Points ever redeemed, subtracted from lifetime_points for the balance.').
+battery_input(loyalty, reward, attribute(points_cost), integer, key,
+    'Points the reward costs before the tier''s redemption multiplier.').
+battery_input(loyalty, tier, relation(has_benefit), ref(benefit), key,
+    'A benefit granted at this tier (platinum, gold, silver or bronze) and every tier above it.').
+battery_input(loyalty, benefit, attribute(benefit_value), atom, key,
+    'What tier_benefit returns for this benefit, as given (true, or a level such as priority).').
+battery_input(loyalty, fixed(loyalty), attribute(platinum_threshold), integer, default(5000),
+    'Lifetime points at which a customer is platinum.').
+battery_input(loyalty, fixed(loyalty), attribute(gold_threshold), integer, default(2000),
+    'Lifetime points at which a customer is gold.').
+battery_input(loyalty, fixed(loyalty), attribute(silver_threshold), integer, default(500),
+    'Lifetime points at which a customer is silver; below it the customer is bronze.').
+battery_input(loyalty, fixed(loyalty), attribute(platinum_redemption_multiplier), number, default(0.7),
+    'Multiplier on a reward''s points cost for platinum customers (0.7 is 30% fewer points).').
+battery_input(loyalty, fixed(loyalty), attribute(gold_redemption_multiplier), number, default(0.85),
+    'Multiplier on a reward''s points cost for gold customers.').
+battery_input(loyalty, fixed(loyalty), attribute(silver_redemption_multiplier), number, default(1.0),
+    'Multiplier on a reward''s points cost for silver customers; bronze always pays 1.0.').
+
 %% ── Loyalty Data Model ────────────────────────────────────────────────────────
 %%
 %% Customer points:
@@ -86,13 +116,20 @@ reward_eligible(Customer, Reward) :-
     points_to_redeem(Customer, Reward, Cost),
     Balance >= Cost.
 
-%% tier_benefit(+Customer, +Benefit, -Value)
+%% tier_benefit(+Customer, ?Benefit, -Value)
+%% A benefit attached to several of the tiers the customer holds or outranks is
+%% reported once.
 tier_benefit(Customer, Benefit, Value) :-
     loyalty_tier(Customer, Tier),
-    ( relation(Tier, has_benefit, Benefit)
-    ; ( relation(ParentTier, has_benefit, Benefit),
-        tier_outranks(Tier, ParentTier) ) ),
+    setof(B, loyalty_benefit_at(Tier, B), Benefits),
+    member(Benefit, Benefits),
     attribute(Benefit, benefit_value, Value).
+
+loyalty_benefit_at(Tier, Benefit) :-
+    relation(Tier, has_benefit, Benefit).
+loyalty_benefit_at(Tier, Benefit) :-
+    relation(Lower, has_benefit, Benefit),
+    tier_outranks(Tier, Lower).
 
 tier_outranks(platinum, gold).
 tier_outranks(platinum, silver).

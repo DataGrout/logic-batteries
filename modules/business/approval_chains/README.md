@@ -84,6 +84,9 @@ Each step is a separate entity keyed however you like. Steps are ordered by thei
 ```
 
 `approval_granted` treats an approval by `deputy` as if `manager` approved.
+With `Approver` unbound it lists everyone whose approval is on record, each
+once: every direct approver (`deputy` included) and every required approver
+whose delegate approved (`manager`).
 
 ### Amount-based automatic escalation
 

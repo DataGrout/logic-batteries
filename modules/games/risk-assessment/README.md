@@ -22,9 +22,9 @@ compose on the same entities, but nothing here calls `combat`.
 
 | Predicate | Description |
 |---|---|
-| `survival_probability(Player, Enemy, HP, P)` | P in 0.05–0.99; HP is what the player has left, floored at 0 |
+| `survival_probability(Player, Enemy, HP, P)` | P in 0.05–0.99, or 0 for a player already at 0 hp; HP is what the player has left, floored at 0 |
 | `recommended_action(Player, Enemy, Action)` | `fight` when P > 0.6, else `flee` |
-| `kills_to_exhaust(Player, Enemy, MaxHP, N)` | How many of the enemy the player can kill in sequence starting from MaxHP; at least 1 |
+| `kills_to_exhaust(Player, Enemy, MaxHP, N)` | How many of the enemy the player can kill in sequence starting from MaxHP; at least 1. Fails for an enemy at 0 hp |
 | `fight_outcome_summary(Player, Enemy, Turns, Damage, P)` | Turns to kill, total damage taken, and P |
 
 ## Facts this battery reads
@@ -33,14 +33,15 @@ compose on the same entities, but nothing here calls `combat`.
 
 | Name | On | Value | Description |
 |---|---|---|---|
-| `hp` | player, enemy | number | Hit points. Both sides need one; the same attribute `combat` reads |
-| `base_damage` | player, enemy | number | Damage dealt per turn. Must be above 0 on both sides or every predicate fails |
+| `hp` | player, enemy | number | Hit points. Both sides need one (`kills_to_exhaust` reads only the enemy's); the same attribute `combat` reads. A player at 0 or below does not survive: P is 0. An enemy at 0 or below makes `kills_to_exhaust` fail |
+| `base_damage` | player, enemy | number | Damage dealt per turn. The player's must be above 0 or every predicate fails; `kills_to_exhaust` also fails when the enemy's is 0 |
 
 ## The Model
 
 ```
 Turns  = ceiling(EnemyHP / PlayerDamage)
 Damage = Turns × EnemyDamage
+if PlayerHP =< 0:       P = 0
 if Damage <  PlayerHP:  P = min(0.99, 1 − (Damage / PlayerHP) × 0.5)
 if Damage >= PlayerHP:  P = max(0.05, 0.5 − (Damage − PlayerHP) / (2 × PlayerHP))
 ```
@@ -95,7 +96,12 @@ is deliberate: ask about a full-health run or a wounded one without asserting.
 every predicate fail rather than answer "never".
 
 **P is bounded, not probabilistic.** It is a score in 0.05–0.99 derived from
-the damage ratio; treat the number as a ranking, not as odds.
+the damage ratio; treat the number as a ranking, not as odds. The one exception
+is a player already at 0 hp (or below), who does not survive: P is 0 and
+`recommended_action` says `flee`.
+
+**An enemy at 0 hp has no kill count.** Killing it costs no damage, so
+`kills_to_exhaust` fails rather than answer an unbounded number.
 
 ## What this battery does not do
 

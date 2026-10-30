@@ -1,4 +1,4 @@
-%% Battery: progression v1.0.0
+%% Battery: progression v1.0.1
 %% Exports: level_for_xp/2, xp_to_next_level/2, stat_at_level/3,
 %%          unlock_available/2, can_prestige/1
 

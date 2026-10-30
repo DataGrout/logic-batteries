@@ -34,7 +34,7 @@ end)
 ### Transition Queries
 | Predicate | Description |
 |---|---|
-| `fsm_transition(Machine, From, Event, To)` | Edge From→To fires on Event |
+| `fsm_transition(Machine, From, Event, To)` | Edge From→To, once for each distinct event on From (`unspecified` when it has none) |
 
 ### Reachability
 | Predicate | Description |
@@ -76,6 +76,29 @@ end)
 |---|---|
 | `fsm_machines(Machines)` | All FSM entities in the namespace |
 | `fsm_validate(Machine, Issues)` | Structural issues: dead states, unreachable states, non-determinism |
+
+## Facts this battery reads
+
+**Attributes**
+
+| Name | On | Value | Description |
+|---|---|---|---|
+| `state_type` | state | `initial` or `terminal` | Where reachability starts; a terminal state is not dead without exits |
+| `on` | state | an event | An event the state's exits fire on. Events sit on states, not edges; absent reads as `unspecified` |
+| `machine_type` | machine | `fsm` | Lists the machine in `fsm_machines`; nothing else reads it |
+| `current_state` | machine | a state | The live state, for `fsm_complete`, `fsm_stuck`, `fsm_stuck_at` |
+| `from_state` | trace step | a state | The state the step left |
+| `to_state` | trace step | a state | The state the step entered; a step without one is left out of the trace |
+| `event` | trace step | an event | What triggered the step; absent reads as `unspecified` |
+
+**Relations**
+
+| Name | Subject → Object | Description |
+|---|---|---|
+| `has_state` | machine → state | The machine owns the state; edges and reachability stay within a machine's own states |
+| `transitions_to` | state → state | An exit |
+| `visited` | machine → state | A state the run has been in |
+| `trace_step` | machine → step id | One recorded step. Steps are listed in the order their facts were asserted; no rule reads a `step_index` |
 
 ## Setup
 
@@ -128,6 +151,11 @@ with at least as many events as exits — `review` on `approve` and `reject`,
 leaving for `approved` and `rejected` — is not flagged: a one-to-one reading
 exists, though the facts cannot confirm it. Each ambiguous state is reported
 once. `fsm_deterministic/1` is the absence of any such state.
+
+For the same reason `fsm_transition/4` pairs every exit of a state with every
+distinct event on it: `review` on `approve` and `reject`, leaving for
+`approved` and `rejected`, gives four answers, since nothing says which event
+takes which exit.
 
 **Shortest means fewest edges.** `fsm_shortest_path/4` searches breadth-first
 with a visited set, so it terminates on cycles and fails when To is

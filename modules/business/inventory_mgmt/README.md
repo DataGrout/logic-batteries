@@ -30,10 +30,10 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | Name | On | Value | Description |
 |---|---|---|---|
 | `stock` | item | number | Units on hand; decimals are fine. `≤ 0` is `stockout` |
-| `reorder_threshold` | item | integer | At or below this the item is `low` and `needs_reorder` |
-| `critical_threshold` | item | integer | At or below this the item is `critical`. Default: half of `reorder_threshold`, or 5 when there is neither |
-| `reorder_quantity` | item | integer | Recommended order size. When absent, `max_stock − stock`; when that is absent too, 50 |
-| `max_stock` | item | integer | Shelf capacity; only used to derive a reorder quantity |
+| `reorder_threshold` | item | number | At or below this the item is `low` and `needs_reorder` |
+| `critical_threshold` | item | number | At or below this the item is `critical`. Default: half of `reorder_threshold`, or 5 when there is neither |
+| `reorder_quantity` | item | number | Recommended order size. When absent, `max_stock − stock`; when that is absent too, 50 |
+| `max_stock` | item | number | Shelf capacity; only used to derive a reorder quantity |
 | `daily_usage` | item | number | Units consumed per day, for `days_of_stock`: `floor(stock / daily_usage)`, never below 0, so always a whole number of days. Absent or zero gives `unknown` |
 | `preferred` | supplier | `true` | Marks the supplier `preferred_supplier` returns first; otherwise any `supplied_by` supplier is returned |
 

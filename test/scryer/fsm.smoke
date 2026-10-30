@@ -1,4 +1,5 @@
-# fsm battery on scryer-prolog: structured facts as atoms, reachability,
+# fsm battery on scryer-prolog: structured facts as atoms, transitions (each
+# event of a state on each exit), reachability,
 # structural analysis (a shared event on a branching state is ambiguous; an
 # event per exit is not), breadth-first shortest paths and validation. Under
 # double_quotes=chars a quoted literal never matches a stored atom, so every
@@ -52,6 +53,7 @@ smoke :-
     check(reachable, (fsm_reachable(m, idle, complete), \+ fsm_reachable(m, complete, idle))),
     check(reachable_states, (fsm_reachable_states(m, S), S == [complete, idle, running])),
     check(transition, fsm_transition(m, idle, start_lap, running)),
+    check(every_event, (findall(E-T, fsm_transition(br, r0, E, T), ETs), sort(ETs, SETs), length(ETs, 4), SETs == [accept-r1, accept-r2, reject-r1, reject-r2])),
     check(status, (fsm_current_state(m, running), \+ fsm_complete(m), \+ fsm_stuck(m))),
     check(dead_and_unreachable, (fsm_dead_state(m, orphan), fsm_unreachable_state(m, orphan))),
     check(deterministic, fsm_deterministic(m)),

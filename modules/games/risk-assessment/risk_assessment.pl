@@ -15,6 +15,17 @@ battery_export('risk-assessment', 'kills_to_exhaust/4',
 battery_export('risk-assessment', 'fight_outcome_summary/5',
     'fight_outcome_summary(Player, Enemy, TurnsToKill, DamageTaken, P) — full breakdown of a combat encounter').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Player and enemy
+%% are one kind of subject, a combatant with hit points and a per-turn damage;
+%% a predicate fails when either side lacks a fact it reads.
+
+battery_input('risk-assessment', combatant, attribute(hp), number, key,
+    'Current hit points, the same attribute combat reads. A player at 0 or below does not survive (P is 0); kills_to_exhaust fails for an enemy at 0 or below.').
+battery_input('risk-assessment', combatant, attribute(base_damage), number, required,
+    'Damage dealt per turn; the player''s must be above 0, and kills_to_exhaust also needs the enemy''s above 0.').
+
 %% ── Survival probability ───────────────────────────────────────────────────
 %% Assert: { type:"attribute", entity:"player", attribute:"hp", value:80 }
 %%         { type:"attribute", entity:"goblin", attribute:"hp", value:30 }
@@ -30,7 +41,15 @@ survival_probability(Player, Enemy, HPRemaining, P) :-
     TurnsToKill is ceiling(EHP / PD),
     DamageTaken is TurnsToKill * ED,
     HPRemaining is max(0, PHP - DamageTaken),
-    (   DamageTaken >= PHP
+    risk_survival_p(PHP, DamageTaken, P).
+
+%% P is a ratio over the player's hp. A player at 0 or below is already down:
+%% they do not survive, so P is 0 rather than a division by zero (or, below 0,
+%% a score above 1).
+risk_survival_p(PHP, DamageTaken, P) :-
+    (   PHP =< 0
+    ->  P = 0.0
+    ;   DamageTaken >= PHP
     ->  P is max(0.05, 0.5 - (DamageTaken - PHP) / (PHP * 2.0))
     ;   P is min(0.99, 1.0 - (DamageTaken / PHP) * 0.5)
     ).
@@ -50,6 +69,8 @@ kills_to_exhaust(Player, Enemy, MaxHP, N) :-
     attribute(Player, base_damage, PD),
     attribute(Enemy, hp, EHP),
     ED > 0, PD > 0,
+    %% an enemy at 0 hp or below costs no damage to kill, so no finite count
+    EHP > 0,
     TurnsPerKill is ceiling(EHP / PD),
     DamagePerKill is TurnsPerKill * ED,
     N is max(1, floor(MaxHP / DamagePerKill)).
@@ -64,7 +85,4 @@ fight_outcome_summary(Player, Enemy, TurnsToKill, DamageTaken, P) :-
     PD > 0,
     TurnsToKill is ceiling(EHP / PD),
     DamageTaken is TurnsToKill * ED,
-    (   DamageTaken >= PHP
-    ->  P is max(0.05, 0.5 - (DamageTaken - PHP) / (PHP * 2.0))
-    ;   P is min(0.99, 1.0 - (DamageTaken / PHP) * 0.5)
-    ).
+    risk_survival_p(PHP, DamageTaken, P).

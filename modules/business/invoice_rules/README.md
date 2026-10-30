@@ -31,10 +31,10 @@ client.perform("data-grout@1/batteries.install_many@1", {
 |---|---|---|---|
 | `amount` | invoice | number | The invoiced amount; base for `late_fee` and `payment_due_amount` |
 | `paid` | invoice | `true` | A paid invoice is never overdue. Any other value, or no fact, means unpaid |
-| `due_absolute_days` | invoice | integer | Due date as a day count from any epoch. Preferred; takes priority over the three-part date |
-| `due_year`, `due_month`, `due_day` | invoice | integers | Due date in parts. Used only when `due_absolute_days` is absent, and approximated as `Y×365 + M×30 + D` |
-| `absolute_days` | `today` | integer | Today as a day count, same epoch as `due_absolute_days`. Preferred |
-| `year`, `month`, `day` | `today` | integers | Today in parts; same approximation as above |
+| `due_absolute_days` | invoice | integer | Due date as a day count from 1970-01-01. Preferred; takes priority over the three-part date |
+| `due_year`, `due_month`, `due_day` | invoice | integers | Due date in parts. Used only when `due_absolute_days` is absent; converted to the same day count |
+| `absolute_days` | `today` | integer | Today as a day count from 1970-01-01, the convention every dated battery shares. Preferred |
+| `year`, `month`, `day` | `today` | integers | Today in parts, converted the same way |
 | `late_fee_flat` | `billing` | number | Flat late fee; default 50 |
 | `late_fee_pct` | `billing` | fraction | Percentage late fee (`round(amount × pct)`). When present it is used instead of the flat fee |
 | `late_fee_cap` | `billing` | number | Upper bound on the fee; no cap when absent |
@@ -44,8 +44,8 @@ client.perform("data-grout@1/batteries.install_many@1", {
 `today` and `billing` are fixed entity names: the current date and the fee
 policy live on them, not on each invoice. Assert `today` at query time.
 
-Mixing the two date forms across `today` and an invoice compares a real day
-count with an approximation and will be off by days; use one form for both.
+Both forms are calendar-exact day counts from 1970-01-01, so `today` and an
+invoice may use different forms.
 
 ## Default Escalation Thresholds
 
@@ -82,10 +82,10 @@ Assert today's date at runtime:
 { type="attribute", entity="today", attribute="day",   value=25   }
 ```
 
-**For production billing**, use absolute day counts to avoid the ~1-day approximation error from the month-length simplification (all months treated as 30 days):
+Or as day counts from 1970-01-01 (DataGrout's records map writes today as `{"now": "days"}` and a date field with `"as": "days"`):
 ```
-{ type="attribute", entity="today",   attribute="absolute_days",     value=738970 }
-{ type="attribute", entity="inv_001", attribute="due_absolute_days", value=738924 }
+{ type="attribute", entity="today",   attribute="absolute_days",     value=20568 }
+{ type="attribute", entity="inv_001", attribute="due_absolute_days", value=20522 }
 ```
 When `absolute_days` is present it takes priority over year/month/day.
 

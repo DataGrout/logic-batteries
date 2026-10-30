@@ -1,0 +1,30 @@
+# The shared date convention on scryer-prolog: scheduling steps across a month
+# end, compliance ages a YYYYMMDD record in calendar days, and invoice_rules
+# counts a leap February. Day 20604 is 2026-05-31; 19754 is 2024-02-01.
+modules/business/scheduling/scheduling.pl
+modules/business/compliance/compliance.pl
+modules/business/invoice_rules/invoice_rules.pl
+---
+attribute(tiny_room, slots, [9]).
+attribute(tiny_room, max_advance, 30).
+attribute(b_0531, date, 20260531).
+attribute(b_0531, slot, 9).
+attribute(today, absolute_days, 20583).
+attribute(rec_edge, created_day, 20240131).
+attribute(tight, retention_days, 1).
+attribute(inv_9, amount, 10).
+attribute(inv_9, due_year, 2024).
+attribute(inv_9, due_month, 2).
+attribute(inv_9, due_day, 28).
+relation(tiny_room, booked_at, b_0531).
+
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(yyyymmdd, sched_day(20260531, 20604)),
+    check(iso, sched_day('2026-06-01', 20605)),
+    check(conflict, booking_conflict(tiny_room, '2026-05-31', 9)),
+    check(rollover, (\+ slot_available(tiny_room, 20604, 9), slot_available(tiny_room, 20605, 9))),
+    check(comp_day, (comp_day(20240201, A), comp_day(20240131, B), A - B =:= 1)),
+    check(leap, (date_to_days(2024, 3, 1, X), date_to_days(2024, 2, 28, Y), X - Y =:= 2)),
+    check(epoch, date_to_days(1970, 1, 1, 0)),
+    write(smoke_ok), nl.

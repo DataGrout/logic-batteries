@@ -29,7 +29,7 @@ battery_export(rostering, 'roster_valid/1',
 battery_export(rostering, 'candidates/3',
     'candidates(Shift, Role, Workers) — rostered workers with Role who are fit for Shift (duty battery) and not already on Shift or on an incompatible assigned shift; in roster order').
 battery_export(rostering, 'candidate_score/3',
-    'candidate_score(Shift, Worker, Score) — ranking key k(PrefRank, NegHeadroom, Load, NegSeniority): prefers=0/none=1/avoids=2, then more duty headroom, then fewer assigned shifts in the rolling window, then seniority; lower sorts first').
+    'candidate_score(Shift, Worker, Score) — ranking key k(PrefRank, NegHeadroom, Load, NegSeniority): prefers=0/none=1/avoids=2, then more duty headroom (a worker with no rolling limit counts as one more than the largest rolling_limit, so above every limited worker), then fewer assigned shifts in the rolling window, then seniority; lower sorts first').
 battery_export(rostering, 'rank_candidates/3',
     'rank_candidates(Shift, Role, Ranked) — candidates ordered best first by candidate_score/3').
 battery_export(rostering, 'fill_shift/3',
@@ -48,6 +48,36 @@ battery_export(rostering, 'load_imbalance/5',
     'load_imbalance(Role, WindowStart, WindowEnd, Max, Min) — heaviest and lightest assigned load among workers with Role in the window').
 battery_export(rostering, 'roster_model/2',
     'roster_model(Shifts, Facts) — the assign battery model for the open slots of Shifts: one slot per missing seat with attribute(Slot, domain, Candidates), relation(Slot, slot_of, Shift), attribute(Slot, seat, Role), relation(Shift, distinct, Slot); assert them, add the two hook clauses from the README, and call assign_solve').
+
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What rostering's own clauses read, for a host to validate facts against and
+%% to build a schema from (see CONTRIBUTING, "Input contract"). A worker's
+%% legality (duty periods, unavailability, policy limits, qualifications, a
+%% shift's required kinds) is read through the duty battery and declared in
+%% its contract, not here. The domain, seat, slot_of and distinct facts
+%% roster_model/2 builds are output, not input.
+
+battery_input(rostering, shift, relation(needs), ref(requirement), key,
+    'One seat requirement of the shift, one per role needed.').
+battery_input(rostering, shift, attribute(start), integer, required,
+    'When the shift starts, included, on the duty battery''s timeline and in its time unit.').
+battery_input(rostering, shift, attribute(end), integer, required,
+    'When the shift ends, excluded, in the same unit as start.').
+battery_input(rostering, shift, relation(assigned), ref(worker), optional,
+    'A worker currently on the shift; coverage, violations, load and swaps are computed from these.').
+battery_input(rostering, requirement, attribute(seat), atom, key,
+    'The role this seat requirement is for, matched against a worker''s role.').
+battery_input(rostering, requirement, attribute(count), integer, required,
+    'How many workers with that role the shift needs.').
+battery_input(rostering, worker, attribute(role), atom, key,
+    'The worker''s role; only workers whose role matches a seat are candidates for it.').
+battery_input(rostering, worker, relation(prefers), ref(shift), optional,
+    'A shift the worker would like; ranks the worker first for it.').
+battery_input(rostering, worker, relation(avoids), ref(shift), optional,
+    'A shift the worker would rather not take; ranks the worker last for it.').
+battery_input(rostering, worker, attribute(seniority), integer, default(0),
+    'Last ranking key; higher ranks earlier.').
 
 %% ── Data model ───────────────────────────────────────────────────────────────
 %%
@@ -201,9 +231,27 @@ rostering_pref_rank(Shift, Worker, Rank) :-
     ;   Rank = 1
     ).
 
+%% A worker with no rolling limit (duty_headroom/3 fails: no rolling_window or
+%% no rolling_limit at any level) has unlimited headroom. The key must stay a
+%% number, so unlimited is reported as one more than the largest rolling_limit
+%% any rostered worker has: a limited worker's headroom never exceeds its own
+%% limit, so every unlimited worker ranks above every limited one and the
+%% order among limited workers is untouched.
 rostering_headroom(Shift, Worker, H) :-
     rostering_window(Shift, _, E),
-    (   duty_headroom(Worker, E, H0) -> H = H0 ; H = 0 ).
+    (   duty_headroom(Worker, E, H0) -> H = H0
+    ;   rostering_unlimited_headroom(H)
+    ).
+
+rostering_unlimited_headroom(H) :-
+    findall(L, ( attribute(W, role, _), duty_limit(W, rolling_limit, L) ), Ls),
+    rostering_max(Ls, 0, Max),
+    H is Max + 1.
+
+rostering_max([], M, M).
+rostering_max([X|Xs], M0, M) :-
+    M1 is max(M0, X),
+    rostering_max(Xs, M1, M).
 
 %% Assigned shifts of Worker inside the rolling window ending at the shift's
 %% end (all assigned shifts when no rolling_window is configured).

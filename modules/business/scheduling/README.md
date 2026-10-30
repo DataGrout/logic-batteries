@@ -33,7 +33,8 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `advance_days` | resource | integer | Earliest booking is `today + advance_days`; default 0 |
 | `max_advance` | resource | integer | Latest booking is `today + max_advance`; default 365. Also bounds how far `next_available_slot` searches |
 | `requires_role` | resource | a role id | Optional: only customers with this `role` can book |
-| `date` | booking, `today` | integer | The day. `today` is a fixed entity name; assert its `date` at query time. The advance window is computed by *adding days to this integer*, so it is only correct for a day-count from an epoch — `YYYYMMDD` values break across month ends |
+| `date` | booking, `today` | a date | The day, in any form below. `today` is a fixed entity name; assert its date at query time |
+| `absolute_days` | `today` | integer | Today as a day count from 1970-01-01, the convention every dated battery shares. Takes priority over `today`'s `date` |
 | `slot` | booking | a slot id | Which of the resource's `slots` the booking holds |
 | `role` | customer | a role id | Matched against a resource's `requires_role` |
 
@@ -48,10 +49,13 @@ comments but no clause reads them.
 
 ## Date Format
 
-Dates are `YYYYMMDD` integers. This makes ordering and arithmetic straightforward without calendar dependencies:
+A date is a day count from 1970-01-01, a `YYYYMMDD` integer, or an ISO
+`'YYYY-MM-DD'` atom, in any mix. A number of 10000101 or more is read as
+`YYYYMMDD`. Every date becomes a day count before it is compared or stepped, so
+the advance window and `next_available_slot` cross month ends correctly:
 
 ```
-20260510  →  May 10, 2026
+20605  =  20260601  =  '2026-06-01'
 ```
 
 ## Setup

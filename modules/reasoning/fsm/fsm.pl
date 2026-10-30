@@ -22,7 +22,8 @@
 %%     attribute(StepId,  from_state, From)       - trace: prior state
 %%     attribute(StepId,  to_state,   To)         - trace: next state
 %%     attribute(StepId,  event,      Event)      - trace: triggering event
-%%     attribute(StepId,  step_index, N)          - trace: sequence number
+%%   (Steps are read in the order their facts were asserted; a step_index
+%%    attribute may be stored but no rule reads it.)
 %%
 %% Usage:
 %%   Agent asserts structural facts into a namespace (e.g. bench, "_plan_fsm"),
@@ -79,6 +80,37 @@
 %% Manifest (version tracked here, in the registry, and in the README).
 battery_module('fsm', '1.1.0', auto).
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A machine is
+%% anything with has_state edges; a state belongs to whichever machines list
+%% it, and is keyed by its exits or its type (a state with neither is a dead
+%% state, still found through has_state); a step is one recorded move of a
+%% machine's trace. Steps are read in fact order: nothing reads a step index.
+
+battery_input(fsm, machine, relation(has_state), ref(state), key,
+    'A state this machine owns; edges and reachability stay within the machine''s own states.').
+battery_input(fsm, machine, attribute(machine_type), enum([fsm]), optional,
+    'fsm lists the machine in fsm_machines; nothing else reads it.').
+battery_input(fsm, machine, attribute(current_state), ref(state), optional,
+    'The live state, for fsm_complete, fsm_stuck and fsm_stuck_at.').
+battery_input(fsm, machine, relation(visited), ref(state), optional,
+    'A state the machine has been in, as fsm_visited reports it.').
+battery_input(fsm, machine, relation(trace_step), ref(step), optional,
+    'One recorded step of the run; fsm_trace lists them in the order the facts were asserted.').
+battery_input(fsm, state, relation(transitions_to), ref(state), key,
+    'An exit from this state to another state of the same machine.').
+battery_input(fsm, state, attribute(state_type), enum([initial, terminal]), key,
+    'initial marks where reachability starts; terminal marks an accepting state, which is not dead without exits.').
+battery_input(fsm, state, attribute(on), atom, optional,
+    'An event this state''s exits fire on (events sit on states, not edges); absent reads as unspecified.').
+battery_input(fsm, step, attribute(from_state), ref(state), key,
+    'The state the step left.').
+battery_input(fsm, step, attribute(to_state), ref(state), required,
+    'The state the step entered; a step without one is left out of the trace.').
+battery_input(fsm, step, attribute(event), atom, default(unspecified),
+    'The event that triggered the step.').
+
 %% ── Bridge Predicates ────────────────────────────────────────────────────────
 %%
 %% Machines are described with structured relation/3 and attribute/3 facts.
@@ -131,13 +163,18 @@ fsm_terminal_state(Machine, State) :-
 %% ── Transition Queries ───────────────────────────────────────────────────────
 
 %% fsm_transition(+Machine, ?From, ?Event, ?To)
-%% There is an edge From → To that fires on Event in Machine.
-%% Event is unbound if none was asserted.
+%% There is an edge From → To in Machine and Event is one of From's events.
+%% Events sit on states, not edges, so a state with several events reports
+%% each distinct one on each of its exits; the facts do not say which event
+%% takes which exit. Event is `unspecified` when From has none.
 fsm_transition(Machine, From, Event, To) :-
     fsm_has_state(Machine, From),
     fsm_edge(From, To),
     fsm_has_state(Machine, To),
-    ( fsm_edge_event(From, E) -> Event = E ; Event = unspecified ).
+    (   setof(E, fsm_edge_event(From, E), Events)
+    ->  member(Event, Events)
+    ;   Event = unspecified
+    ).
 
 %% ── Reachability ─────────────────────────────────────────────────────────────
 

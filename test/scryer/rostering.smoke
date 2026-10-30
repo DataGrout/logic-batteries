@@ -1,4 +1,5 @@
-# rostering over duty and assign on scryer-prolog
+# rostering over duty and assign on scryer-prolog. The medic shift checks that
+# a worker with no rolling limit ranks above one with a limit.
 modules/business/duty/duty.pl
 modules/reasoning/assign/assign.pl
 modules/business/rostering/rostering.pl
@@ -32,6 +33,14 @@ attribute(sh_next, start, 1920).
 attribute(sh_next, end, 2520).
 attribute(r_nx_n, seat, nurse).
 attribute(r_nx_n, count, 1).
+attribute(m_lim, role, medic).
+attribute(m_lim, rolling_window, 10080).
+attribute(m_lim, rolling_limit, 3600).
+attribute(m_free, role, medic).
+attribute(sh_med, start, 5000).
+attribute(sh_med, end, 5400).
+attribute(r_med, seat, medic).
+attribute(r_med, count, 1).
 relation(alvarez, holds, q_a).
 relation(chen, holds, q_c).
 relation(diaz, holds, q_d).
@@ -41,6 +50,7 @@ relation(sh_am, needs, r_am_o).
 relation(sh_am, requires, acls).
 relation(sh_pm, needs, r_pm_n).
 relation(sh_next, needs, r_nx_n).
+relation(sh_med, needs, r_med).
 relation(alvarez, prefers, sh_am).
 relation(chen, avoids, sh_am).
 assign_reject_pair(S1, W, S2, W) :-
@@ -51,6 +61,8 @@ smoke :-
     check(propose, propose_roster([sh_next, sh_pm, sh_am], [sh_am-alvarez, sh_am-diaz, sh_am-okafor, sh_pm-chen, sh_next-alvarez], [])),
     check(rank, rank_candidates(sh_am, nurse, [alvarez, diaz, chen])),
     check(score, candidate_score(sh_am, alvarez, k(0, -3600, 0, -9))),
+    check(unlimited_first, rank_candidates(sh_med, medic, [m_free, m_lim])),
+    check(unlimited_score, candidate_score(sh_med, m_free, k(1, -3601, 0, 0))),
     check(incompat, (incompatible_shifts(alvarez, sh_am, sh_pm), \+ incompatible_shifts(alvarez, sh_am, sh_next))),
     check(model, (roster_model([sh_am, sh_pm], Facts), length(Facts, 16))),
     write(smoke_ok), nl, halt.

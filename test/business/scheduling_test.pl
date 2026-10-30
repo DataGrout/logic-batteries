@@ -113,3 +113,37 @@ test(partial_utilization, [setup((setup_room_with_slots, setup_booking_slot_10))
     resource_utilization(meeting_room_a, 20260510, Pct), assertion(Pct == 14).
 
 :- end_tests(scheduling_utilization).
+
+%% ── Dates: one day count underneath, any of the three forms on top ───────────
+
+setup_full_on_0531 :-
+    assertz(attribute(tiny_room, slots, [9])),
+    assertz(attribute(tiny_room, max_advance, 30)),
+    assertz(relation(tiny_room, booked_at, b_0531)),
+    assertz(attribute(b_0531, date, 20260531)),
+    assertz(attribute(b_0531, slot, 9)).
+
+setup_absolute_0510 :-
+    assertz(attribute(today, absolute_days, 20583)).   % 2026-05-10
+
+:- begin_tests(scheduling_dates).
+
+test(next_slot_rolls_over_a_month_end, [setup((setup_today_0510, setup_full_on_0531)), cleanup(clear_facts)]) :-
+    %% The old YYYYMMDD arithmetic stepped to 20260532, which matches no booking
+    %% and no calendar day. 2026-06-01 is day 20605.
+    next_available_slot(tiny_room, 20260531, 9),
+    assertion(\+ slot_available(tiny_room, 20260531, 9)),
+    assertion(slot_available(tiny_room, 20605, 9)).
+
+test(forms_agree_on_a_booking, [setup(setup_full_on_0531), cleanup(clear_facts)]) :-
+    %% 2026-05-31 is day 20604.
+    assertion(booking_conflict(tiny_room, 20604, 9)),
+    assertion(booking_conflict(tiny_room, '2026-05-31', 9)),
+    assertion(booking_conflict(tiny_room, 20260531, 9)).
+
+test(absolute_today_sets_the_window, [setup((setup_room_with_slots, setup_advance_rules, setup_absolute_0510)), cleanup(clear_facts)]) :-
+    assertion(can_book(anyone, meeting_room_a, 20260511, 9)),
+    assertion(\+ can_book(anyone, meeting_room_a, 20260510, 9)),
+    assertion(\+ can_book(anyone, meeting_room_a, '2026-06-10', 9)).
+
+:- end_tests(scheduling_dates).

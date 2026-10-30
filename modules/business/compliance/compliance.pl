@@ -10,6 +10,30 @@ battery_export(compliance, 'data_retention_ok/2',  'data_retention_ok(Record, Po
 battery_export(compliance, 'consent_required/2',   'consent_required(Action, ConsentType) — ConsentType must be obtained before performing Action').
 battery_export(compliance, 'consent_given/2',       'consent_given(Customer, ConsentType) — Customer has granted ConsentType consent').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read, for a host to validate facts against and to build a
+%% schema from (see CONTRIBUTING, "Input contract"). The entity checked against
+%% a policy is open-ended: it carries one attribute per requirement, named by
+%% the requirement (attribute(Entity, Req, V) for each relation(Policy,
+%% requires, Req)), so those names are the user's and are not declared here.
+%% A policy used only for retention needs no facts; retention_days defaults.
+
+battery_input(compliance, policy, relation(requires), atom, key,
+    'A requirement of the policy; an entity meets it with an attribute of that name whose value is not false, none or missing.').
+battery_input(compliance, policy, attribute(retention_days), integer, default(2555),
+    'Oldest a record may be, in days, under this policy; seven years when absent.').
+battery_input(compliance, record, attribute(created_day), date, key,
+    'The day the record was created; its age is today minus this.').
+battery_input(compliance, fixed(today), attribute(absolute_days), days, key,
+    'Today as a day count from 1970-01-01, the shared convention. Preferred over date.').
+battery_input(compliance, fixed(today), attribute(date), date, key,
+    'Today as a day count, a YYYYMMDD integer or an ISO atom, when absolute_days is absent.').
+battery_input(compliance, action, attribute(requires_consent), atom, key,
+    'The consent type that must be held before the action is performed.').
+battery_input(compliance, customer, relation(granted_consent), atom, key,
+    'A consent type the customer has granted.').
+
 %% ── Compliance Data Model ─────────────────────────────────────────────────────
 %%
 %% Policies and requirements:
@@ -27,8 +51,12 @@ battery_export(compliance, 'consent_given/2',       'consent_given(Customer, Con
 %% Data retention:
 %%   attribute(gdpr,  retention_days, 2555)    %% 7 years
 %%   attribute(hipaa, retention_days, 2190)    %% 6 years
-%%   attribute(record_456, created_day,  20240101)   %% YYYYMMDD integer
-%%   attribute(today, date, 20260510)
+%%   attribute(record_456, created_day,  20240101)   %% a date (below)
+%%   attribute(today, absolute_days, 20583)          %% or attribute(today, date, D)
+%%
+%% Dates are a day count from 1970-01-01, a YYYYMMDD integer or an ISO
+%% 'YYYY-MM-DD' atom, in any mix; each becomes a day count before the age is
+%% taken, so a record from 20240131 is one day old on 20240201.
 %%
 %% Consent registry:
 %%   relation(customer_123, granted_consent, marketing)
@@ -96,11 +124,47 @@ requirement_met(Entity, Req) :-
 %% ── data_retention_ok/2 ───────────────────────────────────────────────────────
 
 data_retention_ok(Record, Policy) :-
-    attribute(Record, created_day, Created),
-    attribute(today, date, Today),
+    attribute(Record, created_day, Created0),
+    comp_day(Created0, Created),
+    comp_today(Today),
     ( attribute(Policy, retention_days, Limit) -> true ; Limit = 2555 ),
     Age is Today - Created,
     Age =< Limit.
+
+comp_today(Day) :-
+    attribute(today, absolute_days, Day), !.
+comp_today(Day) :-
+    attribute(today, date, Value),
+    comp_day(Value, Day).
+
+%% comp_day(+Date, -Day): Day counts from 1970-01-01. A number of 10000101 or
+%% more is read as YYYYMMDD; a smaller one is already a day count.
+comp_day(Value, Day) :-
+    integer(Value),
+    Value >= 10000101, !,
+    Y is Value // 10000,
+    M is (Value // 100) mod 100,
+    D is Value mod 100,
+    comp_days_from_civil(Y, M, D, Day).
+comp_day(Value, Value) :-
+    number(Value), !.
+comp_day(Value, Day) :-
+    atom(Value),
+    atom_chars(Value, [Y1, Y2, Y3, Y4, '-', M1, M2, '-', D1, D2]),
+    number_chars(Y, [Y1, Y2, Y3, Y4]),
+    number_chars(M, [M1, M2]),
+    number_chars(D, [D1, D2]),
+    comp_days_from_civil(Y, M, D, Day).
+
+%% Proleptic Gregorian, the same count as invoice_rules, scheduling and
+%% bom_policy.
+comp_days_from_civil(Y, M, D, Day) :-
+    Y0 is Y - (14 - M) // 12 + 400,
+    Era is Y0 // 400,
+    YoE is Y0 - Era * 400,
+    DoY is (153 * ((M + 9) mod 12) + 2) // 5 + D - 1,
+    DoE is YoE * 365 + YoE // 4 - YoE // 100 + DoY,
+    Day is Era * 146097 + DoE - 719468 - 146097.
 
 %% ── consent_required/2 ────────────────────────────────────────────────────────
 

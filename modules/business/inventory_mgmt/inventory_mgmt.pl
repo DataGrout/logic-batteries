@@ -10,6 +10,29 @@ battery_export(inventory_mgmt, 'stock_level/2',       'stock_level(Item, Level) 
 battery_export(inventory_mgmt, 'preferred_supplier/2','preferred_supplier(Item, Supplier) — Supplier is the preferred source for Item').
 battery_export(inventory_mgmt, 'days_of_stock/2',     'days_of_stock(Item, Days) — estimated days until Item runs out at current usage rate').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). An item is
+%% anything with a stock count or a supplier; the unbound queries list items
+%% by exactly those facts. A supplier is the object of supplied_by.
+
+battery_input(inventory_mgmt, item, attribute(stock), number, key,
+    'Units on hand, decimals allowed; 0 or less is a stockout.').
+battery_input(inventory_mgmt, item, relation(supplied_by), ref(supplier), key,
+    'A supplier of the item; with several, a preferred one is chosen first.').
+battery_input(inventory_mgmt, item, attribute(reorder_threshold), number, optional,
+    'Stock at or below which the item is low and needs reordering.').
+battery_input(inventory_mgmt, item, attribute(critical_threshold), number, optional,
+    'Stock at or below which the item is critical; default half the reorder_threshold, or 5 without one.').
+battery_input(inventory_mgmt, item, attribute(reorder_quantity), number, optional,
+    'Units to order; default max_stock less stock, or 50 without a max_stock.').
+battery_input(inventory_mgmt, item, attribute(max_stock), number, optional,
+    'Shelf capacity, used to size an order when no reorder_quantity is set.').
+battery_input(inventory_mgmt, item, attribute(daily_usage), number, optional,
+    'Units used per day; without it, or at 0, days_of_stock is unknown.').
+battery_input(inventory_mgmt, supplier, attribute(preferred), bool, key,
+    'true marks the supplier preferred_supplier returns ahead of the item''s others.').
+
 %% ── Inventory Management Data Model ──────────────────────────────────────────
 %%
 %% Stock levels:

@@ -38,7 +38,8 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `eol_day` | part | ISO date or integer day | Estimated end-of-life date |
 | `ltb_day` | part | ISO date or integer day | Last-time-buy date. Past means `ltb_passed`, a blocking reason |
 | `<flag>` | part | `compliant`, `true`, `yes` or `qualified` | One attribute per flag a policy names in `requires` (`rohs`, `reach`, `aec_qualified`, …). Any other value, or absence, is `missing(Flag)`, a blocking reason |
-| `date` | `today` | ISO date or integer day | The current day. `today` is a fixed entity name; assert this at query time |
+| `absolute_days` | `today` | integer | Today as a day count from 1970-01-01, the convention every dated battery shares. Takes priority over `date` |
+| `date` | `today` | ISO date or integer day | The current day when `absolute_days` is absent. `today` is a fixed entity name; assert this at query time |
 | `min_sources` | policy | integer | Fewer distinct suppliers than this is `sources(N, Min)`, a warning; default 2 |
 | `eol_horizon_days` | policy | integer | An end-of-life or last-time-buy date within this many days is due; default 365 |
 
@@ -53,7 +54,7 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `blocks_lifecycle` | policy → stage | Stages that block. When a policy declares none, `obsolete` blocks |
 | `warns_lifecycle` | policy → stage | Stages that warn. When a policy declares none, `nrnd` and `eol` warn. A stage that both blocks and warns blocks |
 
-A date is either an ISO `YYYY-MM-DD` date — an atom such as `'2027-03-31'`, a string, or a character list — or an integer day number. ISO dates are converted to days since 1970-01-01, so `date`, `eol_day` and `ltb_day` may each use either form and still compare; an integer that sits beside ISO dates must count from 1970-01-01 too, while integers used only with each other may count from any epoch. A value that is neither — `'2027-02-30'`, a timestamp with a time part, `soon` — is the warning `unreadable(Field, Value)`, so a garbled date never passes for "no deadline". The date checks that need it are skipped (`last_time_buy_due` falls back to `eol_day` when `ltb_day` will not read), and an unreadable `date` on `today`, which switches every date check off, puts `unreadable(today, Value)` on every part that has a date. `YYYYMMDD` integers such as `20270331` are day numbers to the battery and do not subtract correctly across months; pass them as ISO dates instead.
+A date is either an ISO `YYYY-MM-DD` date — an atom such as `'2027-03-31'`, a string, or a character list — or an integer day number. ISO dates are converted to days since 1970-01-01, so `date`, `eol_day` and `ltb_day` may each use either form and still compare; an integer that sits beside ISO dates must count from 1970-01-01 too, while integers used only with each other may count from any epoch. A value that is neither — `'2027-02-30'`, a timestamp with a time part, `soon` — is the warning `unreadable(Field, Value)`, so a garbled date never passes for "no deadline". The date checks that need it are skipped (`last_time_buy_due` falls back to `eol_day` when `ltb_day` will not read), and an unreadable `date` on `today`, which switches every date check off, puts `unreadable(today, Value)` on every part that has a date. An integer of 10000101 or more is read as a `YYYYMMDD` date (`20270331` is March 31st, 2027), as every dated battery reads it; a smaller integer is a day count.
 
 ## Mapping a feed
 

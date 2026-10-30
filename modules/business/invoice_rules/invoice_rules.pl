@@ -10,6 +10,38 @@ battery_export(invoice_rules, 'late_fee/2',            'late_fee(Invoice, Fee) �
 battery_export(invoice_rules, 'escalation_level/2',    'escalation_level(Invoice, Level) — Level is reminder/warning/collections based on days overdue').
 battery_export(invoice_rules, 'payment_due_amount/2',  'payment_due_amount(Invoice, Amount) — total amount now due including any late fee').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read, for a host to validate facts against and to build a
+%% schema from (see CONTRIBUTING, "Input contract"). An invoice is anything
+%% with a due date.
+
+battery_input(invoice_rules, invoice, attribute(due_absolute_days), days, key,
+    'Due date as a day count from 1970-01-01. Preferred over the parts.').
+battery_input(invoice_rules, invoice, attribute(due_year), integer, key,
+    'Due date in parts, with due_month and due_day, when due_absolute_days is absent.').
+battery_input(invoice_rules, invoice, attribute(due_month), integer, optional, 'Due month, 1 to 12.').
+battery_input(invoice_rules, invoice, attribute(due_day), integer, optional, 'Due day of the month.').
+battery_input(invoice_rules, invoice, attribute(amount), number, required,
+    'The amount owed: the base for the late fee and the amount now due.').
+battery_input(invoice_rules, invoice, attribute(paid), bool, default(false),
+    'true once paid; a paid invoice is never overdue.').
+battery_input(invoice_rules, fixed(today), attribute(absolute_days), days, key,
+    'Today as a day count from 1970-01-01, the shared convention.').
+battery_input(invoice_rules, fixed(today), attribute(year), integer, key,
+    'Today in parts, with month and day, when absolute_days is absent.').
+battery_input(invoice_rules, fixed(today), attribute(month), integer, optional, 'The month of today.').
+battery_input(invoice_rules, fixed(today), attribute(day), integer, optional, 'The day of the month of today.').
+battery_input(invoice_rules, fixed(billing), attribute(late_fee_flat), number, default(50),
+    'Flat late fee, used when no late_fee_pct is set.').
+battery_input(invoice_rules, fixed(billing), attribute(late_fee_pct), number, optional,
+    'Late fee as a fraction of the amount (0.015 is 1.5%); wins over the flat fee.').
+battery_input(invoice_rules, fixed(billing), attribute(late_fee_cap), number, optional, 'Largest late fee charged.').
+battery_input(invoice_rules, fixed(billing), attribute(warning_days), integer, default(15),
+    'Days overdue at which the escalation level becomes warning.').
+battery_input(invoice_rules, fixed(billing), attribute(collections_days), integer, default(60),
+    'Days overdue at which the escalation level becomes collections.').
+
 %% ── Invoice Data Model ────────────────────────────────────────────────────────
 %%
 %% Invoice facts:
@@ -19,7 +51,10 @@ battery_export(invoice_rules, 'payment_due_amount/2',  'payment_due_amount(Invoi
 %%   attribute(inv_001, due_year,  2026)
 %%   attribute(inv_001, paid,      false)
 %%
-%% Current date (assert at runtime):
+%% Current date, the convention every dated battery shares: today as a day
+%% count from 1970-01-01 (DataGrout's records map writes it as {"now": "days"}):
+%%   attribute(today, absolute_days, 20572)
+%% or, the older form, as year, month and day:
 %%   attribute(today, day,   25)
 %%   attribute(today, month, 4)
 %%   attribute(today, year,  2026)
@@ -35,15 +70,22 @@ battery_export(invoice_rules, 'payment_due_amount/2',  'payment_due_amount(Invoi
 
 %% ── Date arithmetic ──────────────────────────────────────────────────────────
 %%
-%% For production use, assert precomputed absolute day counts to avoid the
-%% month-approximation error in date_to_days/4 (which treats all months as 30
-%% days). The absolute_days / due_absolute_days facts take priority.
+%% Every date becomes a day count from 1970-01-01, so a due date given as
+%% due_absolute_days and one given as year/month/day compare correctly with
+%% either form of today. The absolute forms take priority.
 %%
-%%   attribute(today,   absolute_days,    738970)   %% days since any epoch
-%%   attribute(inv_001, due_absolute_days, 738924)
+%%   attribute(today,   absolute_days,    20572)
+%%   attribute(inv_001, due_absolute_days, 20522)
 
+%% Days from 1970-01-01 in the proleptic Gregorian calendar (the same count
+%% bom_policy uses), counting years from March so the leap day ends one.
 date_to_days(Y, M, D, Days) :-
-    Days is Y * 365 + M * 30 + D.
+    Y0 is Y - (14 - M) // 12 + 400,
+    Era is Y0 // 400,
+    YoE is Y0 - Era * 400,
+    DoY is (153 * ((M + 9) mod 12) + 2) // 5 + D - 1,
+    DoE is YoE * 365 + YoE // 4 - YoE // 100 + DoY,
+    Days is Era * 146097 + DoE - 719468 - 146097.
 
 today_days(Days) :-
     attribute(today, absolute_days, Days), !.

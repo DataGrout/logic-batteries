@@ -1,4 +1,4 @@
-%% Battery: taxonomy v1.0.0
+%% Battery: taxonomy v1.0.1
 %% Exports: isa/2, inherits_property/3, most_specific_class/2,
 %%          common_ancestor/3, siblings/2, subclasses/2, class_members/2,
 %%          depth_in_hierarchy/2, compatible_types/2, root_class/1
@@ -26,6 +26,18 @@ battery_export(taxonomy, 'compatible_types/2',
 battery_export(taxonomy, 'root_class/1',
     'root_class(Class) — Class has no is_a parent').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Members and
+%% classes are one kind of subject, linked by is_a. inherits_property/3 also
+%% reads attribute(Entity, Property, Value) for whichever Property it is asked
+%% about (or every one, when none is named), on the entity first and then up
+%% the is_a chain, so there is no fixed attribute name to declare. root_class/1 enumerates entity/1 facts, which
+%% are outside the contract's attribute, relation and metric kinds.
+
+battery_input(taxonomy, entity, relation(is_a), ref(entity), key,
+    'A direct parent class of this member or subclass, followed transitively; several parents are allowed and a cycle is tolerated.').
+
 %% ── Core is-a hierarchy ──────────────────────────────────────────────────────
 %% Assert: { type="relation", subject="goblin", relation="is_a", object="humanoid" }
 %%         { type="relation", subject="humanoid", relation="is_a", object="creature" }
@@ -44,18 +56,49 @@ isa_(Entity, Class, Seen) :-
     isa_(Mid, Class, [Mid|Seen]).
 
 %% ── Property inheritance ─────────────────────────────────────────────────────
-%% Direct attribute wins; if absent, walks up is_a chain.
+%% For each property the nearest definition wins: the entity's own attribute,
+%% else the closest ancestor that has one (fewest is_a hops; at equal distance,
+%% the first in fact order). A bound Value is compared against that nearest
+%% value, so an ancestor's value never answers for an entity that overrides it.
+%% Unbound Property enumerates each property the entity has or inherits, once;
+%% unbound Entity enumerates every subject that carries an attribute or an
+%% is_a edge.
 %% Assert: { type="attribute", entity="creature", attribute="has_soul", value=true }
 
 inherits_property(Entity, Property, Value) :-
-    inherits_property_(Entity, Property, Value, [Entity]).
+    ( var(Entity) -> taxonomy_subject(Entity) ; true ),
+    ( var(Property) -> taxonomy_visible_property(Entity, Property) ; true ),
+    taxonomy_nearest_value([Entity], [Entity], Property, Nearest),
+    Value = Nearest.
 
-inherits_property_(Entity, Property, Value, _) :-
-    attribute(Entity, Property, Value), !.
-inherits_property_(Entity, Property, Value, Seen) :-
-    relation(Entity, is_a, Parent),
-    \+ member(Parent, Seen),
-    inherits_property_(Parent, Property, Value, [Parent|Seen]).
+taxonomy_subject(Entity) :-
+    setof(E, P^V^C^( attribute(E, P, V) ; relation(E, is_a, C) ), Es),
+    member(Entity, Es).
+
+taxonomy_visible_property(Entity, Property) :-
+    setof(P, N^V^( ( N = Entity ; isa(Entity, N) ), attribute(N, P, V) ), Ps),
+    member(Property, Ps).
+
+%% Breadth-first over is_a, one level at a time, with a visited set so a cycle
+%% terminates. Deterministic: the first level holding the property answers.
+taxonomy_nearest_value(Level, Seen, Property, Value) :-
+    (   member(N, Level), attribute(N, Property, V)
+    ->  Value = V
+    ;   findall(P, ( member(N, Level), relation(N, is_a, P) ), Ps),
+        taxonomy_fresh(Ps, Seen, Next, Seen1),
+        Next \== [],
+        taxonomy_nearest_value(Next, Seen1, Property, Value)
+    ).
+
+%% taxonomy_fresh(+Xs, +Seen0, -New, -Seen): Xs not yet seen, first occurrence
+%% only, in order.
+taxonomy_fresh([], Seen, [], Seen).
+taxonomy_fresh([X|Xs], Seen0, New, Seen) :-
+    (   member(X, Seen0)
+    ->  New = New1, Seen1 = Seen0
+    ;   New = [X|New1], Seen1 = [X|Seen0]
+    ),
+    taxonomy_fresh(Xs, Seen1, New1, Seen).
 
 %% ── Classification queries ───────────────────────────────────────────────────
 

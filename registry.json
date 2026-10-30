@@ -88,7 +88,122 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fsm/fsm.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fsm",
       "install": "platform",
-      "tests_file": "test/fsm_test.pl"
+      "tests_file": "test/fsm_test.pl",
+      "inputs": [
+        {
+          "role": "machine",
+          "kind": "relation",
+          "name": "has_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "A state this machine owns; edges and reachability stay within the machine's own states."
+        },
+        {
+          "role": "machine",
+          "kind": "attribute",
+          "name": "machine_type",
+          "type": {
+            "enum": [
+              "fsm"
+            ]
+          },
+          "presence": "optional",
+          "note": "fsm lists the machine in fsm_machines; nothing else reads it."
+        },
+        {
+          "role": "machine",
+          "kind": "attribute",
+          "name": "current_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "optional",
+          "note": "The live state, for fsm_complete, fsm_stuck and fsm_stuck_at."
+        },
+        {
+          "role": "machine",
+          "kind": "relation",
+          "name": "visited",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "optional",
+          "note": "A state the machine has been in, as fsm_visited reports it."
+        },
+        {
+          "role": "machine",
+          "kind": "relation",
+          "name": "trace_step",
+          "type": {
+            "ref": "step"
+          },
+          "presence": "optional",
+          "note": "One recorded step of the run; fsm_trace lists them in the order the facts were asserted."
+        },
+        {
+          "role": "state",
+          "kind": "relation",
+          "name": "transitions_to",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "An exit from this state to another state of the same machine."
+        },
+        {
+          "role": "state",
+          "kind": "attribute",
+          "name": "state_type",
+          "type": {
+            "enum": [
+              "initial",
+              "terminal"
+            ]
+          },
+          "presence": "key",
+          "note": "initial marks where reachability starts; terminal marks an accepting state, which is not dead without exits."
+        },
+        {
+          "role": "state",
+          "kind": "attribute",
+          "name": "on",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An event this state's exits fire on (events sit on states, not edges); absent reads as unspecified."
+        },
+        {
+          "role": "step",
+          "kind": "attribute",
+          "name": "from_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "The state the step left."
+        },
+        {
+          "role": "step",
+          "kind": "attribute",
+          "name": "to_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "required",
+          "note": "The state the step entered; a step without one is left out of the trace."
+        },
+        {
+          "role": "step",
+          "kind": "attribute",
+          "name": "event",
+          "type": "atom",
+          "presence": {
+            "default": "unspecified"
+          },
+          "note": "The event that triggered the step."
+        }
+      ]
     },
     {
       "id": "temporal",
@@ -152,7 +267,19 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/taxonomy/taxonomy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
       "install": "batteries.install_many",
-      "tests_file": "test/reasoning/taxonomy_test.pl"
+      "tests_file": "test/reasoning/taxonomy_test.pl",
+      "inputs": [
+        {
+          "role": "entity",
+          "kind": "relation",
+          "name": "is_a",
+          "type": {
+            "ref": "entity"
+          },
+          "presence": "key",
+          "note": "A direct parent class of this member or subclass, followed transitively; several parents are allowed and a cycle is tolerated."
+        }
+      ]
     },
     {
       "id": "hierarchy",
@@ -196,7 +323,27 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/hierarchy/hierarchy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/hierarchy",
       "install": "batteries.install_many",
-      "tests_file": "test/reasoning/hierarchy_test.pl"
+      "tests_file": "test/reasoning/hierarchy_test.pl",
+      "inputs": [
+        {
+          "role": "node",
+          "kind": "relation",
+          "name": "child_of",
+          "type": {
+            "ref": "node"
+          },
+          "presence": "key",
+          "note": "One edge per child, to its parent. A node with two parents is reported by hier_problems."
+        },
+        {
+          "role": "node",
+          "kind": "metric",
+          "name": "amount",
+          "type": "number",
+          "presence": "optional",
+          "note": "The node's own amount; several facts are summed, none counts as 0. The /3 forms take any metric name."
+        }
+      ]
     },
     {
       "id": "explain",
@@ -354,6 +501,26 @@
           ],
           "goal": "assign_violations([s1-a, s2-a], V)",
           "expect": "V \\== []"
+        }
+      ],
+      "inputs": [
+        {
+          "role": "variable",
+          "kind": "attribute",
+          "name": "domain",
+          "type": "list",
+          "presence": "key",
+          "note": "The values the search may assign to this variable; one without a domain is reported as unsat(empty_domain(Var))."
+        },
+        {
+          "role": "group",
+          "kind": "relation",
+          "name": "distinct",
+          "type": {
+            "ref": "variable"
+          },
+          "presence": "key",
+          "note": "One fact per member of an all-different group (the group is the subject, not another variable); members take different values."
         }
       ]
     },
@@ -692,7 +859,63 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/permissions/permissions.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/permissions",
       "install": "batteries.install_many",
-      "tests_file": "test/games/permissions_test.pl"
+      "tests_file": "test/games/permissions_test.pl",
+      "inputs": [
+        {
+          "role": "entity",
+          "kind": "relation",
+          "name": "has_role",
+          "type": {
+            "ref": "role"
+          },
+          "presence": "key",
+          "note": "A role this entity holds; an entity may hold several."
+        },
+        {
+          "role": "role",
+          "kind": "relation",
+          "name": "grants_permission",
+          "type": "atom",
+          "presence": "key",
+          "note": "A permission this role grants directly."
+        },
+        {
+          "role": "role",
+          "kind": "relation",
+          "name": "inherits_from",
+          "type": {
+            "ref": "role"
+          },
+          "presence": "key",
+          "note": "A parent role whose permissions this role also grants, transitively; a cycle is tolerated."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "owner",
+          "type": {
+            "ref": "entity"
+          },
+          "presence": "key",
+          "note": "The entity that owns the resource and may always access it."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "public",
+          "type": "bool",
+          "presence": "key",
+          "note": "true opens the resource to anyone; any other value counts as not public."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "requires_permission",
+          "type": "atom",
+          "presence": "key",
+          "note": "A permission whose holders may access the resource; with no owner, public or requires_permission, nobody may."
+        }
+      ]
     },
     {
       "id": "ai-director",
@@ -819,7 +1042,25 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/risk-assessment/risk_assessment.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/risk-assessment",
       "install": "batteries.install_many",
-      "tests_file": "test/games/risk_assessment_test.pl"
+      "tests_file": "test/games/risk_assessment_test.pl",
+      "inputs": [
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "hp",
+          "type": "number",
+          "presence": "key",
+          "note": "Current hit points, the same attribute combat reads. A player at 0 or below does not survive (P is 0); kills_to_exhaust fails for an enemy at 0 or below."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "base_damage",
+          "type": "number",
+          "presence": "required",
+          "note": "Damage dealt per turn; the player's must be above 0, and kills_to_exhaust also needs the enemy's above 0."
+        }
+      ]
     },
     {
       "id": "lead-scoring",
@@ -845,7 +1086,218 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/lead_scoring/lead_scoring.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/lead_scoring",
       "install": "batteries.install_many",
-      "tests_file": "test/business/lead_scoring_test.pl"
+      "tests_file": "test/business/lead_scoring_test.pl",
+      "inputs": [
+        {
+          "role": "lead",
+          "kind": "attribute",
+          "name": "company_size",
+          "type": {
+            "enum": [
+              "enterprise",
+              "mid_market"
+            ]
+          },
+          "presence": "key",
+          "note": "Company size: enterprise or mid_market score points; any other size (smb) scores nothing."
+        },
+        {
+          "role": "lead",
+          "kind": "attribute",
+          "name": "engagement",
+          "type": {
+            "enum": [
+              "high",
+              "medium"
+            ]
+          },
+          "presence": "key",
+          "note": "Engagement level: high or medium score points; low or absent scores nothing."
+        },
+        {
+          "role": "lead",
+          "kind": "attribute",
+          "name": "budget_confirmed",
+          "type": "bool",
+          "presence": "optional",
+          "note": "true scores budget_points; false disqualifies the lead (no_budget); absent does neither."
+        },
+        {
+          "role": "lead",
+          "kind": "attribute",
+          "name": "decision_maker",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true when the contact can sign; scores decision_maker_points."
+        },
+        {
+          "role": "lead",
+          "kind": "attribute",
+          "name": "timeline",
+          "type": {
+            "enum": [
+              "q1",
+              "q2"
+            ]
+          },
+          "presence": "optional",
+          "note": "Quarter the lead expects to buy in: q1 or q2 score points; later or unknown scores nothing."
+        },
+        {
+          "role": "lead",
+          "kind": "attribute",
+          "name": "competitor",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true when the lead works for a competitor; disqualifies it."
+        },
+        {
+          "role": "lead",
+          "kind": "attribute",
+          "name": "student",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true when the lead is a student; disqualifies it."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "enterprise_points",
+          "type": "number",
+          "presence": {
+            "default": 30
+          },
+          "note": "Points for an enterprise company."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "mid_market_points",
+          "type": "number",
+          "presence": {
+            "default": 15
+          },
+          "note": "Points for a mid-market company."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "budget_points",
+          "type": "number",
+          "presence": {
+            "default": 25
+          },
+          "note": "Points for a confirmed budget."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "decision_maker_points",
+          "type": "number",
+          "presence": {
+            "default": 20
+          },
+          "note": "Points for a decision maker."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "high_engagement_points",
+          "type": "number",
+          "presence": {
+            "default": 15
+          },
+          "note": "Points for high engagement."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "med_engagement_points",
+          "type": "number",
+          "presence": {
+            "default": 8
+          },
+          "note": "Points for medium engagement."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "q1_timeline_points",
+          "type": "number",
+          "presence": {
+            "default": 10
+          },
+          "note": "Points for a q1 timeline."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "q2_timeline_points",
+          "type": "number",
+          "presence": {
+            "default": 5
+          },
+          "note": "Points for a q2 timeline."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "qualified_threshold",
+          "type": "number",
+          "presence": {
+            "default": 50
+          },
+          "note": "Score at or above which a lead that is not disqualified is qualified."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "hot_threshold",
+          "type": "number",
+          "presence": {
+            "default": 70
+          },
+          "note": "Score at or above which a lead is hot."
+        },
+        {
+          "role": {
+            "fixed": "scoring"
+          },
+          "kind": "attribute",
+          "name": "warm_threshold",
+          "type": "number",
+          "presence": {
+            "default": 40
+          },
+          "note": "Score at or above which a lead is warm; below it the lead is cold."
+        }
+      ]
     },
     {
       "id": "invoice-rules",
@@ -870,7 +1322,155 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/invoice_rules/invoice_rules.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/invoice_rules",
       "install": "batteries.install_many",
-      "tests_file": "test/business/invoice_rules_test.pl"
+      "tests_file": "test/business/invoice_rules_test.pl",
+      "inputs": [
+        {
+          "role": "invoice",
+          "kind": "attribute",
+          "name": "due_absolute_days",
+          "type": "days",
+          "presence": "key",
+          "note": "Due date as a day count from 1970-01-01. Preferred over the parts."
+        },
+        {
+          "role": "invoice",
+          "kind": "attribute",
+          "name": "due_year",
+          "type": "integer",
+          "presence": "key",
+          "note": "Due date in parts, with due_month and due_day, when due_absolute_days is absent."
+        },
+        {
+          "role": "invoice",
+          "kind": "attribute",
+          "name": "due_month",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Due month, 1 to 12."
+        },
+        {
+          "role": "invoice",
+          "kind": "attribute",
+          "name": "due_day",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Due day of the month."
+        },
+        {
+          "role": "invoice",
+          "kind": "attribute",
+          "name": "amount",
+          "type": "number",
+          "presence": "required",
+          "note": "The amount owed: the base for the late fee and the amount now due."
+        },
+        {
+          "role": "invoice",
+          "kind": "attribute",
+          "name": "paid",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true once paid; a paid invoice is never overdue."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "absolute_days",
+          "type": "days",
+          "presence": "key",
+          "note": "Today as a day count from 1970-01-01, the shared convention."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "year",
+          "type": "integer",
+          "presence": "key",
+          "note": "Today in parts, with month and day, when absolute_days is absent."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "month",
+          "type": "integer",
+          "presence": "optional",
+          "note": "The month of today."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "day",
+          "type": "integer",
+          "presence": "optional",
+          "note": "The day of the month of today."
+        },
+        {
+          "role": {
+            "fixed": "billing"
+          },
+          "kind": "attribute",
+          "name": "late_fee_flat",
+          "type": "number",
+          "presence": {
+            "default": 50
+          },
+          "note": "Flat late fee, used when no late_fee_pct is set."
+        },
+        {
+          "role": {
+            "fixed": "billing"
+          },
+          "kind": "attribute",
+          "name": "late_fee_pct",
+          "type": "number",
+          "presence": "optional",
+          "note": "Late fee as a fraction of the amount (0.015 is 1.5%); wins over the flat fee."
+        },
+        {
+          "role": {
+            "fixed": "billing"
+          },
+          "kind": "attribute",
+          "name": "late_fee_cap",
+          "type": "number",
+          "presence": "optional",
+          "note": "Largest late fee charged."
+        },
+        {
+          "role": {
+            "fixed": "billing"
+          },
+          "kind": "attribute",
+          "name": "warning_days",
+          "type": "integer",
+          "presence": {
+            "default": 15
+          },
+          "note": "Days overdue at which the escalation level becomes warning."
+        },
+        {
+          "role": {
+            "fixed": "billing"
+          },
+          "kind": "attribute",
+          "name": "collections_days",
+          "type": "integer",
+          "presence": {
+            "default": 60
+          },
+          "note": "Days overdue at which the escalation level becomes collections."
+        }
+      ]
     },
     {
       "id": "approval-chains",
@@ -895,7 +1495,103 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/approval_chains/approval_chains.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/approval_chains",
       "install": "batteries.install_many",
-      "tests_file": "test/business/approval_chains_test.pl"
+      "tests_file": "test/business/approval_chains_test.pl",
+      "inputs": [
+        {
+          "role": "approval_step",
+          "kind": "attribute",
+          "name": "request",
+          "type": {
+            "ref": "request"
+          },
+          "presence": "key",
+          "note": "The request this step belongs to."
+        },
+        {
+          "role": "approval_step",
+          "kind": "attribute",
+          "name": "approver",
+          "type": {
+            "ref": "approver"
+          },
+          "presence": "required",
+          "note": "Who must approve at this step."
+        },
+        {
+          "role": "approval_step",
+          "kind": "attribute",
+          "name": "step",
+          "type": "integer",
+          "presence": "required",
+          "note": "Position in the chain; steps are approved in ascending order."
+        },
+        {
+          "role": "threshold_rule",
+          "kind": "attribute",
+          "name": "threshold",
+          "type": "number",
+          "presence": "key",
+          "note": "Amount above which every request also needs this rule's approver, after the numbered steps."
+        },
+        {
+          "role": "threshold_rule",
+          "kind": "attribute",
+          "name": "approver",
+          "type": {
+            "ref": "approver"
+          },
+          "presence": "required",
+          "note": "Who must approve a request whose amount exceeds the threshold."
+        },
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "amount",
+          "type": "number",
+          "presence": "key",
+          "note": "Amount compared against every threshold rule; without one no rule applies."
+        },
+        {
+          "role": "request",
+          "kind": "relation",
+          "name": "approved_by",
+          "type": {
+            "ref": "approver"
+          },
+          "presence": "optional",
+          "note": "An approver (or their delegate) who has approved the request."
+        },
+        {
+          "role": "request",
+          "kind": "relation",
+          "name": "rejected_by",
+          "type": {
+            "ref": "approver"
+          },
+          "presence": "optional",
+          "note": "An approver who rejected the request; any rejection stops the chain."
+        },
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "rejection_reason",
+          "type": "atom",
+          "presence": {
+            "default": "unspecified"
+          },
+          "note": "Why the request was rejected, returned by approval_blocked."
+        },
+        {
+          "role": "approver",
+          "kind": "relation",
+          "name": "delegated_to",
+          "type": {
+            "ref": "approver"
+          },
+          "presence": "key",
+          "note": "Someone whose approval counts as this approver's."
+        }
+      ]
     },
     {
       "id": "inventory-mgmt",
@@ -920,7 +1616,75 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/inventory_mgmt/inventory_mgmt.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/inventory_mgmt",
       "install": "batteries.install_many",
-      "tests_file": "test/business/inventory_mgmt_test.pl"
+      "tests_file": "test/business/inventory_mgmt_test.pl",
+      "inputs": [
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "stock",
+          "type": "number",
+          "presence": "key",
+          "note": "Units on hand, decimals allowed; 0 or less is a stockout."
+        },
+        {
+          "role": "item",
+          "kind": "relation",
+          "name": "supplied_by",
+          "type": {
+            "ref": "supplier"
+          },
+          "presence": "key",
+          "note": "A supplier of the item; with several, a preferred one is chosen first."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "reorder_threshold",
+          "type": "number",
+          "presence": "optional",
+          "note": "Stock at or below which the item is low and needs reordering."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "critical_threshold",
+          "type": "number",
+          "presence": "optional",
+          "note": "Stock at or below which the item is critical; default half the reorder_threshold, or 5 without one."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "reorder_quantity",
+          "type": "number",
+          "presence": "optional",
+          "note": "Units to order; default max_stock less stock, or 50 without a max_stock."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "max_stock",
+          "type": "number",
+          "presence": "optional",
+          "note": "Shelf capacity, used to size an order when no reorder_quantity is set."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "daily_usage",
+          "type": "number",
+          "presence": "optional",
+          "note": "Units used per day; without it, or at 0, days_of_stock is unknown."
+        },
+        {
+          "role": "supplier",
+          "kind": "attribute",
+          "name": "preferred",
+          "type": "bool",
+          "presence": "key",
+          "note": "true marks the supplier preferred_supplier returns ahead of the item's others."
+        }
+      ]
     },
     {
       "id": "pricing-rules",
@@ -945,7 +1709,111 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/pricing_rules/pricing_rules.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/pricing_rules",
       "install": "batteries.install_many",
-      "tests_file": "test/business/pricing_rules_test.pl"
+      "tests_file": "test/business/pricing_rules_test.pl",
+      "inputs": [
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "base_price",
+          "type": "number",
+          "presence": "key",
+          "note": "List price, before the tier multiplier and discounts."
+        },
+        {
+          "role": "item",
+          "kind": "relation",
+          "name": "has_discount",
+          "type": {
+            "ref": "discount"
+          },
+          "presence": "optional",
+          "note": "A discount rule that applies to this item; several add up."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "price_floor",
+          "type": "number",
+          "presence": "optional",
+          "note": "Lowest price price_capped returns."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "price_ceil",
+          "type": "number",
+          "presence": "optional",
+          "note": "Highest price price_capped returns."
+        },
+        {
+          "role": "discount",
+          "kind": "attribute",
+          "name": "pct_off",
+          "type": "number",
+          "presence": "key",
+          "note": "Percent of the base price (20 is 20%) taken off the tier price, so it adds to the tier multiplier rather than compounding (member 0.9 with 20 off 100 pays 70); wins over flat_off."
+        },
+        {
+          "role": "discount",
+          "kind": "attribute",
+          "name": "flat_off",
+          "type": "number",
+          "presence": "key",
+          "note": "Flat amount off, used when the discount has no pct_off."
+        },
+        {
+          "role": "discount",
+          "kind": "attribute",
+          "name": "requires_tier",
+          "type": {
+            "enum": [
+              "standard",
+              "member",
+              "vip"
+            ]
+          },
+          "presence": "optional",
+          "note": "Tier a customer must be on for effective_price to apply this discount; absent applies to everyone."
+        },
+        {
+          "role": "customer",
+          "kind": "attribute",
+          "name": "pricing_tier",
+          "type": {
+            "enum": [
+              "standard",
+              "member",
+              "vip"
+            ]
+          },
+          "presence": "key",
+          "note": "The customer's pricing tier; a customer without one is standard."
+        },
+        {
+          "role": {
+            "fixed": "pricing"
+          },
+          "kind": "attribute",
+          "name": "member_multiplier",
+          "type": "number",
+          "presence": {
+            "default": 0.9
+          },
+          "note": "Multiplier on the base price for members (0.9 is 10% off)."
+        },
+        {
+          "role": {
+            "fixed": "pricing"
+          },
+          "kind": "attribute",
+          "name": "vip_multiplier",
+          "type": "number",
+          "presence": {
+            "default": 0.8
+          },
+          "note": "Multiplier on the base price for VIPs (0.8 is 20% off)."
+        }
+      ]
     },
     {
       "id": "loyalty",
@@ -970,7 +1838,125 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/loyalty/loyalty.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/loyalty",
       "install": "batteries.install_many",
-      "tests_file": "test/business/loyalty_test.pl"
+      "tests_file": "test/business/loyalty_test.pl",
+      "inputs": [
+        {
+          "role": "customer",
+          "kind": "attribute",
+          "name": "lifetime_points",
+          "type": "integer",
+          "presence": "key",
+          "note": "Points ever earned: sets the tier and is the base of the balance."
+        },
+        {
+          "role": "customer",
+          "kind": "attribute",
+          "name": "redeemed_points",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Points ever redeemed, subtracted from lifetime_points for the balance."
+        },
+        {
+          "role": "reward",
+          "kind": "attribute",
+          "name": "points_cost",
+          "type": "integer",
+          "presence": "key",
+          "note": "Points the reward costs before the tier's redemption multiplier."
+        },
+        {
+          "role": "tier",
+          "kind": "relation",
+          "name": "has_benefit",
+          "type": {
+            "ref": "benefit"
+          },
+          "presence": "key",
+          "note": "A benefit granted at this tier (platinum, gold, silver or bronze) and every tier above it."
+        },
+        {
+          "role": "benefit",
+          "kind": "attribute",
+          "name": "benefit_value",
+          "type": "atom",
+          "presence": "key",
+          "note": "What tier_benefit returns for this benefit, as given (true, or a level such as priority)."
+        },
+        {
+          "role": {
+            "fixed": "loyalty"
+          },
+          "kind": "attribute",
+          "name": "platinum_threshold",
+          "type": "integer",
+          "presence": {
+            "default": 5000
+          },
+          "note": "Lifetime points at which a customer is platinum."
+        },
+        {
+          "role": {
+            "fixed": "loyalty"
+          },
+          "kind": "attribute",
+          "name": "gold_threshold",
+          "type": "integer",
+          "presence": {
+            "default": 2000
+          },
+          "note": "Lifetime points at which a customer is gold."
+        },
+        {
+          "role": {
+            "fixed": "loyalty"
+          },
+          "kind": "attribute",
+          "name": "silver_threshold",
+          "type": "integer",
+          "presence": {
+            "default": 500
+          },
+          "note": "Lifetime points at which a customer is silver; below it the customer is bronze."
+        },
+        {
+          "role": {
+            "fixed": "loyalty"
+          },
+          "kind": "attribute",
+          "name": "platinum_redemption_multiplier",
+          "type": "number",
+          "presence": {
+            "default": 0.7
+          },
+          "note": "Multiplier on a reward's points cost for platinum customers (0.7 is 30% fewer points)."
+        },
+        {
+          "role": {
+            "fixed": "loyalty"
+          },
+          "kind": "attribute",
+          "name": "gold_redemption_multiplier",
+          "type": "number",
+          "presence": {
+            "default": 0.85
+          },
+          "note": "Multiplier on a reward's points cost for gold customers."
+        },
+        {
+          "role": {
+            "fixed": "loyalty"
+          },
+          "kind": "attribute",
+          "name": "silver_redemption_multiplier",
+          "type": "number",
+          "presence": {
+            "default": 1.0
+          },
+          "note": "Multiplier on a reward's points cost for silver customers; bronze always pays 1.0."
+        }
+      ]
     },
     {
       "id": "scheduling",
@@ -995,7 +1981,99 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/scheduling/scheduling.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/scheduling",
       "install": "batteries.install_many",
-      "tests_file": "test/business/scheduling_test.pl"
+      "tests_file": "test/business/scheduling_test.pl",
+      "inputs": [
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "slots",
+          "type": "list",
+          "presence": "key",
+          "note": "Every bookable slot on the resource, e.g. [9,10,11,13]; utilisation is booked slots over its length."
+        },
+        {
+          "role": "resource",
+          "kind": "relation",
+          "name": "booked_at",
+          "type": {
+            "ref": "booking"
+          },
+          "presence": "optional",
+          "note": "One existing booking on the resource; it blocks its slot on its date."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "advance_days",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Fewest days ahead of today a booking may be made."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "max_advance",
+          "type": "integer",
+          "presence": {
+            "default": 365
+          },
+          "note": "Most days ahead of today a booking may be made; also how far next_available_slot searches."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "requires_role",
+          "type": "atom",
+          "presence": "optional",
+          "note": "When set, only a customer with this role can book the resource."
+        },
+        {
+          "role": "booking",
+          "kind": "attribute",
+          "name": "slot",
+          "type": "integer",
+          "presence": "key",
+          "note": "The slot the booking holds, one of its resource's slots."
+        },
+        {
+          "role": "booking",
+          "kind": "attribute",
+          "name": "date",
+          "type": "date",
+          "presence": "required",
+          "note": "The day the booking is for."
+        },
+        {
+          "role": "customer",
+          "kind": "attribute",
+          "name": "role",
+          "type": "atom",
+          "presence": "key",
+          "note": "The customer's role, matched against a resource's requires_role."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "absolute_days",
+          "type": "days",
+          "presence": "key",
+          "note": "Today as a day count from 1970-01-01, the shared convention. Preferred over date."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "date",
+          "type": "date",
+          "presence": "key",
+          "note": "Today as a day count, a YYYYMMDD integer or an ISO atom, when absolute_days is absent."
+        }
+      ]
     },
     {
       "id": "duty",
@@ -1034,7 +2112,219 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/duty/duty.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/duty",
       "install": "batteries.install_many",
-      "tests_file": "test/business/duty_test.pl"
+      "tests_file": "test/business/duty_test.pl",
+      "inputs": [
+        {
+          "role": "worker",
+          "kind": "attribute",
+          "name": "role",
+          "type": {
+            "ref": "staff_role"
+          },
+          "presence": "key",
+          "note": "The worker's role; having one puts the worker on the roster available_staff searches."
+        },
+        {
+          "role": "worker",
+          "kind": "relation",
+          "name": "duty_period",
+          "type": {
+            "ref": "period"
+          },
+          "presence": "optional",
+          "note": "A committed duty period, past, current or scheduled; conflicts, rest and rolling totals come from these."
+        },
+        {
+          "role": "worker",
+          "kind": "relation",
+          "name": "unavailable_during",
+          "type": {
+            "ref": "window"
+          },
+          "presence": "optional",
+          "note": "Leave, training or maintenance; any entity can carry it, equipment included."
+        },
+        {
+          "role": "worker",
+          "kind": "relation",
+          "name": "holds",
+          "type": {
+            "ref": "qualification"
+          },
+          "presence": "optional",
+          "note": "A qualification the worker holds."
+        },
+        {
+          "role": "worker",
+          "kind": "attribute",
+          "name": "max_duty",
+          "type": "integer",
+          "presence": "optional",
+          "note": "This worker's longest single duty period, in the namespace's time unit; overrides role and duty_policy."
+        },
+        {
+          "role": "worker",
+          "kind": "attribute",
+          "name": "min_rest",
+          "type": "integer",
+          "presence": "optional",
+          "note": "This worker's least rest between a prior duty's end and a new start; overrides role and duty_policy."
+        },
+        {
+          "role": "worker",
+          "kind": "attribute",
+          "name": "rolling_window",
+          "type": "integer",
+          "presence": "optional",
+          "note": "This worker's window for rolling_limit, ending at the proposed end; overrides role and duty_policy."
+        },
+        {
+          "role": "worker",
+          "kind": "attribute",
+          "name": "rolling_limit",
+          "type": "integer",
+          "presence": "optional",
+          "note": "This worker's most duty time within a rolling_window; overrides role and duty_policy."
+        },
+        {
+          "role": "staff_role",
+          "kind": "attribute",
+          "name": "max_duty",
+          "type": "integer",
+          "presence": "key",
+          "note": "Longest single duty period for workers in this role, in the namespace's time unit."
+        },
+        {
+          "role": "staff_role",
+          "kind": "attribute",
+          "name": "min_rest",
+          "type": "integer",
+          "presence": "key",
+          "note": "Least rest before a new start for workers in this role."
+        },
+        {
+          "role": "staff_role",
+          "kind": "attribute",
+          "name": "rolling_window",
+          "type": "integer",
+          "presence": "key",
+          "note": "Window over which rolling_limit is measured for workers in this role."
+        },
+        {
+          "role": "staff_role",
+          "kind": "attribute",
+          "name": "rolling_limit",
+          "type": "integer",
+          "presence": "key",
+          "note": "Most duty time within a rolling_window for workers in this role; enforced only with a window."
+        },
+        {
+          "role": {
+            "fixed": "duty_policy"
+          },
+          "kind": "attribute",
+          "name": "max_duty",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Longest single duty period when neither worker nor role sets one; unset means unlimited."
+        },
+        {
+          "role": {
+            "fixed": "duty_policy"
+          },
+          "kind": "attribute",
+          "name": "min_rest",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Least rest before a new start when neither worker nor role sets one; unset means none."
+        },
+        {
+          "role": {
+            "fixed": "duty_policy"
+          },
+          "kind": "attribute",
+          "name": "rolling_window",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Window for rolling_limit when neither worker nor role sets one."
+        },
+        {
+          "role": {
+            "fixed": "duty_policy"
+          },
+          "kind": "attribute",
+          "name": "rolling_limit",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Most duty time within a rolling_window when neither worker nor role sets one; unset means unlimited."
+        },
+        {
+          "role": "period",
+          "kind": "attribute",
+          "name": "start",
+          "type": "integer",
+          "presence": "key",
+          "note": "When the duty period starts, included, in the namespace's time unit."
+        },
+        {
+          "role": "period",
+          "kind": "attribute",
+          "name": "end",
+          "type": "integer",
+          "presence": "required",
+          "note": "When the duty period ends, excluded: a period ending at 1080 and one starting at 1080 do not overlap."
+        },
+        {
+          "role": "window",
+          "kind": "attribute",
+          "name": "start",
+          "type": "integer",
+          "presence": "key",
+          "note": "When the unavailability starts, included, in the namespace's time unit."
+        },
+        {
+          "role": "window",
+          "kind": "attribute",
+          "name": "end",
+          "type": "integer",
+          "presence": "required",
+          "note": "When the unavailability ends, excluded."
+        },
+        {
+          "role": "qualification",
+          "kind": "attribute",
+          "name": "kind",
+          "type": "atom",
+          "presence": "key",
+          "note": "What the qualification certifies, matched against a task's requires."
+        },
+        {
+          "role": "qualification",
+          "kind": "attribute",
+          "name": "expires",
+          "type": "integer",
+          "presence": "optional",
+          "note": "When it lapses, in the namespace's time unit; current while expires is later than the time asked about. Absent never lapses."
+        },
+        {
+          "role": "task",
+          "kind": "relation",
+          "name": "requires",
+          "type": "atom",
+          "presence": "key",
+          "note": "A qualification kind the task needs, current at the duty's start; zero or more per task."
+        },
+        {
+          "role": "task",
+          "kind": "attribute",
+          "name": "needs_role",
+          "type": {
+            "ref": "staff_role"
+          },
+          "presence": "key",
+          "note": "The role a worker must have to take the task; absent accepts any role."
+        }
+      ]
     },
     {
       "id": "rostering",
@@ -1078,7 +2368,99 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/rostering/rostering.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/rostering",
       "install": "batteries.install_many",
-      "tests_file": "test/business/rostering_test.pl"
+      "tests_file": "test/business/rostering_test.pl",
+      "inputs": [
+        {
+          "role": "shift",
+          "kind": "relation",
+          "name": "needs",
+          "type": {
+            "ref": "requirement"
+          },
+          "presence": "key",
+          "note": "One seat requirement of the shift, one per role needed."
+        },
+        {
+          "role": "shift",
+          "kind": "attribute",
+          "name": "start",
+          "type": "integer",
+          "presence": "required",
+          "note": "When the shift starts, included, on the duty battery's timeline and in its time unit."
+        },
+        {
+          "role": "shift",
+          "kind": "attribute",
+          "name": "end",
+          "type": "integer",
+          "presence": "required",
+          "note": "When the shift ends, excluded, in the same unit as start."
+        },
+        {
+          "role": "shift",
+          "kind": "relation",
+          "name": "assigned",
+          "type": {
+            "ref": "worker"
+          },
+          "presence": "optional",
+          "note": "A worker currently on the shift; coverage, violations, load and swaps are computed from these."
+        },
+        {
+          "role": "requirement",
+          "kind": "attribute",
+          "name": "seat",
+          "type": "atom",
+          "presence": "key",
+          "note": "The role this seat requirement is for, matched against a worker's role."
+        },
+        {
+          "role": "requirement",
+          "kind": "attribute",
+          "name": "count",
+          "type": "integer",
+          "presence": "required",
+          "note": "How many workers with that role the shift needs."
+        },
+        {
+          "role": "worker",
+          "kind": "attribute",
+          "name": "role",
+          "type": "atom",
+          "presence": "key",
+          "note": "The worker's role; only workers whose role matches a seat are candidates for it."
+        },
+        {
+          "role": "worker",
+          "kind": "relation",
+          "name": "prefers",
+          "type": {
+            "ref": "shift"
+          },
+          "presence": "optional",
+          "note": "A shift the worker would like; ranks the worker first for it."
+        },
+        {
+          "role": "worker",
+          "kind": "relation",
+          "name": "avoids",
+          "type": {
+            "ref": "shift"
+          },
+          "presence": "optional",
+          "note": "A shift the worker would rather not take; ranks the worker last for it."
+        },
+        {
+          "role": "worker",
+          "kind": "attribute",
+          "name": "seniority",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Last ranking key; higher ranks earlier."
+        }
+      ]
     },
     {
       "id": "compliance",
@@ -1104,7 +2486,71 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/compliance/compliance.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/compliance",
       "install": "batteries.install_many",
-      "tests_file": "test/business/compliance_test.pl"
+      "tests_file": "test/business/compliance_test.pl",
+      "inputs": [
+        {
+          "role": "policy",
+          "kind": "relation",
+          "name": "requires",
+          "type": "atom",
+          "presence": "key",
+          "note": "A requirement of the policy; an entity meets it with an attribute of that name whose value is not false, none or missing."
+        },
+        {
+          "role": "policy",
+          "kind": "attribute",
+          "name": "retention_days",
+          "type": "integer",
+          "presence": {
+            "default": 2555
+          },
+          "note": "Oldest a record may be, in days, under this policy; seven years when absent."
+        },
+        {
+          "role": "record",
+          "kind": "attribute",
+          "name": "created_day",
+          "type": "date",
+          "presence": "key",
+          "note": "The day the record was created; its age is today minus this."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "absolute_days",
+          "type": "days",
+          "presence": "key",
+          "note": "Today as a day count from 1970-01-01, the shared convention. Preferred over date."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "date",
+          "type": "date",
+          "presence": "key",
+          "note": "Today as a day count, a YYYYMMDD integer or an ISO atom, when absolute_days is absent."
+        },
+        {
+          "role": "action",
+          "kind": "attribute",
+          "name": "requires_consent",
+          "type": "atom",
+          "presence": "key",
+          "note": "The consent type that must be held before the action is performed."
+        },
+        {
+          "role": "customer",
+          "kind": "relation",
+          "name": "granted_consent",
+          "type": "atom",
+          "presence": "key",
+          "note": "A consent type the customer has granted."
+        }
+      ]
     },
     {
       "id": "bom-policy",
@@ -1343,7 +2789,127 @@
           "expect": "sort(Due, Sorted), Sorted == [fet_eol-100, osc_late-(-100)]"
         }
       ],
-      "tests_file": "test/business/bom_policy_test.pl"
+      "tests_file": "test/business/bom_policy_test.pl",
+      "inputs": [
+        {
+          "role": "bom",
+          "kind": "relation",
+          "name": "includes",
+          "type": {
+            "ref": "part"
+          },
+          "presence": "key",
+          "note": "One part on the bill of materials."
+        },
+        {
+          "role": "part",
+          "kind": "attribute",
+          "name": "lifecycle",
+          "type": "atom",
+          "presence": "key",
+          "note": "Lifecycle stage (active, nrnd, eol, obsolete or any stage a policy names); absent is the warning lifecycle(unknown)."
+        },
+        {
+          "role": "part",
+          "kind": "attribute",
+          "name": "eol_day",
+          "type": "date",
+          "presence": "optional",
+          "note": "Estimated end-of-life date; within the policy horizon it is a warning."
+        },
+        {
+          "role": "part",
+          "kind": "attribute",
+          "name": "ltb_day",
+          "type": "date",
+          "presence": "optional",
+          "note": "Last-time-buy date; within the horizon it warns, once passed it blocks."
+        },
+        {
+          "role": "part",
+          "kind": "relation",
+          "name": "sourced_from",
+          "type": "atom",
+          "presence": "optional",
+          "note": "One supplier of the part; fewer distinct suppliers than min_sources is a warning."
+        },
+        {
+          "role": "part",
+          "kind": "relation",
+          "name": "cross",
+          "type": {
+            "ref": "part"
+          },
+          "presence": "optional",
+          "note": "A form-fit-function alternate for the part, offered by part_alternate."
+        },
+        {
+          "role": "policy",
+          "kind": "relation",
+          "name": "requires",
+          "type": "atom",
+          "presence": "key",
+          "note": "A flag every part must carry with the value compliant, true, yes or qualified; otherwise missing(Flag) blocks."
+        },
+        {
+          "role": "policy",
+          "kind": "attribute",
+          "name": "min_sources",
+          "type": "integer",
+          "presence": {
+            "default": 2
+          },
+          "note": "Fewest distinct suppliers a part may have before it warns."
+        },
+        {
+          "role": "policy",
+          "kind": "attribute",
+          "name": "eol_horizon_days",
+          "type": "integer",
+          "presence": {
+            "default": 365
+          },
+          "note": "An end-of-life or last-time-buy date within this many days of today is due."
+        },
+        {
+          "role": "policy",
+          "kind": "relation",
+          "name": "blocks_lifecycle",
+          "type": "atom",
+          "presence": {
+            "default": "obsolete"
+          },
+          "note": "A lifecycle stage that blocks; when the policy names none, obsolete blocks."
+        },
+        {
+          "role": "policy",
+          "kind": "relation",
+          "name": "warns_lifecycle",
+          "type": "atom",
+          "presence": "optional",
+          "note": "A lifecycle stage that warns; when the policy names none, nrnd and eol warn."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "absolute_days",
+          "type": "days",
+          "presence": "key",
+          "note": "Today as a day count from 1970-01-01, the shared convention. Preferred over date."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "date",
+          "type": "date",
+          "presence": "key",
+          "note": "Today as an ISO date, a YYYYMMDD integer or a day count, when absolute_days is absent."
+        }
+      ]
     },
     {
       "id": "prob-loot",
@@ -1364,6 +2930,9 @@
         "guaranteed_drop/2",
         "drop_probability/3",
         "expected_drops/4"
+      ],
+      "requires": [
+        "loot-tables"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-loot/prob_loot.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-loot",
@@ -1390,6 +2959,9 @@
         "detection_probability/3",
         "stealth_success/2",
         "environmental_detection_factor/2"
+      ],
+      "requires": [
+        "combat"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-detection/prob_detection.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-detection",
@@ -1418,6 +2990,9 @@
         "market_volatility/3",
         "expected_price/2"
       ],
+      "requires": [
+        "economy"
+      ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-economy/prob_economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-economy",
       "install": "batteries.install_many",
@@ -1444,6 +3019,10 @@
         "will_assist/3",
         "npc_price_modifier/3",
         "disposition_probability/3"
+      ],
+      "requires": [
+        "faction",
+        "npc-state"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-npc/prob_npc.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
@@ -1498,6 +3077,9 @@
         "eu_sum/3",
         "best_action/2",
         "best_pair/5"
+      ],
+      "requires": [
+        "prob-core-iso"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-decide/prob_decide.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-decide",

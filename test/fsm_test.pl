@@ -229,6 +229,22 @@ test(all_transitions_found, [setup(setup_branching), cleanup(clear_facts)]) :-
     sort(Tos, Sorted),
     assertion(Sorted == [approved, rejected]).
 
+%% review has two events and two exits; events sit on states, so each event
+%% is reported on each exit, not just the first event.
+test(every_event_of_a_state_reported, [setup(setup_branching), cleanup(clear_facts)]) :-
+    findall(E-To, fsm_transition(wf, review, E, To), Pairs),
+    sort(Pairs, Sorted),
+    assertion(Sorted == [approve-approved, approve-rejected,
+                         reject-approved, reject-rejected]).
+
+test(second_event_matches_when_bound, [nondet, setup(setup_branching), cleanup(clear_facts)]) :-
+    fsm_transition(wf, review, reject, To),
+    assertion(memberchk(To, [approved, rejected])).
+
+test(eventless_state_reports_unspecified_once, [setup(setup_eventless_machine), cleanup(clear_facts)]) :-
+    findall(E, fsm_transition(m, s1, E, s2), Es),
+    assertion(Es == [unspecified]).
+
 :- end_tests(fsm_transitions).
 
 %% ── Reachability ─────────────────────────────────────────────────────────────

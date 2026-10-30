@@ -72,6 +72,16 @@ test(no_violation_when_met, [setup((setup_gdpr_policy, setup_entity_fully_compli
 
 %% ── data_retention_ok/2 ───────────────────────────────────────────────────────
 
+setup_month_end_record :-
+    assertz(attribute(today, date, 20240201)),
+    assertz(attribute(rec_edge, created_day, 20240131)),
+    assertz(attribute(tight, retention_days, 1)).
+
+setup_iso_record :-
+    assertz(attribute(today, absolute_days, 19754)),   % 2024-02-01
+    assertz(attribute(rec_iso, created_day, '2024-01-30')),
+    assertz(attribute(tight, retention_days, 1)).
+
 :- begin_tests(compliance_retention).
 
 test(fresh_record_within_window, [setup((setup_today_date, setup_fresh_record, setup_gdpr_retention)), cleanup(clear_facts)]) :-
@@ -79,6 +89,13 @@ test(fresh_record_within_window, [setup((setup_today_date, setup_fresh_record, s
 
 test(old_record_outside_window, [setup((setup_today_date, setup_old_record, setup_gdpr_retention)), cleanup(clear_facts)]) :-
     assertion(\+ data_retention_ok(record_456, gdpr)).
+
+%% Across a month end: 20240131 to 20240201 is one day, not 70.
+test(age_counts_calendar_days, [setup(setup_month_end_record), cleanup(clear_facts)]) :-
+    assertion(data_retention_ok(rec_edge, tight)).
+
+test(absolute_today_with_iso_created_day, [setup(setup_iso_record), cleanup(clear_facts)]) :-
+    assertion(\+ data_retention_ok(rec_iso, tight)).
 
 :- end_tests(compliance_retention).
 

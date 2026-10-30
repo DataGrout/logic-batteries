@@ -1,0 +1,26 @@
+# risk-assessment battery on scryer-prolog: the turn-trade model, and a player
+# at 0 (or below) hp who does not survive instead of dividing by zero; an enemy
+# at 0 hp has no kill count. Facts are one contiguous attribute/3 block.
+modules/games/risk-assessment/risk_assessment.pl
+---
+attribute(player, hp, 80).
+attribute(player, base_damage, 15).
+attribute(goblin, hp, 30).
+attribute(goblin, base_damage, 10).
+attribute(downed, hp, 0).
+attribute(downed, base_damage, 15).
+attribute(overkilled, hp, -10).
+attribute(overkilled, base_damage, 15).
+attribute(husk, hp, 0).
+attribute(husk, base_damage, 10).
+near(X, Y) :- D is X - Y, D < 0.000001, D > -0.000001.
+check(Name, Goal) :- ( catch(Goal, E, (write(error(Name, E)), nl, halt(1))) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(easy_fight, (survival_probability(player, goblin, HP, P), HP =:= 60, near(P, 0.875))),
+    check(kills, kills_to_exhaust(player, goblin, 80, 4)),
+    check(downed_survival, (survival_probability(downed, goblin, DH, DP), DH =:= 0, near(DP, 0))),
+    check(downed_summary, (fight_outcome_summary(downed, goblin, T, D, SP), T =:= 2, D =:= 20, near(SP, 0))),
+    check(downed_flees, (findall(A, recommended_action(downed, goblin, A), As), As == [flee])),
+    check(negative_hp, (survival_probability(overkilled, goblin, _, NP), near(NP, 0))),
+    check(husk_no_count, \+ kills_to_exhaust(player, husk, 80, _)),
+    write(smoke_ok), nl.

@@ -28,6 +28,17 @@ battery_export(assign, 'assign_reject_pair/4',
 battery_export(assign, 'assign_cost/3',
     'assign_cost(Var, Value, Cost) — HOOK: add clauses to price an assignment; values are tried cheapest first and assign_best/3 minimises the total. Undefined = cost 0').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A variable is
+%% anything with a domain; a group is the subject of distinct facts. The hooks
+%% are clauses, not facts, so they are not part of it.
+
+battery_input(assign, variable, attribute(domain), list, key,
+    'The values the search may assign to this variable; one without a domain is reported as unsat(empty_domain(Var)).').
+battery_input(assign, group, relation(distinct), ref(variable), key,
+    'One fact per member of an all-different group (the group is the subject, not another variable); members take different values.').
+
 %% ── Model ────────────────────────────────────────────────────────────────────
 %%
 %% Variables and domains:

@@ -1,0 +1,32 @@
+# taxonomy battery on scryer-prolog: inherits_property resolves each property
+# to its nearest definition (own, then closest ancestor), compares a bound
+# Value against that, and lists each property once when Property is unbound.
+# Facts are grouped by predicate, one contiguous block each.
+modules/reasoning/taxonomy/taxonomy.pl
+---
+relation(goblin, is_a, humanoid).
+relation(humanoid, is_a, creature).
+relation(creature, is_a, being).
+relation(imp, is_a, deep_a).
+relation(imp, is_a, near_b).
+relation(deep_a, is_a, deep_a2).
+relation(x_cls, is_a, y_cls).
+relation(y_cls, is_a, x_cls).
+attribute(creature, has_soul, true).
+attribute(humanoid, speaks_language, true).
+attribute(goblin, color, green).
+attribute(goblin, has_soul, false).
+attribute(being, has_soul, maybe).
+attribute(deep_a2, size, huge).
+attribute(near_b, size, small).
+attribute(y_cls, color, blue).
+check(Name, Goal) :- ( catch(Goal, E, (write(error(Name, E)), nl, halt(1))) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(own_wins_bound, (inherits_property(goblin, has_soul, false), \+ inherits_property(goblin, has_soul, true), \+ inherits_property(goblin, has_soul, maybe))),
+    check(inherited, (inherits_property(goblin, speaks_language, true), inherits_property(humanoid, has_soul, true))),
+    check(one_value, (findall(V, inherits_property(goblin, has_soul, V), Vs), Vs == [false])),
+    check(each_property_once, (findall(P-V, inherits_property(goblin, P, V), PVs), length(PVs, 3), sort(PVs, S), S == [color-green, has_soul-false, speaks_language-true])),
+    check(closest_chain, (findall(Z, inherits_property(imp, size, Z), Zs), Zs == [small])),
+    check(unbound_entity, (findall(E-H, inherits_property(E, has_soul, H), EHs), length(EHs, 4), sort(EHs, SE), SE == [being-maybe, creature-true, goblin-false, humanoid-true])),
+    check(cycle, (inherits_property(x_cls, color, blue), \+ inherits_property(x_cls, wings, _))),
+    write(smoke_ok), nl.

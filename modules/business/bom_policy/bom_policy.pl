@@ -15,6 +15,43 @@ battery_export('bom-policy', 'bom_risk_summary/5',  'bom_risk_summary(Bom, Polic
 battery_export('bom-policy', 'source_count/2',      'source_count(Part, N) — distinct suppliers Part is sourced from').
 battery_export('bom-policy', 'part_exempt/2',       'part_exempt(Bom, Part) — HOOK: add clauses to waive Part on Bom (an approved deviation); an exempt part has no violations').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read, for a host to validate facts against and to build a
+%% schema from (see CONTRIBUTING, "Input contract"). The policy is the subject
+%% the caller names in each query, and a policy with no facts runs on the
+%% defaults. Parts are open-ended: a part carries one attribute per flag a
+%% policy requires, named by the flag (attribute(Part, Flag, V) for each
+%% relation(Policy, requires, Flag)), so those names are the user's and are not
+%% declared here; see `requires`.
+
+battery_input('bom-policy', bom, relation(includes), ref(part), key,
+    'One part on the bill of materials.').
+battery_input('bom-policy', part, attribute(lifecycle), atom, key,
+    'Lifecycle stage (active, nrnd, eol, obsolete or any stage a policy names); absent is the warning lifecycle(unknown).').
+battery_input('bom-policy', part, attribute(eol_day), date, optional,
+    'Estimated end-of-life date; within the policy horizon it is a warning.').
+battery_input('bom-policy', part, attribute(ltb_day), date, optional,
+    'Last-time-buy date; within the horizon it warns, once passed it blocks.').
+battery_input('bom-policy', part, relation(sourced_from), atom, optional,
+    'One supplier of the part; fewer distinct suppliers than min_sources is a warning.').
+battery_input('bom-policy', part, relation(cross), ref(part), optional,
+    'A form-fit-function alternate for the part, offered by part_alternate.').
+battery_input('bom-policy', policy, relation(requires), atom, key,
+    'A flag every part must carry with the value compliant, true, yes or qualified; otherwise missing(Flag) blocks.').
+battery_input('bom-policy', policy, attribute(min_sources), integer, default(2),
+    'Fewest distinct suppliers a part may have before it warns.').
+battery_input('bom-policy', policy, attribute(eol_horizon_days), integer, default(365),
+    'An end-of-life or last-time-buy date within this many days of today is due.').
+battery_input('bom-policy', policy, relation(blocks_lifecycle), atom, default(obsolete),
+    'A lifecycle stage that blocks; when the policy names none, obsolete blocks.').
+battery_input('bom-policy', policy, relation(warns_lifecycle), atom, optional,
+    'A lifecycle stage that warns; when the policy names none, nrnd and eol warn.').
+battery_input('bom-policy', fixed(today), attribute(absolute_days), days, key,
+    'Today as a day count from 1970-01-01, the shared convention. Preferred over date.').
+battery_input('bom-policy', fixed(today), attribute(date), date, key,
+    'Today as an ISO date, a YYYYMMDD integer or a day count, when absolute_days is absent.').
+
 %% ── BOM Policy Data Model ─────────────────────────────────────────────────────
 %%
 %% A bill of materials and the parts on it:
@@ -80,12 +117,30 @@ part_exempt(_, _) :- fail.
 %% is the exception: atomic/1 is not on that list. A DataGrout cell stores text
 %% as atoms, so strings only arrive on standalone SWI.
 
+%% Today is the shared day count when given (absolute_days, as every dated
+%% battery reads it), else this battery's own `date` in any form below.
 bom_today(Day) :-
+    attribute(today, absolute_days, Day).
+bom_today(Day) :-
+    \+ attribute(today, absolute_days, _),
     attribute(today, date, Value),
     bom_day(Value, Day).
 
+%% A number below 10000101 is a day count; from there up it is a YYYYMMDD
+%% integer (a day count that large is the year 29350).
 bom_day(Value, Value) :-
-    number(Value).
+    number(Value),
+    Value < 10000101.
+bom_day(Value, Day) :-
+    integer(Value),
+    Value >= 10000101,
+    Y is Value // 10000,
+    M is (Value // 100) mod 100,
+    D is Value mod 100,
+    bom_month_days(Y, M, Len),
+    D >= 1,
+    D =< Len,
+    bom_days_from_civil(Y, M, D, Day).
 bom_day(Value, Day) :-
     atom(Value),
     atom_chars(Value, Chars),
@@ -205,6 +260,7 @@ bom_warning_reason(Part, _Policy, unreadable(Field, Value)) :-
     \+ bom_day(Value, _).
 
 bom_warning_reason(Part, _Policy, unreadable(today, Value)) :-
+    \+ attribute(today, absolute_days, _),
     attribute(today, date, Value),
     \+ bom_day(Value, _),
     \+ \+ bom_dated(Part).

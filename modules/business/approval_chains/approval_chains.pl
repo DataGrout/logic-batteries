@@ -10,6 +10,36 @@ battery_export(approval_chains, 'fully_approved/1',    'fully_approved(Request) 
 battery_export(approval_chains, 'next_approver/2',     'next_approver(Request, Approver) — Approver is the next pending approver in sequence').
 battery_export(approval_chains, 'approval_blocked/2',  'approval_blocked(Request, Reason) — approval cannot proceed; Reason explains why').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). An approval step
+%% is its own subject naming a request, an approver and a position; a
+%% threshold rule is a subject with a threshold and an approver, and applies to
+%% every request. A request is named by its steps and carries an amount when
+%% threshold rules should see it; approvals, rejections and delegations are
+%% edges.
+
+battery_input(approval_chains, approval_step, attribute(request), ref(request), key,
+    'The request this step belongs to.').
+battery_input(approval_chains, approval_step, attribute(approver), ref(approver), required,
+    'Who must approve at this step.').
+battery_input(approval_chains, approval_step, attribute(step), integer, required,
+    'Position in the chain; steps are approved in ascending order.').
+battery_input(approval_chains, threshold_rule, attribute(threshold), number, key,
+    'Amount above which every request also needs this rule''s approver, after the numbered steps.').
+battery_input(approval_chains, threshold_rule, attribute(approver), ref(approver), required,
+    'Who must approve a request whose amount exceeds the threshold.').
+battery_input(approval_chains, request, attribute(amount), number, key,
+    'Amount compared against every threshold rule; without one no rule applies.').
+battery_input(approval_chains, request, relation(approved_by), ref(approver), optional,
+    'An approver (or their delegate) who has approved the request.').
+battery_input(approval_chains, request, relation(rejected_by), ref(approver), optional,
+    'An approver who rejected the request; any rejection stops the chain.').
+battery_input(approval_chains, request, attribute(rejection_reason), atom, default(unspecified),
+    'Why the request was rejected, returned by approval_blocked.').
+battery_input(approval_chains, approver, relation(delegated_to), ref(approver), key,
+    'Someone whose approval counts as this approver''s.').
+
 %% ── Approval Chain Data Model ─────────────────────────────────────────────────
 %%
 %% Approvers in order (step determines sequence):
@@ -50,9 +80,16 @@ approval_required_step(Request, Approver, auto) :-
     Amt > Limit.
 
 %% approval_granted(+Request, ?Approver)  — including delegated
+%% Unbound, Approver ranges over everyone whose approval is on record: each
+%% direct approver, and each required approver whose delegate approved. An
+%% approver granted both ways is reported once.
 approval_granted(Request, Approver) :-
-    relation(Request, approved_by, Approver), !.
-approval_granted(Request, Approver) :-
+    setof(A, approval_granted_by(Request, A), Approvers),
+    member(Approver, Approvers).
+
+approval_granted_by(Request, Approver) :-
+    relation(Request, approved_by, Approver).
+approval_granted_by(Request, Approver) :-
     approval_required(Request, Approver),
     relation(Approver, delegated_to, Delegate),
     relation(Request, approved_by, Delegate).
@@ -67,7 +104,7 @@ fully_approved(Request) :-
 next_approver(Request, Approver) :-
     \+ relation(Request, rejected_by, _),
     findall(Step-App, approval_required_step(Request, App, Step), Pairs),
-    msort(Pairs, Sorted),
+    sort(Pairs, Sorted),                   %% numbered steps, then auto (atoms sort after numbers)
     member(_-Approver, Sorted),
     \+ approval_granted(Request, Approver), !.
 

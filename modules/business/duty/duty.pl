@@ -44,6 +44,66 @@ battery_export('duty', 'unfit_reason/5',
 battery_export('duty', 'available_staff/4',
     'available_staff(Task, Start, End, Worker) — enumerates every rostered worker (has a role attribute) who is fit_for_duty for Task over [Start, End)').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read, for a host to validate facts against and to build a
+%% schema from (see CONTRIBUTING, "Input contract"). Every time and duration is
+%% an integer in the one unit the namespace uses throughout (minutes, unix
+%% seconds or game ticks), never a mix. A worker is anything with a role; a
+%% period and a window are what duty_period and unavailable_during point to.
+%% The four policy limits resolve worker, then the worker's role, then
+%% duty_policy; a limit set at no level is not enforced (policy_gap/2 reports
+%% it).
+
+battery_input(duty, worker, attribute(role), ref(staff_role), key,
+    'The worker''s role; having one puts the worker on the roster available_staff searches.').
+battery_input(duty, worker, relation(duty_period), ref(period), optional,
+    'A committed duty period, past, current or scheduled; conflicts, rest and rolling totals come from these.').
+battery_input(duty, worker, relation(unavailable_during), ref(window), optional,
+    'Leave, training or maintenance; any entity can carry it, equipment included.').
+battery_input(duty, worker, relation(holds), ref(qualification), optional,
+    'A qualification the worker holds.').
+battery_input(duty, worker, attribute(max_duty), integer, optional,
+    'This worker''s longest single duty period, in the namespace''s time unit; overrides role and duty_policy.').
+battery_input(duty, worker, attribute(min_rest), integer, optional,
+    'This worker''s least rest between a prior duty''s end and a new start; overrides role and duty_policy.').
+battery_input(duty, worker, attribute(rolling_window), integer, optional,
+    'This worker''s window for rolling_limit, ending at the proposed end; overrides role and duty_policy.').
+battery_input(duty, worker, attribute(rolling_limit), integer, optional,
+    'This worker''s most duty time within a rolling_window; overrides role and duty_policy.').
+battery_input(duty, staff_role, attribute(max_duty), integer, key,
+    'Longest single duty period for workers in this role, in the namespace''s time unit.').
+battery_input(duty, staff_role, attribute(min_rest), integer, key,
+    'Least rest before a new start for workers in this role.').
+battery_input(duty, staff_role, attribute(rolling_window), integer, key,
+    'Window over which rolling_limit is measured for workers in this role.').
+battery_input(duty, staff_role, attribute(rolling_limit), integer, key,
+    'Most duty time within a rolling_window for workers in this role; enforced only with a window.').
+battery_input(duty, fixed(duty_policy), attribute(max_duty), integer, optional,
+    'Longest single duty period when neither worker nor role sets one; unset means unlimited.').
+battery_input(duty, fixed(duty_policy), attribute(min_rest), integer, optional,
+    'Least rest before a new start when neither worker nor role sets one; unset means none.').
+battery_input(duty, fixed(duty_policy), attribute(rolling_window), integer, optional,
+    'Window for rolling_limit when neither worker nor role sets one.').
+battery_input(duty, fixed(duty_policy), attribute(rolling_limit), integer, optional,
+    'Most duty time within a rolling_window when neither worker nor role sets one; unset means unlimited.').
+battery_input(duty, period, attribute(start), integer, key,
+    'When the duty period starts, included, in the namespace''s time unit.').
+battery_input(duty, period, attribute(end), integer, required,
+    'When the duty period ends, excluded: a period ending at 1080 and one starting at 1080 do not overlap.').
+battery_input(duty, window, attribute(start), integer, key,
+    'When the unavailability starts, included, in the namespace''s time unit.').
+battery_input(duty, window, attribute(end), integer, required,
+    'When the unavailability ends, excluded.').
+battery_input(duty, qualification, attribute(kind), atom, key,
+    'What the qualification certifies, matched against a task''s requires.').
+battery_input(duty, qualification, attribute(expires), integer, optional,
+    'When it lapses, in the namespace''s time unit; current while expires is later than the time asked about. Absent never lapses.').
+battery_input(duty, task, relation(requires), atom, key,
+    'A qualification kind the task needs, current at the duty''s start; zero or more per task.').
+battery_input(duty, task, attribute(needs_role), ref(staff_role), key,
+    'The role a worker must have to take the task; absent accepts any role.').
+
 %% ── Data model ───────────────────────────────────────────────────────────────
 %%
 %% Time is an integer in ONE consistent unit per namespace (minutes and unix

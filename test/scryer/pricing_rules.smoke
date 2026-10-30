@@ -1,10 +1,21 @@
 # pricing_rules battery on scryer-prolog: price_tier lists every tiered
-# customer when Customer is unbound, and a bound Tier is the computed one.
+# customer when Customer is unbound, and a bound Tier is the computed one;
+# bulk_discount picks the highest threshold reached without msort/last; a
+# percentage discount is a share of the base price taken off the tier price.
 modules/business/pricing_rules/pricing_rules.pl
 ---
 attribute(widget, base_price, 100).
+attribute(widget, bulk_qty_1, 100).
+attribute(widget, bulk_pct_1, 20).
+attribute(widget, bulk_qty_2, 10).
+attribute(widget, bulk_pct_2, 5).
+attribute(widget, bulk_qty_4, 50).
+attribute(widget, bulk_pct_4, 12).
+attribute(gadget, base_price, 100).
+attribute(sale, pct_off, 20).
 attribute(cust_m, pricing_tier, member).
 attribute(cust_v, pricing_tier, vip).
+relation(gadget, has_discount, sale).
 check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
 smoke :-
     check(tiers, (findall(C-T, price_tier(widget, C, T), P0), sort(P0, P),
@@ -14,4 +25,8 @@ smoke :-
     check(default, price_tier(widget, nobody, standard)),
     check(prices, (findall(C-Pr, effective_price(widget, C, Pr), E0), sort(E0, E),
         E == [cust_m-90, cust_v-80])),
+    check(bulk, (bulk_discount(widget, 9, B0), B0 == 0, bulk_discount(widget, 10, B1), B1 == 5,
+        bulk_discount(widget, 75, B2), B2 == 12, bulk_discount(widget, 500, B3), B3 == 20)),
+    check(stacking, (effective_price(gadget, cust_m, SM), SM == 70,
+        effective_price(gadget, cust_v, SV), SV == 60, effective_price(gadget, nobody, SN), SN == 80)),
     write(smoke_ok), nl.

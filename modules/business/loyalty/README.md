@@ -49,6 +49,9 @@ client.perform("data-grout@1/batteries.install_many@1", {
 `loyalty` is a fixed entity name for thresholds and multipliers; each is
 optional and overrides its default individually.
 
+`tier_benefit` reports each benefit once, even when it is attached to several
+of the tiers the customer holds or outranks.
+
 ## Default Tier Thresholds
 
 | Tier | Lifetime points required |
