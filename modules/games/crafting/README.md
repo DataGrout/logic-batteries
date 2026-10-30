@@ -122,6 +122,21 @@ player with no `<player>_smithing` entity; there is no error, just `false`.
 **Composite keys.** `<player>_<skill>` joins with `_`, so a player id containing
 `_` can collide with another player-skill pair. Keep ids free of `_`.
 
+**Unbound arguments enumerate.** `recipe_known(alice, R)` lists every recipe
+she was taught, starts with, or can discover now; `recipe_known(P, iron_sword)`
+lists every player who knows it, each once. A starter recipe is known to anyone,
+so it leaves `P` unbound rather than listing players. `recipe_discoverable`
+enumerates the same way.
+
+`crafting_skill(P, smithing, L)` lists the players with a `<player>_smithing`
+level, and `crafting_skill(alice, S, L)` alice's skills (every
+`alice_<skill>` key with a `level`); with both unbound, `S` ranges over the
+skills some item requires. Only set levels are listed; the 0 default answers
+bound queries only, and a bound `Level` is compared with the computed one.
+`can_craft_skilled(P, Item)` lists the players who know the recipe and meet its
+requirements. For a starter recipe, `P` ranges over the players holding one of
+its required skills, or stays unbound when nothing above 0 is required.
+
 ## Pairs Well With
 
 `progression` for `level`, `quests` for `completed_quest`, `inventory` for

@@ -189,3 +189,39 @@ test(disguise_does_nothing_against_active_guard, [setup(setup_det_fix_disguise_v
     base_detection_probability(gate_guard, spy, B), assertion(B =:= 0.95).
 
 :- end_tests(prob_detection_tier_model).
+
+%% ── detection_probability/3 with Guard or Player unbound ─────────────────────
+%% Guards are entities with perception or alert_state; players are entities
+%% with stealth_bonus or held items. The first guard is passive and the first
+%% player unstealthy, so committing to either shows.
+
+setup_det_listing :-
+    assertz(attribute(alpha_guard, perception, 3)),
+    assertz(attribute(beta_guard, perception, 9)),
+    assertz(attribute(beta_guard, alert_state, active)),
+    assertz(attribute(sneak, stealth_bonus, 10)),
+    assertz(relation(oaf, has_item, lantern)).
+
+:- begin_tests(prob_detection_listing).
+
+test(guard_unbound_lists_every_guard, [setup(setup_det_listing), cleanup(clear_facts)]) :-
+    findall(G-P, detection_probability(G, oaf, P), Ps), msort(Ps, Sorted),
+    Sorted = [alpha_guard-PA, beta_guard-PB],
+    assertion(abs(PA - 0.15) < 0.001),
+    assertion(abs(PB - 0.95) < 0.001).
+
+test(player_unbound_lists_every_player, [setup(setup_det_listing), cleanup(clear_facts)]) :-
+    findall(Pl-P, detection_probability(beta_guard, Pl, P), Ps), msort(Ps, Sorted),
+    Sorted = [oaf-PO, sneak-PS],
+    assertion(abs(PO - 0.95) < 0.001),
+    assertion(abs(PS - 0.95 * 0.3) < 0.001).
+
+test(both_unbound_lists_pairs, [setup(setup_det_listing), cleanup(clear_facts)]) :-
+    findall(G-Pl, detection_probability(G, Pl, _), Ps), msort(Ps, Sorted),
+    assertion(Sorted == [alpha_guard-oaf, alpha_guard-sneak, beta_guard-oaf, beta_guard-sneak]).
+
+test(stealth_success_lists_guards, [setup(setup_det_listing), cleanup(clear_facts)]) :-
+    findall(G, stealth_success(G, oaf), Gs),
+    assertion(Gs == [alpha_guard]).
+
+:- end_tests(prob_detection_listing).

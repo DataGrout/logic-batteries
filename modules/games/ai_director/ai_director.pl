@@ -40,9 +40,24 @@ battery_export(ai_director, 'director_event/2',    'director_event(Zone, Event) 
 
 %% ── threat_level/2 ───────────────────────────────────────────────────────────
 
+%% Unbound, Zone ranges over every zone the director knows: those with a
+%% `threat` fact or named by some enemy's `spawn_zone`. Level is computed before
+%% it is compared, so the 0 default never answers for a zone with a threat.
 threat_level(Zone, Level) :-
+    ( var(Zone) -> director_zone(Zone) ; true ),
+    director_threat(Zone, Level0),
+    Level = Level0.
+
+director_threat(Zone, Level) :-
     attribute(Zone, threat, Level), !.
-threat_level(_, 0).
+director_threat(_, 0).
+
+director_zone(Zone) :-
+    setof(Z, director_zone_fact(Z), Zones),
+    member(Zone, Zones).
+
+director_zone_fact(Zone) :- attribute(Zone, threat, _).
+director_zone_fact(Zone) :- attribute(_, spawn_zone, Zone).
 
 %% ── pacing_state/2 ───────────────────────────────────────────────────────────
 
@@ -55,11 +70,18 @@ pacing_threshold(building, 20).
 pacing_threshold(recovery, T) :- attribute(director, recovery_threshold, T), !.
 pacing_threshold(recovery, 5).
 
-pacing_state(Zone, peak)     :- threat_level(Zone, L), pacing_threshold(peak,     T), L >= T, !.
-pacing_state(Zone, tense)    :- threat_level(Zone, L), pacing_threshold(tense,    T), L >= T, !.
-pacing_state(Zone, building) :- threat_level(Zone, L), pacing_threshold(building, T), L >= T, !.
-pacing_state(Zone, recovery) :- threat_level(Zone, L), pacing_threshold(recovery, T), L < T, !.
-pacing_state(_, calm).
+%% The first matching state wins per zone, and State is computed before it is
+%% compared: `pacing_state(Zone, calm)` is false for a zone at peak.
+pacing_state(Zone, State) :-
+    threat_level(Zone, Level),
+    director_pacing(Level, State0),
+    State = State0.
+
+director_pacing(L, peak)     :- pacing_threshold(peak,     T), L >= T, !.
+director_pacing(L, tense)    :- pacing_threshold(tense,    T), L >= T, !.
+director_pacing(L, building) :- pacing_threshold(building, T), L >= T, !.
+director_pacing(L, recovery) :- pacing_threshold(recovery, T), L < T, !.
+director_pacing(_, calm).
 
 %% ── difficulty_modifier/2 ────────────────────────────────────────────────────
 
@@ -82,14 +104,25 @@ difficulty_modifier(Zone, Modifier) :-
 
 %% An enemy with spawn_zone facts may spawn only in those zones; one with none
 %% may spawn anywhere. (The earlier `-> true ; true` succeeded either way, so
-%% spawn_zone was never enforced.)
+%% spawn_zone was never enforced.) Unbound, Enemy ranges over every enemy with a
+%% spawn rule, and Zone over its spawn zones, or over every known zone when it
+%% has none.
 spawn_eligible(Enemy, Zone) :-
+    ( var(Enemy) -> director_enemy(Enemy) ; true ),
     ( attribute(Enemy, spawn_zone, _) -> attribute(Enemy, spawn_zone, Zone) ; true ),
     threat_level(Zone, Threat),
     ( attribute(Enemy, min_threat, Min) -> Threat >= Min ; true ),
     ( attribute(Enemy, max_threat, Max) -> Threat =< Max ; true ),
     pacing_state(Zone, State),
     State \= recovery.
+
+director_enemy(Enemy) :-
+    setof(E, director_enemy_fact(E), Enemies),
+    member(Enemy, Enemies).
+
+director_enemy_fact(Enemy) :- attribute(Enemy, spawn_zone, _).
+director_enemy_fact(Enemy) :- attribute(Enemy, min_threat, _).
+director_enemy_fact(Enemy) :- attribute(Enemy, max_threat, _).
 
 %% ── director_event/2 ─────────────────────────────────────────────────────────
 

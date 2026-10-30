@@ -108,6 +108,11 @@ resource only; it grants nothing `permission_granted` can see. A resource with
 `can_access` fails for everyone, including admins. Every resource needs at
 least one of the three.
 
+**Unbound arguments enumerate.** `can_access(alice, R)` lists every resource
+she may open; `can_access(E, post_123)` lists the owner and every holder of the
+required permission, each once. A public resource is open to anyone, so it
+leaves `E` unbound rather than listing entities.
+
 ## Game Use Cases
 
 **Guild ranks** — `guild_leader inherits_from officer inherits_from member`,

@@ -17,7 +17,7 @@ client.perform("data-grout@1/batteries.install_many@1", {
 
 | Predicate | Description |
 |---|---|
-| `eu(Action, EU)` | expected utility of Action: `sum(P_i * U_i)` over its weighted outcomes |
+| `eu(Action, EU)` | expected utility of Action: `sum(P_i * U_i)` over its weighted outcomes. Action unbound lists each declared `action/1` with its EU |
 | `best_action(Best, BestEU)` | the `action/1` with the highest expected utility |
 | `eu_sum(PUs, Acc, Sum)` | accumulator fold (internal helper for `eu/2`) |
 | `best_pair(Pairs, AccA, AccEU, Best, BestEU)` | accumulator argmax (internal helper for `best_action/2`) |

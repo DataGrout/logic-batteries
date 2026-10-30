@@ -1,0 +1,53 @@
+# inventory_mgmt battery on scryer-prolog: stock_level and needs_reorder list
+# every item when Item is unbound, a bound Level is the computed one, and
+# days_of_stock takes decimal stock (floor, never below 0). reorder_quantity,
+# preferred_supplier and days_of_stock list every item too.
+modules/business/inventory_mgmt/inventory_mgmt.pl
+---
+attribute(beans_out, stock, 0).
+attribute(beans_out, reorder_threshold, 20).
+attribute(beans_crit, stock, 8).
+attribute(beans_crit, reorder_threshold, 20).
+attribute(beans_crit, critical_threshold, 10).
+attribute(beans_low, stock, 15).
+attribute(beans_low, reorder_threshold, 20).
+attribute(beans_ok, stock, 80).
+attribute(beans_ok, reorder_threshold, 20).
+attribute(milk, stock, 7.5).
+attribute(milk, daily_usage, 2.5).
+attribute(flour, stock, 80).
+attribute(flour, daily_usage, 15).
+attribute(backorder, stock, -5).
+attribute(backorder, daily_usage, 2).
+attribute(sugar, stock, 10.3).
+attribute(sugar, reorder_threshold, 21).
+attribute(beans_ok, reorder_quantity, 100).
+attribute(beans_low, max_stock, 40).
+attribute(acme, preferred, true).
+relation(beans_ok, supplied_by, generic).
+relation(beans_ok, supplied_by, acme).
+relation(milk, supplied_by, dairy).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(levels, (findall(I-L, stock_level(I, L), P0), sort(P0, P),
+        P == [backorder-stockout, beans_crit-critical, beans_low-low,
+              beans_ok-adequate, beans_out-stockout, flour-adequate,
+              milk-adequate, sugar-critical])),
+    check(bound_level, \+ stock_level(beans_crit, low)),
+    check(reorder, (findall(I, needs_reorder(I), R0), sort(R0, R),
+        R == [backorder, beans_crit, beans_low, beans_out, sugar])),
+    check(days_decimal, (days_of_stock(milk, D1), D1 == 3)),
+    check(days_int, (days_of_stock(flour, D2), D2 == 5)),
+    check(days_negative, (days_of_stock(backorder, D3), D3 == 0)),
+    check(reorder_qty, (findall(I-Q, reorder_quantity(I, Q), Q0), sort(Q0, Qs),
+        Qs == [backorder-50, beans_crit-50, beans_low-25, beans_ok-100,
+               beans_out-50, flour-50, milk-50, sugar-50])),
+    check(reorder_qty_bound, \+ reorder_quantity(beans_ok, 50)),
+    check(suppliers, (findall(I-S, preferred_supplier(I, S), S0), sort(S0, Ss),
+        Ss == [beans_ok-acme, milk-dairy])),
+    check(supplier_bound, \+ preferred_supplier(beans_ok, generic)),
+    check(days_list, (findall(I-D, days_of_stock(I, D), D0), sort(D0, Ds),
+        Ds == [backorder-0, beans_crit-unknown, beans_low-unknown,
+               beans_ok-unknown, beans_out-unknown, flour-5, milk-3,
+               sugar-unknown])),
+    write(smoke_ok), nl.

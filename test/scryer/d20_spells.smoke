@@ -1,0 +1,26 @@
+# d20-spells battery on scryer-prolog: listing known and castable spells with
+# the caster or spell unbound, where neither caster knows the first cantrip
+# and the first preparing caster has nothing prepared.
+modules/d20/d20-core/d20_core.pl
+modules/d20/d20-spells/d20_spells.pl
+---
+attribute(lister, slots_l1, 1).
+attribute(idle_cleric, prepares_spells, true).
+attribute(busy_cleric, prepares_spells, true).
+attribute(busy_cleric, slots_l1, 1).
+relation(lister, knows_spell, ray_of_frost).
+relation(lister, knows_spell, magic_missile).
+relation(busy_cleric, prepared_spell, bless).
+relation(busy_cleric, knows_spell, sacred_flame).
+
+smoke :-
+    findall(S, spell_known(lister, S), Known), sort(Known, KnownS),
+    KnownS == [magic_missile, ray_of_frost],
+    findall(C, spell_known(C, bless), [busy_cleric]),
+    findall(S2-L, d20_can_cast(lister, S2, L), Casts), sort(Casts, CastsS),
+    CastsS == [magic_missile-1, ray_of_frost-0],
+    findall(S3, spell_castable(lister, S3), Castable), sort(Castable, CastableS),
+    CastableS == [magic_missile, ray_of_frost],
+    length(Castable, 2),
+    findall(C2, spell_castable(C2, bless), [busy_cleric]),
+    write(smoke_ok), nl.

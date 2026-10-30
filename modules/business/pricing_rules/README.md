@@ -51,6 +51,11 @@ client.perform("data-grout@1/batteries.install_many@1", {
 are built at query time from the number, so they will not appear in a search
 of the source for a literal attribute.
 
+`price_tier` with `Customer` unbound ranges over the customers that have a
+`pricing_tier` fact; a customer without one is `standard` but cannot be listed.
+The tier is computed before it is compared, so `price_tier(_, C, standard)` is
+false for a VIP.
+
 `discount_applicable/2` reports every attached discount regardless of
 `requires_tier`; the tier gate is applied only inside `effective_price`. If you
 need "applicable *to this customer*", call `effective_price` or filter on

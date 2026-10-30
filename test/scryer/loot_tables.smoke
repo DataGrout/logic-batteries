@@ -1,0 +1,23 @@
+# loot-tables battery on scryer-prolog: loot_chance lists a source's whole
+# table with odds, a bound source must hold the item, and rarity_tier lists
+# every item.
+modules/games/loot-tables/loot_tables.pl
+---
+attribute(relic, rarity, rare).
+attribute(cursed_ring, rarity, epic).
+attribute(cursed_ring, drop_chance, 5).
+relation(crypt, can_drop, bone).
+relation(crypt, can_drop, relic).
+relation(crypt, can_drop, cursed_ring).
+relation(well, can_drop, coin).
+
+smoke :-
+    findall(I-C, loot_chance(crypt, I, C), Ps), sort(Ps, PsS),
+    PsS == [bone-70, cursed_ring-5, relic-10],
+    \+ loot_chance(well, relic, _),
+    loot_chance(_, relic, 10),
+    findall(S-I2, loot_chance(S, I2, _), Pairs), sort(Pairs, PairsS),
+    PairsS == [crypt-bone, crypt-cursed_ring, crypt-relic, well-coin],
+    findall(I3-T, rarity_tier(I3, T), Tiers), sort(Tiers, TiersS),
+    TiersS == [bone-common, coin-common, cursed_ring-epic, relic-rare],
+    write(smoke_ok), nl.

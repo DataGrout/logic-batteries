@@ -1,0 +1,29 @@
+# ai_director battery on scryer-prolog: with Enemy or Zone unbound,
+# spawn_eligible and the zone listers enumerate, and a bound pacing state is the
+# computed one.
+modules/games/ai_director/ai_director.pl
+---
+attribute(forest_zone, threat, 40).
+attribute(cave_zone, threat, 90).
+attribute(camp_zone, threat, 3).
+attribute(goblin, spawn_zone, forest_zone).
+attribute(goblin, spawn_zone, cave_zone).
+attribute(goblin, max_threat, 60).
+attribute(dragon, min_threat, 70).
+attribute(rat, max_threat, 100).
+attribute(director, peak_event, boss_spawn).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(threats, (findall(Z-L, threat_level(Z, L), T0), sort(T0, T),
+        T == [camp_zone-3, cave_zone-90, forest_zone-40])),
+    check(threat_bound, \+ threat_level(forest_zone, 0)),
+    check(pacing, (findall(Z-S, pacing_state(Z, S), P0), sort(P0, P),
+        P == [camp_zone-recovery, cave_zone-peak, forest_zone-building])),
+    check(pacing_bound, \+ pacing_state(cave_zone, calm)),
+    check(events, (findall(Z-E, director_event(Z, E), Ev), Ev == [cave_zone-boss_spawn])),
+    check(goblin_zones, (findall(Z, spawn_eligible(goblin, Z), G), G == [forest_zone])),
+    check(cave_enemies, (findall(E, spawn_eligible(E, cave_zone), C0), sort(C0, C),
+        C == [dragon, rat])),
+    check(pairs, (findall(E-Z, spawn_eligible(E, Z), S0), sort(S0, Sp),
+        Sp == [dragon-cave_zone, goblin-forest_zone, rat-cave_zone, rat-forest_zone])),
+    write(smoke_ok), nl.

@@ -45,7 +45,14 @@ utility('$prob_decide_none', 0) :- fail.
 
 %% ── Expected utility ──────────────────────────────────────────────────
 
+%% eu(?Action, -EU) — unbound, Action ranges over the declared action/1 set,
+%% one EU each; otherwise the findall would sum every action's outcomes.
 eu(Action, EU) :-
+    (   var(Action)
+    ->  setof(A, action(A), Actions),
+        member(Action, Actions)
+    ;   true
+    ),
     findall(PU,
             ( prob_rule(outcome(Action, O), P),
               utility(O, U),

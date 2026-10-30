@@ -1,0 +1,46 @@
+# npc-state battery on scryer-prolog: npc_friendly and npc_hostile enumerate
+# NPCs (flags, dialogue, and the <npc>_<player> score keys) and players;
+# relationship_level and dialogue_available take an unbound player.
+modules/games/npc-state/npc_state.pl
+---
+attribute(merchant_alice, score, 50).
+attribute(merchant_bob, score, 10).
+attribute(guard_alice, score, -50).
+attribute(guard_bob, score, 30).
+attribute(bandit_bob, score, 90).
+attribute(innkeeper, always_friendly, true).
+attribute(bandit, always_hostile, true).
+attribute(secret_sale, requires_friendly, true).
+attribute(gossip, requires_relationship, 5).
+attribute(reward_topic, requires_quest, find_artifact).
+relation(merchant, has_dialogue, buy_items).
+relation(merchant, has_dialogue, secret_sale).
+relation(merchant, has_dialogue, gossip).
+relation(merchant, has_dialogue, reward_topic).
+relation(carol, completed_quest, find_artifact).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(friendly_npcs, (findall(N, npc_friendly(N, alice), F0), sort(F0, F),
+        F == [innkeeper, merchant])),
+    check(friendly_players, (findall(P, npc_friendly(guard, P), G), G == [bob])),
+    check(hostile_npcs, (findall(N, npc_hostile(N, alice), H0), sort(H0, H),
+        H == [bandit, guard])),
+    check(both, (findall(N-P, (npc_friendly(N, P), nonvar(P)), B0), sort(B0, B),
+        B == [guard-bob, merchant-alice])),
+    check(level_players, (findall(P-L, relationship_level(merchant, P, L), L0), sort(L0, Ls),
+        Ls == [alice-50, bob-10])),
+    check(level_npcs, (findall(N-L, relationship_level(N, bob, L), N0), sort(N0, Ns),
+        Ns == [bandit-90, guard-30, merchant-10])),
+    check(level_pairs, (findall(N-P-L, relationship_level(N, P, L), T0), sort(T0, T),
+        T == [bandit-bob-90, guard-alice-(-50), guard-bob-30, merchant-alice-50,
+              merchant-bob-10])),
+    check(level_bound, \+ relationship_level(merchant, alice, 0)),
+    check(level_default, relationship_level(merchant, carol, 0)),
+    check(dialogue_friendly, (findall(P, dialogue_available(merchant, P, secret_sale), D1),
+        D1 == [alice])),
+    check(dialogue_score, (findall(P, dialogue_available(merchant, P, gossip), D2),
+        sort(D2, D2s), D2s == [alice, bob])),
+    check(dialogue_quest, (findall(P, dialogue_available(merchant, P, reward_topic), D3),
+        D3 == [carol])),
+    check(dialogue_anyone, (dialogue_available(merchant, A, buy_items), var(A))),
+    write(smoke_ok), nl.

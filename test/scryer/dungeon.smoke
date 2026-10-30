@@ -1,0 +1,20 @@
+# dungeon battery on scryer-prolog: room_accessible lists locked and unlocked
+# rooms when Room is unbound.
+modules/games/dungeon/dungeon.pl
+---
+relation(crypt, has_room, gate).
+relation(gate, connects_to, hall).
+relation(hall, connects_to, throne).
+relation(hall, connects_to, vault).
+relation(alice, has_item, iron_key).
+relation(bob, has_item, iron_key).
+attribute(throne, requires_key, iron_key).
+attribute(vault, requires_key, gold_key).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(rooms, (findall(R, room_accessible(alice, R), R0), sort(R0, Rs),
+        Rs == [gate, hall, throne])),
+    check(holders, (findall(P, room_accessible(P, throne), P0), sort(P0, Ps),
+        Ps == [alice, bob])),
+    check(locked, \+ room_accessible(_, vault)),
+    write(smoke_ok), nl.

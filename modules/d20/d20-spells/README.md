@@ -30,12 +30,12 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `spell_attack_roll(Name)` | Delivered by a spell attack roll vs AC |
 | `spell_concentration(Name)` | The spell requires concentration |
 | `spell_damage_type(Name, Type)` | fire / cold / radiant / force / thunder / … |
-| `spell_known(Caster, Spell)` | Known — or prepared, if the caster prepares |
-| `spell_castable(Caster, Spell)` | Known AND a sufficient slot remains (cantrips always) |
+| `spell_known(Caster, Spell)` | Known — or prepared, if the caster prepares. Either argument may be unbound to list |
+| `spell_castable(Caster, Spell)` | Known AND a sufficient slot remains (cantrips always); one answer per caster and spell, either may be unbound |
 | `spell_slots_total(Caster, SlotLevel, N)` | Total slots of that level |
 | `spell_slots_expended(Caster, SlotLevel, N)` | Slots already spent (defaults to 0) |
 | `spell_slot_available(Caster, SlotLevel)` | At least one slot of that level remains |
-| `d20_can_cast(Caster, Spell, SlotLevel)` | The full casting gate; cantrips cast at SlotLevel 0 |
+| `d20_can_cast(Caster, Spell, SlotLevel)` | The full casting gate; cantrips cast at SlotLevel 0. With Spell unbound, every castable spell and slot |
 | `spell_effective_dice(Spell, CasterLevel, SlotLevel, NDice, Faces)` | Damage dice after cantrip scaling and upcasting |
 | `spell_heal_profile(Spell, SlotLevel, NDice, Faces)` | Healing dice after upcasting (add the caster's ability modifier) |
 | `d20_spell_save(Caster, Target, Spell, Roll, Outcome)` | `save_success` \| `save_failure` against the caster's DC |
@@ -148,5 +148,8 @@ client.perform("data-grout@1/logic.query@1", {
 - **Multi-projectile spells** (magic_missile: 3×1d4, +1 each; scorching_ray:
   three rays of 2d6) expose their total dice pool — per-dart bonuses and
   per-ray attack rolls are the application's loop.
+- **Listing works.** `spell_castable(wizard, S)` lists every spell the wizard
+  can cast now, and `spell_known(C, bless)` every caster who knows (or has
+  prepared) bless; candidates come from `knows_spell` / `prepared_spell`.
 - **Slot spending is the application's write** — retract and re-assert
   `slots_lN_used` after a cast the gate approved.

@@ -82,13 +82,20 @@ faction_standing(Player, Faction, Standing) :-
     faction_reputation(Player, Faction, Rep),
     rep_to_standing(Rep, Standing).
 
-%% faction_allied(+F1, +F2)  (symmetric)
-faction_allied(F1, F2) :- relation(F1, allied_with, F2), !.
-faction_allied(F1, F2) :- relation(F2, allied_with, F1).
+%% faction_allied(?F1, ?F2)  (symmetric)
+%% Either argument may be unbound: every ally in either direction, each pair
+%% once. Bound, it succeeds at most once.
+faction_allied(F1, F2) :-
+    setof(F1-F2, faction_linked(allied_with, F1, F2), Pairs),
+    member(F1-F2, Pairs).
 
-%% faction_at_war(+F1, +F2)  (symmetric)
-faction_at_war(F1, F2) :- relation(F1, at_war_with, F2), !.
-faction_at_war(F1, F2) :- relation(F2, at_war_with, F1).
+%% faction_at_war(?F1, ?F2)  (symmetric)
+faction_at_war(F1, F2) :-
+    setof(F1-F2, faction_linked(at_war_with, F1, F2), Pairs),
+    member(F1-F2, Pairs).
+
+faction_linked(Rel, F1, F2) :- relation(F1, Rel, F2).
+faction_linked(Rel, F1, F2) :- relation(F2, Rel, F1).
 
 %% faction_access(+Player, +Area)
 faction_access(Player, Area) :-

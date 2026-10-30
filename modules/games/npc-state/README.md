@@ -121,6 +121,25 @@ are neither friendly nor hostile; both predicates fail.
 **Composite keys.** `<npc>_<player>` joins with `_`, so ids containing `_`
 can collide. Keep ids free of `_`.
 
+**Unbound arguments enumerate.** `npc_friendly(N, alice)` lists the NPCs
+friendly to alice: those flagged `always_friendly`, and those whose
+`<npc>_alice` score clears the threshold. `npc_friendly(merchant, P)` lists the
+players with a `merchant_<player>` score that clears it; an `always_friendly`
+NPC leaves `P` unbound (friendly to anyone). A player with no score reads as 0
+and is not listed. With both unbound, a scored NPC's id is taken as the key up
+to its first `_`, one more reason to keep ids free of `_`. `npc_hostile` is the
+mirror.
+
+`relationship_level` enumerates the same way over the scores that are set:
+`relationship_level(merchant, P, L)` lists each player with a `merchant_<player>`
+score, `relationship_level(N, alice, L)` each NPC with an `<npc>_alice` score.
+The 0 default answers only when both are bound, and a bound `Level` is compared
+with the score (`relationship_level(merchant, alice, 0)` is false at 75).
+`dialogue_available(merchant, P, Topic)` lists the players who pass the topic's
+gates; a topic with no gate on the player leaves `P` unbound (open to anyone).
+Since unscored players are not listed, a `requires_relationship` of 0 or less
+lists only players with a score.
+
 ## Composing with Other Modules
 
 `dialogue` for the lines and choices once a topic is available; `faction` for

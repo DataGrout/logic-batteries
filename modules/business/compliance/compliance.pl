@@ -45,12 +45,43 @@ battery_export(compliance, 'consent_given/2',       'consent_given(Customer, Con
 
 %% ── compliant/2 ───────────────────────────────────────────────────────────────
 
+%% compliant(?Entity, ?Policy)
+%% The negation needs both bound: over an unbound Entity it would ask whether
+%% any entity at all meets each requirement. So an unbound Entity ranges over
+%% the entities in scope of the policy (see compliance_entity/2), and an unbound
+%% Policy over every policy with a `requires` relation.
 compliant(Entity, Policy) :-
+    (   var(Entity) -> compliance_entity(Policy, Entity)
+    ;   var(Policy) -> compliance_policy(Policy)
+    ;   true
+    ),
     \+ violation(Entity, Policy, _).
+
+%% An entity is in scope of a policy when it carries at least one attribute the
+%% policy requires, whatever its value (`false` included). An entity with none
+%% of them cannot be enumerated; name it to check it. Unbound Policy, this
+%% backtracks over policies (setof groups by the free Policy). The goal is a
+%% helper rather than a `^` conjunction: Scryer's setof returns nothing for
+%% `Req^V^(A, B)` while a free variable is grouping.
+compliance_entity(Policy, Entity) :-
+    setof(E, compliance_in_scope(Policy, E), Entities),
+    member(Entity, Entities).
+
+compliance_in_scope(Policy, Entity) :-
+    relation(Policy, requires, Req),
+    attribute(Entity, Req, _).
+
+compliance_policy(Policy) :-
+    setof(P, Req^relation(P, requires, Req), Policies),
+    member(Policy, Policies).
 
 %% ── violation/3 ───────────────────────────────────────────────────────────────
 
+%% violation(?Entity, ?Policy, ?Reason)
+%% Unbound Entity ranges over the entities in scope of the policy, as for
+%% compliant/2.
 violation(Entity, Policy, missing_requirement(Req)) :-
+    ( var(Entity) -> compliance_entity(Policy, Entity) ; true ),
     relation(Policy, requires, Req),
     \+ requirement_met(Entity, Req).
 

@@ -1,0 +1,17 @@
+# faction battery on scryer-prolog: faction_allied and faction_at_war list
+# every ally / enemy in both directions.
+modules/games/faction/faction.pl
+---
+relation(elves, allied_with, dwarves).
+relation(men, allied_with, elves).
+relation(elves, at_war_with, orcs).
+relation(goblins, at_war_with, elves).
+relation(elves, at_war_with, trolls).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(allies, (findall(F, faction_allied(elves, F), A0), sort(A0, A),
+        A == [dwarves, men])),
+    check(enemies, (findall(F, faction_at_war(elves, F), W0), sort(W0, W),
+        W == [goblins, orcs, trolls])),
+    check(bound, (findall(x, faction_allied(dwarves, elves), X), X == [x])),
+    write(smoke_ok), nl.

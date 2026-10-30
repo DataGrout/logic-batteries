@@ -121,3 +121,102 @@ test(cannot_craft_unknown_recipe, [setup(setup_alice_skilled), cleanup(clear_fac
     assertion(\+ can_craft_skilled(alice, dragon_armor)).
 
 :- end_tests(crafting_can_craft).
+
+%% ── Unbound Player / Recipe: enumerate every match ───────────────────────────
+
+craft_setup_listers :-
+    assertz(relation(alice, knows_recipe, sword)),
+    assertz(relation(alice, knows_recipe, axe)),
+    assertz(relation(bob,   knows_recipe, sword)),
+    assertz(attribute(bandage, starter_recipe, true)),
+    assertz(attribute(fire_spell, discover_on_level, 10)),
+    assertz(attribute(alice, level, 12)),
+    assertz(attribute(bob,   level, 15)),
+    assertz(attribute(carol, level, 3)),
+    assertz(attribute(potion, discover_on_quest, find_alchemist)),
+    assertz(relation(bob, completed_quest, find_alchemist)).
+
+:- begin_tests(crafting_unbound).
+
+test(recipe_known_lists_every_recipe, [setup(craft_setup_listers), cleanup(clear_facts)]) :-
+    findall(R, recipe_known(alice, R), Rs0),
+    msort(Rs0, Rs),
+    assertion(Rs == [axe, bandage, fire_spell, sword]).
+
+test(recipe_known_lists_every_player, [setup(craft_setup_listers), cleanup(clear_facts)]) :-
+    findall(P, recipe_known(P, sword), Ps0),
+    msort(Ps0, Ps),
+    assertion(Ps == [alice, bob]),
+    findall(P, recipe_known(P, fire_spell), Fs0),
+    msort(Fs0, Fs),
+    assertion(Fs == [alice, bob]).
+
+test(recipe_known_starter_is_anyone, [setup(craft_setup_listers), cleanup(clear_facts)]) :-
+    recipe_known(P, bandage), assertion(var(P)).
+
+test(recipe_discoverable_lists_every_pair, [setup(craft_setup_listers), cleanup(clear_facts)]) :-
+    findall(P-R, recipe_discoverable(P, R), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [alice-fire_spell, bob-fire_spell, bob-potion]).
+
+test(recipe_known_bound_is_deterministic, [setup(craft_setup_listers), cleanup(clear_facts)]) :-
+    findall(x, recipe_known(bob, sword), Xs),
+    assertion(Xs == [x]).
+
+:- end_tests(crafting_unbound).
+
+%% ── Unbound Player / Skill: crafting_skill and can_craft_skilled ─────────────
+
+craft_setup_skills :-
+    assertz(relation(alice, knows_recipe, sword)),
+    assertz(relation(bob,   knows_recipe, sword)),
+    assertz(attribute(sword, requires_smithing, 3)),
+    assertz(attribute(bandage, starter_recipe, true)),
+    assertz(attribute(splint, starter_recipe, true)),
+    assertz(attribute(splint, requires_first_aid, 2)),
+    assertz(attribute(alice, level, 12)),
+    assertz(attribute(alice_smithing, level, 5)),
+    assertz(attribute(alice_first_aid, level, 1)),
+    assertz(attribute(bob_smithing, level, 1)),
+    assertz(attribute(dark_elf_first_aid, level, 4)).
+
+:- begin_tests(crafting_unbound_skill).
+
+test(crafting_skill_lists_players_for_skill, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    findall(P-L, crafting_skill(P, smithing, L), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [alice-5, bob-1]).
+
+test(crafting_skill_lists_skills_for_player, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    findall(S-L, crafting_skill(alice, S, L), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [first_aid-1, smithing-5]).
+
+test(crafting_skill_lists_every_pair, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    findall(P-S-L, crafting_skill(P, S, L), Triples0),
+    msort(Triples0, Triples),
+    assertion(Triples == [alice-first_aid-1, alice-smithing-5,
+                          bob-smithing-1, dark_elf-first_aid-4]).
+
+test(crafting_skill_bound_level_is_the_held_one, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    %% 0 is only the default for a skill with no level fact
+    assertion(\+ crafting_skill(alice, smithing, 0)),
+    assertion(crafting_skill(carol, smithing, 0)).
+
+test(can_craft_skilled_lists_players, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    findall(P, can_craft_skilled(P, sword), Ps),
+    assertion(Ps == [alice]).
+
+test(can_craft_skilled_starter_with_requirement, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    findall(P, can_craft_skilled(P, splint), Ps),
+    assertion(Ps == [dark_elf]).
+
+test(can_craft_skilled_starter_without_requirement_is_anyone, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    can_craft_skilled(P, bandage), assertion(var(P)).
+
+test(can_craft_skilled_lists_items_for_player, [setup(craft_setup_skills), cleanup(clear_facts)]) :-
+    findall(I, can_craft_skilled(alice, I), Is0),
+    msort(Is0, Is),
+    assertion(Is == [bandage, sword]).
+
+:- end_tests(crafting_unbound_skill).

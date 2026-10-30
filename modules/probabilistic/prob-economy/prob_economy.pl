@@ -77,8 +77,15 @@ battery_export('prob-economy', 'expected_price/2',
 %% ── Deterministic probability accessors ─────────────────────────────────
 %% Returns numeric probabilities without requiring ProbLog inference.
 %% Uses the highest-probability matching rule as a conservative estimate.
+%% With Item unbound each accessor lists one answer per item that carries the
+%% traits its rules read (0.0 when no world condition applies), rather than
+%% folding every item into a single maximum.
 
 supply_disruption(Item, Ps) :-
+    (   var(Item)
+    ->  pe_supply_item(Item)
+    ;   true
+    ),
     findall(P, supply_disruption_prob(Item, P), Probs),
     pe_max_list(Probs, 0.0, Ps).
 
@@ -99,6 +106,10 @@ supply_disruption_prob(Item, 0.30) :-
     attribute(world, season, summer).
 
 demand_spike(Item, Pd) :-
+    (   var(Item)
+    ->  pe_demand_item(Item)
+    ;   true
+    ),
     findall(P, demand_spike_prob(Item, P), Probs),
     pe_max_list(Probs, 0.0, Pd).
 
@@ -124,6 +135,10 @@ demand_spike_prob(Item, 0.50) :-
 %% ── Market analysis predicates ────────────────────────────────────────────
 
 market_volatility(Item, Ps, Pd) :-
+    (   var(Item)
+    ->  pe_market_item(Item)
+    ;   true
+    ),
     supply_disruption(Item, Ps),
     demand_spike(Item, Pd).
 
@@ -146,6 +161,21 @@ expected_price(Item, Price) :-
     supply_disruption(Item, Ps),
     demand_spike(Item, Pd),
     Price is round(Base * (1.0 - Ps * 0.2 + Pd * 0.3)).
+
+%% Items carrying the traits the rules read: supply traits, demand traits,
+%% or either.
+pe_supply_item(Item) :-
+    setof(I, pe_supply_trait(I), Items),
+    member(Item, Items).
+pe_demand_item(Item) :-
+    setof(I, C^attribute(I, category, C), Items),
+    member(Item, Items).
+pe_market_item(Item) :-
+    setof(I, C^( pe_supply_trait(I) ; attribute(I, category, C) ), Items),
+    member(Item, Items).
+
+pe_supply_trait(I) :- attribute(I, import_dependent, true).
+pe_supply_trait(I) :- attribute(I, perishable, true).
 
 %% Pure-ISO max fold (max_list/2 is an SWI library predicate — unavailable on
 %% Scryer/ISO-pinned cells). Empty list yields the 0.0 accumulator.

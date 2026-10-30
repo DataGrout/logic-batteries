@@ -133,8 +133,25 @@ compare. Assert a level for every player.
 `order` not yet complete; completing objective 2 before 1 is allowed and
 `next_objective` will still point at 1. Ties in `order` return both.
 
-**Prerequisites are all-of.** Every `requires_*` present must hold. A quest with
-none is available to anyone.
+**Prerequisites are all-of.** Every `requires_*` fact must hold, including
+several of one kind (two `requires_quest` facts need both quests complete). A
+quest with none is available to anyone, and each available quest is returned
+once.
+
+**Leave arguments unbound to list.** `quest_in_progress(alice, Q)`,
+`quest_complete(alice, Q)`, `can_turn_in(alice, Q)` and
+`quest_blocked_by(alice, Q, Reason)` enumerate quests; `quest_in_progress(P,
+slay_dragon)` and `quest_complete(P, Q)` enumerate players too. With one side
+bound the other is read back off the `status` keys, so the list is exactly
+what the bound check accepts — the `_` collision above applies here as well.
+With both unbound, quests come from the definition facts (`quest_exists`, a
+`requires_*` on or naming the quest, an ordered objective), so a status on a
+quest named nowhere else is listed only once you fix the player or the quest.
+`next_objective(P, slay_dragon, Obj)` lists each player tied to the quest by a
+`status` on it or a completed objective of it, with that player's next
+objective; a player with neither is not listed, though bound they would start
+at the first objective. `quest_available` and `quest_blocked_by` need the
+player bound.
 
 ## What this battery does not do
 

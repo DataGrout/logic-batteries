@@ -107,6 +107,8 @@ One Scryer behaviour that IS a bug (0.10.0): a numeric literal on the left of
 for `X = 3` while the same goal fails at the top level. Write `X mod 2 =:= 0`,
 or bind a variable first. The portability check flags the literal form.
 
+Another (Scryer build 97b85690): `setof`/`bagof` with `^` returns nothing when a free variable is left to group the results — `setof(V, R^(req(G, R), has(R, V)), L)` fails, as does the one-goal `setof(V, R^p(G, R, V), L)`, where SWI groups by `G` — so wrap the goal in a helper predicate (`g_val(G, V) :- req(G, R), has(R, V).`, then `setof(V, g_val(G, V), L)`) and drop the `^`.
+
 Two Scryer habits that look like bugs but are not: clauses of one predicate
 must be contiguous within a file or the later block silently replaces the
 earlier one, so keep fact blocks grouped when you build a flat test file; and

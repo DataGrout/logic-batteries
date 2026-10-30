@@ -44,10 +44,22 @@ tier_multiplier(member,   0.9).
 tier_multiplier(vip,      M) :- attribute(pricing, vip_multiplier, M), !.
 tier_multiplier(vip,      0.8).
 
-%% price_tier(+Item, +Customer, -Tier)
+%% price_tier(+Item, ?Customer, ?Tier)
+%% Unbound, Customer ranges over customers with a `pricing_tier` fact; a
+%% customer without one is standard but cannot be enumerated. Tier is computed
+%% before it is compared, so a vip customer is not also standard.
 price_tier(_, Customer, Tier) :-
+    ( var(Customer) -> pricing_tiered_customer(Customer) ; true ),
+    pricing_customer_tier(Customer, Tier0),
+    Tier = Tier0.
+
+pricing_tiered_customer(Customer) :-
+    setof(C, T^attribute(C, pricing_tier, T), Customers),
+    member(Customer, Customers).
+
+pricing_customer_tier(Customer, Tier) :-
     attribute(Customer, pricing_tier, Tier), !.
-price_tier(_, _, standard).
+pricing_customer_tier(_, standard).
 
 %% ── Discount applicability ────────────────────────────────────────────────────
 

@@ -94,6 +94,59 @@ setup_no_terminal :-
     assertz(logic_cell:attribute(s1, state_type, initial)),
     assertz(logic_cell:relation(s1, transitions_to, s1)).
 
+%% Two exits, one event: s1 fires on go and both edges leave it, so go is
+%% ambiguous. The targets carry no events (the old check compared those).
+setup_shared_event :-
+    clear_facts,
+    assertz(logic_cell:relation(se, has_state, s1)),
+    assertz(logic_cell:relation(se, has_state, s2)),
+    assertz(logic_cell:relation(se, has_state, s3)),
+    assertz(logic_cell:attribute(s1, state_type, initial)),
+    assertz(logic_cell:attribute(s2, state_type, terminal)),
+    assertz(logic_cell:attribute(s3, state_type, terminal)),
+    assertz(logic_cell:relation(s1, transitions_to, s2)),
+    assertz(logic_cell:relation(s1, transitions_to, s3)),
+    assertz(logic_cell:attribute(s1, on, go)).
+
+%% Two exits, one event, and the targets share an event of their own: the
+%% old check reported s1 here only by accident of the targets' labels.
+setup_shared_event_targets_labelled :-
+    setup_shared_event,
+    assertz(logic_cell:relation(s2, transitions_to, s1)),
+    assertz(logic_cell:attribute(s2, on, back)),
+    assertz(logic_cell:relation(s3, transitions_to, s1)),
+    assertz(logic_cell:attribute(s3, on, back)).
+
+%% Three exits, two events: some event must fire two exits, but which one
+%% the facts cannot say.
+setup_pigeonhole :-
+    clear_facts,
+    assertz(logic_cell:relation(ph, has_state, hub)),
+    assertz(logic_cell:relation(ph, has_state, x)),
+    assertz(logic_cell:relation(ph, has_state, y)),
+    assertz(logic_cell:relation(ph, has_state, z)),
+    assertz(logic_cell:attribute(hub, state_type, initial)),
+    assertz(logic_cell:relation(hub, transitions_to, x)),
+    assertz(logic_cell:relation(hub, transitions_to, y)),
+    assertz(logic_cell:relation(hub, transitions_to, z)),
+    assertz(logic_cell:attribute(hub, on, left)),
+    assertz(logic_cell:attribute(hub, on, right)).
+
+%% Shortcut machine: a -> b -> c -> d and a -> d. The long route comes first
+%% in fact order, so a depth-first search finds it first. b -> a closes a cycle.
+setup_shortcut :-
+    clear_facts,
+    assertz(logic_cell:relation(sc, has_state, a)),
+    assertz(logic_cell:relation(sc, has_state, b)),
+    assertz(logic_cell:relation(sc, has_state, c)),
+    assertz(logic_cell:relation(sc, has_state, d)),
+    assertz(logic_cell:relation(sc, has_state, e)),
+    assertz(logic_cell:relation(a, transitions_to, b)),
+    assertz(logic_cell:relation(b, transitions_to, a)),
+    assertz(logic_cell:relation(b, transitions_to, c)),
+    assertz(logic_cell:relation(c, transitions_to, d)),
+    assertz(logic_cell:relation(a, transitions_to, d)).
+
 %% ── Composite setups (linear + runtime state) ─────────────────────────────────
 
 setup_linear_at(State) :-
@@ -230,6 +283,44 @@ test(unreachable_state_detected, [setup(setup_defective), cleanup(clear_facts)])
 test(no_unreachable_in_linear, [setup(setup_linear), cleanup(clear_facts)]) :-
     assertion(\+ fsm_unreachable_state(m, _)).
 
+
+%% Events sit on states, so a state is provably ambiguous only when it has
+%% more distinct exits than distinct events. One event, two exits: ambiguous.
+test(nondeterministic_shared_event, [setup(setup_shared_event), cleanup(clear_facts)]) :-
+    assertion(\+ fsm_deterministic(se)),
+    findall(S-E, fsm_nondeterministic_state(se, S, E), Found),
+    assertion(Found == [s1-go]).
+
+test(nondeterministic_ignores_target_events,
+     [setup(setup_shared_event_targets_labelled), cleanup(clear_facts)]) :-
+    findall(S-E, fsm_nondeterministic_state(se, S, E), Found),
+    assertion(Found == [s1-go]).
+
+%% As many events as exits: a one-to-one reading exists, so nothing is flagged.
+test(branching_with_an_event_per_exit_is_deterministic,
+     [setup(setup_branching), cleanup(clear_facts)]) :-
+    assertion(fsm_deterministic(wf)),
+    assertion(\+ fsm_nondeterministic_state(wf, _, _)),
+    fsm_validate(wf, Issues),
+    assertion(\+ member(nondeterministic(_, _), Issues)).
+
+%% Unlabelled branching is ambiguous; reported once, event unspecified.
+test(unlabelled_branching_reported_once,
+     [setup(setup_nondeterministic), cleanup(clear_facts)]) :-
+    findall(S-E, fsm_nondeterministic_state(nd, S, E), Found),
+    assertion(Found == [s1-unspecified]).
+
+test(more_exits_than_events_unspecified,
+     [setup(setup_pigeonhole), cleanup(clear_facts)]) :-
+    assertion(\+ fsm_deterministic(ph)),
+    findall(S-E, fsm_nondeterministic_state(ph, S, E), Found),
+    assertion(Found == [hub-unspecified]).
+
+test(nondeterministic_bound_event, [setup(setup_shared_event), cleanup(clear_facts)]) :-
+    assertion(fsm_nondeterministic_state(se, s1, go)),
+    assertion(\+ fsm_nondeterministic_state(se, s1, other)),
+    assertion(\+ fsm_nondeterministic_state(se, s2, _)).
+
 :- end_tests(fsm_structural).
 
 %% ── Runtime status ───────────────────────────────────────────────────────────
@@ -307,6 +398,30 @@ test(multiple_paths_to_terminals, [setup(setup_branching), cleanup(clear_facts)]
     findall(P, (member(T, [approved,rejected]),
                 fsm_shortest_path(wf, draft, T, P)), Paths),
     assertion(length(Paths, 2)).
+
+
+test(shortest_path_is_shortest, [setup(setup_shortcut), cleanup(clear_facts)]) :-
+    findall(P, fsm_shortest_path(sc, a, d, P), Paths),
+    assertion(Paths == [[a, d]]).
+
+%% b -> a -> d and b -> c -> d tie at two edges; BFS takes the first in fact
+%% order and does not loop on b -> a -> b.
+test(shortest_path_through_cycle, [setup(setup_shortcut), cleanup(clear_facts)]) :-
+    findall(P, fsm_shortest_path(sc, b, d, P), Paths),
+    assertion(Paths == [[b, a, d]]).
+
+test(shortest_path_unreachable_fails, [setup(setup_shortcut), cleanup(clear_facts)]) :-
+    assertion(\+ fsm_shortest_path(sc, a, e, _)),
+    assertion(\+ fsm_shortest_path(sc, d, a, _)).
+
+test(shortest_path_to_self, [setup(setup_shortcut), cleanup(clear_facts)]) :-
+    findall(P, fsm_shortest_path(sc, a, a, P), Paths),
+    assertion(Paths == [[a]]).
+
+test(shortest_path_cyclic_terminates, [setup(setup_cyclic), cleanup(clear_facts)]) :-
+    assertion(\+ fsm_shortest_path(cyc, a, nowhere, _)),
+    fsm_shortest_path(cyc, a, b, P),
+    assertion(P == [a, b]).
 
 :- end_tests(fsm_paths).
 

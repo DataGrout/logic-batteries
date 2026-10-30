@@ -1,0 +1,16 @@
+# world battery on scryer-prolog: a check with the value filled in must agree
+# with the query, so a default (clear, summer, crescent, day) holds only when
+# nothing is set, and an hour-derived period rejects the other periods.
+modules/games/world/world.pl
+---
+attribute(world, weather, rain).
+attribute(world, season, winter).
+attribute(world, hour, 12).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(weather_query, (world_weather(W), W == rain)),
+    check(weather_bound, (world_weather(rain), \+ world_weather(clear))),
+    check(season_bound, (world_season(winter), \+ world_season(summer))),
+    check(moon_default, (world_moon(crescent), \+ world_moon(full))),
+    check(time_from_hour, (world_time(day), \+ world_time(night), is_daytime)),
+    write(smoke_ok), nl, halt.

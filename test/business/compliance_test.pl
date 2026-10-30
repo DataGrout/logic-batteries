@@ -105,3 +105,43 @@ test(consent_not_given, [cleanup(clear_facts)]) :-
     assertion(\+ consent_given(customer_123, marketing)).
 
 :- end_tests(compliance_consent_given).
+
+%% ── Unbound Entity / Policy: enumerate subjects before the negation ──────────
+
+compliance_setup_many_entities :-
+    setup_gdpr_policy,
+    setup_hipaa_policy,
+    assertz(attribute(cust_ok,   marketing_consent, true)),
+    assertz(attribute(cust_ok,   data_minimization, true)),
+    assertz(attribute(cust_no,   marketing_consent, false)),
+    assertz(attribute(cust_no,   data_minimization, true)),
+    assertz(attribute(cust_half, data_minimization, true)),
+    assertz(attribute(sys_ok,    phi_encryption, true)),
+    assertz(attribute(sys_ok,    audit_log, true)).
+
+:- begin_tests(compliance_unbound_entity).
+
+test(violation_lists_every_entity, [setup(compliance_setup_many_entities), cleanup(clear_facts)]) :-
+    findall(E-R, violation(E, gdpr, R), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [cust_half-missing_requirement(marketing_consent),
+                        cust_no-missing_requirement(marketing_consent)]).
+
+test(compliant_lists_every_entity, [setup(compliance_setup_many_entities), cleanup(clear_facts)]) :-
+    findall(E, compliant(E, gdpr), Es),
+    assertion(Es == [cust_ok]).
+
+test(compliant_lists_policies, [setup(compliance_setup_many_entities), cleanup(clear_facts)]) :-
+    findall(P, compliant(cust_ok, P), Ps),
+    assertion(Ps == [gdpr]).
+
+test(compliant_both_unbound, [setup(compliance_setup_many_entities), cleanup(clear_facts)]) :-
+    findall(E-P, compliant(E, P), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [cust_ok-gdpr, sys_ok-hipaa]).
+
+test(no_entities_in_scope_is_no_answer, [setup(setup_gdpr_policy), cleanup(clear_facts)]) :-
+    assertion(\+ compliant(_, gdpr)),
+    assertion(\+ violation(_, gdpr, _)).
+
+:- end_tests(compliance_unbound_entity).

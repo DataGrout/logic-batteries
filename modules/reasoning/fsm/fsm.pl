@@ -10,7 +10,7 @@
 %%   Structural (assert once when defining the machine):
 %%     relation(Machine, has_state, State)     - machine owns this state
 %%     relation(State,   transitions_to, Next) - edge from State to Next
-%%     attribute(State,  on, Event)            - edge fires on Event
+%%     attribute(State,  on, Event)            - State's exits fire on Event
 %%     attribute(State,  state_type, initial)   - initial state marker
 %%     attribute(State,  state_type, terminal)  - terminal state marker
 %%     attribute(Machine, machine_type, fsm)    - marks entity as an FSM
@@ -186,28 +186,33 @@ fsm_reachable_states(Machine, States) :-
 %% ── Structural Analysis ──────────────────────────────────────────────────────
 
 %% fsm_deterministic(+Machine)
-%% True if no state has two outgoing transitions on the same event.
+%% True if no state is provably ambiguous (see fsm_nondeterministic_state/3).
 fsm_deterministic(Machine) :-
     \+ fsm_nondeterministic_state(Machine, _, _).
 
 %% fsm_nondeterministic_state(+Machine, ?State, ?Event)
-%% State has more than one outgoing transition on Event (ambiguous).
+%% State has more distinct exits (within Machine) than distinct events.
+%%
+%% Events are attached to states (attribute(State, on, Event)), not to edges,
+%% so the facts never say which event takes which exit. What they can prove
+%% is the pigeonhole case: with fewer events than exits, at least one event
+%% must fire two exits. Event is that event when the state has exactly one,
+%% and `unspecified` when it has none or several (the shared one is unknown).
+%% A state with at least as many events as exits is not flagged: a one-to-one
+%% reading exists, though the facts cannot confirm it. One answer per state.
 fsm_nondeterministic_state(Machine, State, Event) :-
     fsm_has_state(Machine, State),
-    fsm_edge(State, To1),
-    fsm_edge(State, To2),
-    To1 \== To2,
-    fsm_edge_event(State, Event),
-    % Both edges fire on the same event — this is the ND condition.
-    fsm_edge_event(To1, Event),
-    fsm_edge_event(To2, Event).
-fsm_nondeterministic_state(Machine, State, unspecified) :-
-    fsm_has_state(Machine, State),
-    \+ fsm_terminal_state(Machine, State),
-    fsm_edge(State, To1),
-    fsm_edge(State, To2),
-    To1 \== To2,
-    \+ fsm_edge_event(State, _).
+    setof(To, ( fsm_edge(State, To), fsm_has_state(Machine, To) ), Exits),
+    findall(E, fsm_edge_event(State, E), Es0),
+    sort(Es0, Events),
+    length(Exits, NExits),
+    length(Events, NEvents),
+    NExits > 1,
+    NEvents < NExits,
+    (   Events = [Only]
+    ->  Event = Only
+    ;   Event = unspecified
+    ).
 
 %% fsm_dead_state(+Machine, ?State)
 %% State has no outgoing transitions and is not marked terminal.
@@ -278,10 +283,33 @@ fsm_cycle(Machine, State) :-
 %% ── Path Finding ─────────────────────────────────────────────────────────────
 
 %% fsm_shortest_path(+Machine, +From, +To, -Path)
-%% Shortest sequence of states from From to To (BFS via iterative deepening).
+%% A shortest sequence of states from From to To, by edge count. Breadth-first
+%% with a visited set, so it terminates on cycles; ties go to the path found
+%% first in fact order. One answer; fails when To is unreachable.
 fsm_shortest_path(Machine, From, To, Path) :-
-    fsm_path_dl(Machine, From, To, [From], Path).
+    fsm_bfs(Machine, To, [[From]], [From], RevPath),
+    reverse(RevPath, Path).
 
+%% Internal: the queue holds paths reversed (head is the frontier state).
+fsm_bfs(Machine, To, [RevPath0|Queue], Visited, RevPath) :-
+    RevPath0 = [S|_],
+    (   S = To
+    ->  RevPath = RevPath0
+    ;   findall(N, ( fsm_edge(S, N), fsm_has_state(Machine, N) ), Ns),
+        fsm_bfs_extend(Ns, RevPath0, Visited, Visited1, New),
+        append(Queue, New, Queue1),
+        fsm_bfs(Machine, To, Queue1, Visited1, RevPath)
+    ).
+
+fsm_bfs_extend([], _, Visited, Visited, []).
+fsm_bfs_extend([N|Ns], RevPath, Visited0, Visited, New) :-
+    (   member(N, Visited0)
+    ->  fsm_bfs_extend(Ns, RevPath, Visited0, Visited, New)
+    ;   New = [[N|RevPath]|New1],
+        fsm_bfs_extend(Ns, RevPath, [N|Visited0], Visited, New1)
+    ).
+
+%% Internal: depth-first walk over acyclic paths, for fsm_all_paths/4.
 fsm_path_dl(_, To, To, Visited, Path) :-
     reverse(Visited, Path).
 fsm_path_dl(Machine, From, To, Visited, Path) :-

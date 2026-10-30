@@ -1,0 +1,22 @@
+# prob-decide battery on scryer-prolog: eu/2 with Action unbound lists one
+# expected utility per declared action (the README portfolio), not their sum.
+modules/probabilistic/prob-core-iso/prob_core_iso.pl
+modules/probabilistic/prob-decide/prob_decide.pl
+---
+action(sell_now).
+action(hold).
+prob_rule(outcome(sell_now, small_profit), 0.7).
+prob_rule(outcome(sell_now, big_profit), 0.2).
+prob_rule(outcome(hold, big_profit), 0.4).
+prob_rule(outcome(hold, loss), 0.5).
+utility(small_profit, 10).
+utility(big_profit, 50).
+utility(loss, -20).
+
+smoke :-
+    findall(A-EU, eu(A, EU), Pairs), sort(Pairs, Sorted),
+    Sorted = [hold-EH, sell_now-ES],
+    abs(EH - 10.0) < 1.0e-9,
+    abs(ES - 17.0) < 1.0e-9,
+    best_action(sell_now, _),
+    write(smoke_ok), nl.

@@ -22,14 +22,24 @@ battery_export(world, 'is_nighttime/0',  'is_nighttime — succeeds during dusk 
 %%
 %% Defaults: day, clear, summer, crescent
 
-%% world_time(+Period)
+%% Each reader computes the current value into a fresh variable and unifies
+%% afterwards. Matching the caller's value in the clause head instead let a
+%% bound call skip a set fact and land on the default: world_weather(clear)
+%% held while the weather was rain.
+
+%% world_time(?Period)
 world_time(Period) :-
+    world_time_now(Now),
+    Period = Now.
+
+world_time_now(Period) :-
     attribute(world, time_of_day, Period), !.
-world_time(Period) :-
+world_time_now(Period) :-
     attribute(world, hour, H), !,
     hour_to_period(H, Period).
-world_time(day).
+world_time_now(day).
 
+%% hour_to_period(+Hour, -Period)
 hour_to_period(H, dawn)  :- H >= 5,  H < 7,  !.
 hour_to_period(H, day)   :- H >= 7,  H < 18, !.
 hour_to_period(H, dusk)  :- H >= 18, H < 21, !.
@@ -37,18 +47,24 @@ hour_to_period(_, night).
 
 %% world_weather(?Condition)
 world_weather(Condition) :-
-    attribute(world, weather, Condition), !.
-world_weather(clear).
+    world_attr_or_default(weather, clear, Value),
+    Condition = Value.
 
 %% world_season(?Season)
 world_season(Season) :-
-    attribute(world, season, Season), !.
-world_season(summer).
+    world_attr_or_default(season, summer, Value),
+    Season = Value.
 
 %% world_moon(?Phase)
 world_moon(Phase) :-
-    attribute(world, moon_phase, Phase), !.
-world_moon(crescent).
+    world_attr_or_default(moon_phase, crescent, Value),
+    Phase = Value.
+
+%% world_attr_or_default(+Name, +Default, -Value)
+%% The first asserted value of attribute(world, Name, _), else Default.
+world_attr_or_default(Name, _, Value) :-
+    attribute(world, Name, Value), !.
+world_attr_or_default(_, Default, Default).
 
 %% is_daytime/0
 is_daytime :-
