@@ -1,0 +1,24 @@
+# invoice_rules battery on scryer-prolog: listing overdue invoices with a paid
+# one present, days overdue, the default flat fee and the escalation level.
+modules/business/invoice_rules/invoice_rules.pl
+---
+attribute(today, absolute_days, 1000).
+attribute(inv_1, amount, 400).
+attribute(inv_1, due_absolute_days, 900).
+attribute(inv_2, amount, 300).
+attribute(inv_2, due_absolute_days, 990).
+attribute(inv_2, paid, true).
+attribute(inv_3, amount, 100).
+attribute(inv_3, due_absolute_days, 995).
+attribute(inv_4, amount, 50).
+attribute(inv_4, due_absolute_days, 2000).
+
+smoke :-
+    findall(I, invoice_overdue(I), Overdue),
+    Overdue == [inv_1, inv_3],
+    days_overdue(inv_1, 100),
+    late_fee(inv_1, 50),
+    escalation_level(inv_1, collections),
+    escalation_level(inv_3, reminder),
+    escalation_level(inv_4, current),
+    write(smoke_ok), nl.
