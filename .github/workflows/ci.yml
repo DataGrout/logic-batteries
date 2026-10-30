@@ -33,6 +33,9 @@ jobs:
       - name: Check registry manifests
         run: python3 scripts/build_registry.py --check
 
+      - name: Input contracts match the rules
+        run: python3 scripts/check_inputs.py
+
   cli:
     name: Battery CLI
     runs-on: ubuntu-latest

@@ -26,6 +26,18 @@ battery_export(taxonomy, 'compatible_types/2',
 battery_export(taxonomy, 'root_class/1',
     'root_class(Class) — Class has no is_a parent').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Members and
+%% classes are one kind of subject, linked by is_a. inherits_property/3 also
+%% reads attribute(Entity, Property, Value) for whichever Property it is asked
+%% about, on the entity first and then up the is_a chain, so there is no fixed
+%% attribute name to declare. root_class/1 enumerates entity/1 facts, which
+%% are outside the contract's attribute, relation and metric kinds.
+
+battery_input(taxonomy, entity, relation(is_a), ref(entity), key,
+    'A direct parent class of this member or subclass, followed transitively; several parents are allowed and a cycle is tolerated.').
+
 %% ── Core is-a hierarchy ──────────────────────────────────────────────────────
 %% Assert: { type="relation", subject="goblin", relation="is_a", object="humanoid" }
 %%         { type="relation", subject="humanoid", relation="is_a", object="creature" }

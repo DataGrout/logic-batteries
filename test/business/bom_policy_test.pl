@@ -254,6 +254,13 @@ setup_bad_date_part :-
 setup_bad_today :-
     assertz(attribute(today, date, soon)).
 
+setup_absolute_today_ymd_part :-
+    assertz(attribute(today, absolute_days, 20000)),
+    assertz(attribute(today, date, soon)),
+    assertz(relation(board, includes, ymd_part)),
+    assertz(attribute(ymd_part, lifecycle, active)),
+    assertz(attribute(ymd_part, eol_day, 20251108)).
+
 :- begin_tests(bom_policy_dates).
 
 test(iso_converts_to_days_since_1970) :-
@@ -334,5 +341,13 @@ test(unparseable_today_warns_on_each_dated_part, [setup((setup_bad_today, setup_
     assertion(\+ memberchk(eol_within(_), Rs)),
     assertion(\+ memberchk(ltb_within(_), Rs)),
     assertion(\+ last_time_buy_due(board, auto, fet_eol, _)).
+
+%% The shared convention: today as absolute_days (day 20000 is 2024-10-04),
+%% and a YYYYMMDD integer read as a calendar date, not as a day number.
+test(absolute_days_today_and_yyyymmdd_dates, [setup((setup_auto_policy, setup_iso_eol_soon_part, setup_absolute_today_ymd_part)), cleanup(bom_cleanup_all)]) :-
+    assertion(bom_violation(board, auto, fet_iso, eol_within(400))),
+    assertion(bom_violation(board, auto, ymd_part, eol_within(400))),
+    %% absolute_days wins, so a garbled legacy date is not reported.
+    assertion(\+ bom_violation(board, auto, fet_iso, unreadable(today, _))).
 
 :- end_tests(bom_policy_dates).

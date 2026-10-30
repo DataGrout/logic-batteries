@@ -33,8 +33,8 @@ compose on the same entities, but nothing here calls `combat`.
 
 | Name | On | Value | Description |
 |---|---|---|---|
-| `hp` | player, enemy | number | Hit points. Both sides need one; the same attribute `combat` reads |
-| `base_damage` | player, enemy | number | Damage dealt per turn. Must be above 0 on both sides or every predicate fails |
+| `hp` | player, enemy | number | Hit points. Both sides need one (`kills_to_exhaust` reads only the enemy's); the same attribute `combat` reads. A player at 0 raises a division-by-zero error |
+| `base_damage` | player, enemy | number | Damage dealt per turn. The player's must be above 0 or every predicate fails; `kills_to_exhaust` also fails when the enemy's is 0 |
 
 ## The Model
 

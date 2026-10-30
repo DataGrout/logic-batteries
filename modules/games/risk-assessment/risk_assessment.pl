@@ -15,6 +15,17 @@ battery_export('risk-assessment', 'kills_to_exhaust/4',
 battery_export('risk-assessment', 'fight_outcome_summary/5',
     'fight_outcome_summary(Player, Enemy, TurnsToKill, DamageTaken, P) — full breakdown of a combat encounter').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Player and enemy
+%% are one kind of subject, a combatant with hit points and a per-turn damage;
+%% a predicate fails when either side lacks a fact it reads.
+
+battery_input('risk-assessment', combatant, attribute(hp), number, key,
+    'Current hit points, the same attribute combat reads; the player''s must be above 0.').
+battery_input('risk-assessment', combatant, attribute(base_damage), number, required,
+    'Damage dealt per turn; the player''s must be above 0, and kills_to_exhaust also needs the enemy''s above 0.').
+
 %% ── Survival probability ───────────────────────────────────────────────────
 %% Assert: { type:"attribute", entity:"player", attribute:"hp", value:80 }
 %%         { type:"attribute", entity:"goblin", attribute:"hp", value:30 }

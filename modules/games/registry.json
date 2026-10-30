@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "category": "games",
   "modules": [
     {
@@ -338,7 +338,63 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/permissions/permissions.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/permissions",
       "install": "batteries.install_many",
-      "tests_file": "test/games/permissions_test.pl"
+      "tests_file": "test/games/permissions_test.pl",
+      "inputs": [
+        {
+          "role": "entity",
+          "kind": "relation",
+          "name": "has_role",
+          "type": {
+            "ref": "role"
+          },
+          "presence": "key",
+          "note": "A role this entity holds; an entity may hold several."
+        },
+        {
+          "role": "role",
+          "kind": "relation",
+          "name": "grants_permission",
+          "type": "atom",
+          "presence": "key",
+          "note": "A permission this role grants directly."
+        },
+        {
+          "role": "role",
+          "kind": "relation",
+          "name": "inherits_from",
+          "type": {
+            "ref": "role"
+          },
+          "presence": "key",
+          "note": "A parent role whose permissions this role also grants, transitively; a cycle is tolerated."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "owner",
+          "type": {
+            "ref": "entity"
+          },
+          "presence": "key",
+          "note": "The entity that owns the resource and may always access it."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "public",
+          "type": "bool",
+          "presence": "key",
+          "note": "true opens the resource to anyone; any other value counts as not public."
+        },
+        {
+          "role": "resource",
+          "kind": "attribute",
+          "name": "requires_permission",
+          "type": "atom",
+          "presence": "key",
+          "note": "A permission whose holders may access the resource; with no owner, public or requires_permission, nobody may."
+        }
+      ]
     },
     {
       "id": "ai-director",
@@ -465,7 +521,25 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/risk-assessment/risk_assessment.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/risk-assessment",
       "install": "batteries.install_many",
-      "tests_file": "test/games/risk_assessment_test.pl"
+      "tests_file": "test/games/risk_assessment_test.pl",
+      "inputs": [
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "hp",
+          "type": "number",
+          "presence": "key",
+          "note": "Current hit points, the same attribute combat reads; the player's must be above 0."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "base_damage",
+          "type": "number",
+          "presence": "required",
+          "note": "Damage dealt per turn; the player's must be above 0, and kills_to_exhaust also needs the enemy's above 0."
+        }
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "category": "probabilistic",
   "modules": [
     {
@@ -22,6 +22,9 @@
         "guaranteed_drop/2",
         "drop_probability/3",
         "expected_drops/4"
+      ],
+      "requires": [
+        "loot-tables"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-loot/prob_loot.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-loot",
@@ -48,6 +51,9 @@
         "detection_probability/3",
         "stealth_success/2",
         "environmental_detection_factor/2"
+      ],
+      "requires": [
+        "combat"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-detection/prob_detection.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-detection",
@@ -76,6 +82,9 @@
         "market_volatility/3",
         "expected_price/2"
       ],
+      "requires": [
+        "economy"
+      ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-economy/prob_economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-economy",
       "install": "batteries.install_many",
@@ -102,6 +111,10 @@
         "will_assist/3",
         "npc_price_modifier/3",
         "disposition_probability/3"
+      ],
+      "requires": [
+        "faction",
+        "npc-state"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-npc/prob_npc.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
@@ -156,6 +169,9 @@
         "eu_sum/3",
         "best_action/2",
         "best_pair/5"
+      ],
+      "requires": [
+        "prob-core-iso"
       ],
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-decide/prob_decide.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-decide",

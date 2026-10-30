@@ -31,8 +31,9 @@ client.perform("data-grout@1/batteries.install_many@1", {
 |---|---|---|---|
 | `<requirement>` | entity | `true`, or any value other than `false` / `none` / `missing` | One attribute per requirement a policy names in `requires`. The attribute's *name* is the requirement (`marketing_consent`, `phi_encryption`); an entity meets it when the attribute is present and not a negative value |
 | `retention_days` | policy | integer | Retention window for `data_retention_ok`; default 2555 (seven years) when the policy has none |
-| `created_day` | record | integer | The record's creation day, in the same units as `today`'s `date` |
-| `date` | `today` | integer | The current day. `today` is a fixed entity name; assert this at query time |
+| `created_day` | record | a date | The record's creation day: a day count from 1970-01-01, a `YYYYMMDD` integer, or an ISO `'YYYY-MM-DD'` atom |
+| `absolute_days` | `today` | integer | Today as a day count from 1970-01-01, the convention every dated battery shares. Preferred |
+| `date` | `today` | a date | Today in any of the forms above, when `absolute_days` is absent. `today` is a fixed entity name; assert it at query time |
 | `requires_consent` | action | a consent type | The consent that must be held before the action; read by `consent_required` |
 
 **Relations**
@@ -42,10 +43,9 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | `requires` | policy → requirement | Names a requirement of the policy. `violation` reports `missing_requirement(Req)` for each one the entity does not meet |
 | `granted_consent` | customer → consent type | The customer has given this consent; read by `consent_given` |
 
-Day values are compared by subtraction (`date − created_day ≤ retention_days`),
-so `date` and `created_day` must share a unit — a day count from any epoch
-works; `YYYYMMDD` integers do not subtract correctly across month or year
-boundaries.
+Both dates become day counts from 1970-01-01 before the age is taken
+(`today − created_day ≤ retention_days`), so the forms may be mixed and a
+`YYYYMMDD` record from the 31st is one day old on the 1st.
 
 The `region` / `stricter_than` facts shown in the source comments are not read
 by any clause; regional overrides are yours to express as extra `requires`
@@ -83,7 +83,7 @@ A requirement is considered met when the attribute value is not `false`, `none`,
 { type="attribute", entity="gdpr",  attribute="retention_days", value=2555 }  -- 7 years
 { type="attribute", entity="hipaa", attribute="retention_days", value=2190 }  -- 6 years
 
-# Record creation date (YYYYMMDD integer — same format as scheduling module)
+# Record creation date (any date form)
 { type="attribute", entity="record_456", attribute="created_day", value=20240101 }
 
 # Today (required at runtime)

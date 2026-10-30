@@ -1,4 +1,4 @@
-.PHONY: test lint portability scryer-smoke check registry check-registry check-pl
+.PHONY: test lint portability scryer-smoke check registry check-registry check-pl check-inputs
 
 test:
 	swipl -g "run_tests, halt(0)" -t "halt(1)" test/run_all.pl
@@ -27,7 +27,10 @@ registry:
 check-registry:
 	python3 scripts/build_registry.py --check
 
-check: lint check-pl check-registry check-readme
+check: lint check-pl check-registry check-readme check-inputs
 
 check-readme:
 	python3 scripts/check_readme_vocab.py --check
+
+check-inputs:
+	python3 scripts/check_inputs.py

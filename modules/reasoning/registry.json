@@ -43,7 +43,122 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/fsm/fsm.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/fsm",
       "install": "platform",
-      "tests_file": "test/fsm_test.pl"
+      "tests_file": "test/fsm_test.pl",
+      "inputs": [
+        {
+          "role": "machine",
+          "kind": "relation",
+          "name": "has_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "A state this machine owns; edges and reachability stay within the machine's own states."
+        },
+        {
+          "role": "machine",
+          "kind": "attribute",
+          "name": "machine_type",
+          "type": {
+            "enum": [
+              "fsm"
+            ]
+          },
+          "presence": "optional",
+          "note": "fsm lists the machine in fsm_machines; nothing else reads it."
+        },
+        {
+          "role": "machine",
+          "kind": "attribute",
+          "name": "current_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "optional",
+          "note": "The live state, for fsm_complete, fsm_stuck and fsm_stuck_at."
+        },
+        {
+          "role": "machine",
+          "kind": "relation",
+          "name": "visited",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "optional",
+          "note": "A state the machine has been in, as fsm_visited reports it."
+        },
+        {
+          "role": "machine",
+          "kind": "relation",
+          "name": "trace_step",
+          "type": {
+            "ref": "step"
+          },
+          "presence": "optional",
+          "note": "One recorded step of the run; fsm_trace lists them in the order the facts were asserted."
+        },
+        {
+          "role": "state",
+          "kind": "relation",
+          "name": "transitions_to",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "An exit from this state to another state of the same machine."
+        },
+        {
+          "role": "state",
+          "kind": "attribute",
+          "name": "state_type",
+          "type": {
+            "enum": [
+              "initial",
+              "terminal"
+            ]
+          },
+          "presence": "key",
+          "note": "initial marks where reachability starts; terminal marks an accepting state, which is not dead without exits."
+        },
+        {
+          "role": "state",
+          "kind": "attribute",
+          "name": "on",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An event this state's exits fire on (events sit on states, not edges); absent reads as unspecified."
+        },
+        {
+          "role": "step",
+          "kind": "attribute",
+          "name": "from_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "The state the step left."
+        },
+        {
+          "role": "step",
+          "kind": "attribute",
+          "name": "to_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "required",
+          "note": "The state the step entered; a step without one is left out of the trace."
+        },
+        {
+          "role": "step",
+          "kind": "attribute",
+          "name": "event",
+          "type": "atom",
+          "presence": {
+            "default": "unspecified"
+          },
+          "note": "The event that triggered the step."
+        }
+      ]
     },
     {
       "id": "temporal",
@@ -107,7 +222,19 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/taxonomy/taxonomy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
       "install": "batteries.install_many",
-      "tests_file": "test/reasoning/taxonomy_test.pl"
+      "tests_file": "test/reasoning/taxonomy_test.pl",
+      "inputs": [
+        {
+          "role": "entity",
+          "kind": "relation",
+          "name": "is_a",
+          "type": {
+            "ref": "entity"
+          },
+          "presence": "key",
+          "note": "A direct parent class of this member or subclass, followed transitively; several parents are allowed and a cycle is tolerated."
+        }
+      ]
     },
     {
       "id": "hierarchy",
@@ -151,7 +278,27 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/hierarchy/hierarchy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/hierarchy",
       "install": "batteries.install_many",
-      "tests_file": "test/reasoning/hierarchy_test.pl"
+      "tests_file": "test/reasoning/hierarchy_test.pl",
+      "inputs": [
+        {
+          "role": "node",
+          "kind": "relation",
+          "name": "child_of",
+          "type": {
+            "ref": "node"
+          },
+          "presence": "key",
+          "note": "One edge per child, to its parent. A node with two parents is reported by hier_problems."
+        },
+        {
+          "role": "node",
+          "kind": "metric",
+          "name": "amount",
+          "type": "number",
+          "presence": "optional",
+          "note": "The node's own amount; several facts are summed, none counts as 0. The /3 forms take any metric name."
+        }
+      ]
     },
     {
       "id": "explain",
@@ -309,6 +456,26 @@
           ],
           "goal": "assign_violations([s1-a, s2-a], V)",
           "expect": "V \\== []"
+        }
+      ],
+      "inputs": [
+        {
+          "role": "variable",
+          "kind": "attribute",
+          "name": "domain",
+          "type": "list",
+          "presence": "key",
+          "note": "The values the search may assign to this variable; one without a domain is reported as unsat(empty_domain(Var))."
+        },
+        {
+          "role": "group",
+          "kind": "relation",
+          "name": "distinct",
+          "type": {
+            "ref": "variable"
+          },
+          "presence": "key",
+          "note": "One fact per member of an all-different group (the group is the subject, not another variable); members take different values."
         }
       ]
     }

@@ -9,6 +9,26 @@ battery_export(permissions, 'is_owner/2',           'is_owner(Entity, Resource) 
 battery_export(permissions, 'permission_granted/2', 'permission_granted(Entity, Permission) — Entity has Permission via role or ownership').
 battery_export(permissions, 'can_access/2',         'can_access(Entity, Resource) — Entity may access Resource').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). An entity holds
+%% roles, a role grants or inherits permissions, and a resource is anything
+%% with an owner, a public flag or a required permission. Permissions are plain
+%% names: the object of grants_permission and requires_permission.
+
+battery_input(permissions, entity, relation(has_role), ref(role), key,
+    'A role this entity holds; an entity may hold several.').
+battery_input(permissions, role, relation(grants_permission), atom, key,
+    'A permission this role grants directly.').
+battery_input(permissions, role, relation(inherits_from), ref(role), key,
+    'A parent role whose permissions this role also grants, transitively; a cycle is tolerated.').
+battery_input(permissions, resource, attribute(owner), ref(entity), key,
+    'The entity that owns the resource and may always access it.').
+battery_input(permissions, resource, attribute(public), bool, key,
+    'true opens the resource to anyone; any other value counts as not public.').
+battery_input(permissions, resource, attribute(requires_permission), atom, key,
+    'A permission whose holders may access the resource; with no owner, public or requires_permission, nobody may.').
+
 %% ── Permissions Data Model ────────────────────────────────────────────────────
 %%
 %% Role assignment:

@@ -16,6 +16,10 @@ Normalisation, per category file:
   * `tests_file` is filled from `test/<category>/<id>_test.pl` (or
     `test/<id>_test.pl`, with hyphens in the id read as underscores) when that
     file exists, so an agent can tell which batteries are tested.
+  * `inputs` is filled from the battery's input contract (battery_input/6 in
+    its rule file, read by scripts/check_inputs.py), so a host can validate
+    facts and build a schema without parsing Prolog; it is dropped when the
+    battery has no contract.
   * `updated_at` is bumped to today when the category's module list differs
     from what the top-level registry last recorded for it.
 """
@@ -24,6 +28,9 @@ import json
 import pathlib
 import sys
 from datetime import date
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
+from check_inputs import inputs_for  # noqa: E402
 
 ROOT = pathlib.Path(__file__).parent.parent
 MODULES_DIR = ROOT / "modules"
@@ -54,6 +61,18 @@ def tests_file_for(cat, module_id):
     return None
 
 
+RAW_PREFIX = "https://raw.githubusercontent.com/datagrout/logic-batteries/main/"
+
+
+def rules_path(m):
+    url = m.get("rules_url", "")
+    if url.startswith(RAW_PREFIX):
+        path = ROOT / url[len(RAW_PREFIX):]
+        if path.exists():
+            return path
+    return None
+
+
 def normalise(cat, data, previous_modules):
     """Return the normalised category document and its module list."""
     modules = []
@@ -61,6 +80,12 @@ def normalise(cat, data, previous_modules):
         if m.get("category") != cat:
             print(f"warning: {m['id']} has category={m.get('category')!r}, expected {cat!r}", file=sys.stderr)
         m = {k: v for k, v in m.items() if k not in DROPPED_FIELDS}
+        path = rules_path(m)
+        inputs = inputs_for(path) if path else []
+        if inputs:
+            m["inputs"] = inputs
+        else:
+            m.pop("inputs", None)
         tests = tests_file_for(cat, m["id"])
         if tests:
             m["tests_file"] = tests

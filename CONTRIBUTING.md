@@ -73,6 +73,66 @@ A battery is a directory under `modules/<category>/<id>/` containing:
    the way you would write a test: known facts, one bound goal, the answer
    you expect.
 
+## Input contract
+
+A battery that makes decisions over facts someone else supplies declares what
+it reads, so a host can check the facts before trusting the answer. Absent
+facts otherwise fall to defaults silently: a lead with a misspelled
+`company_size` scores nothing, an invoice with no `paid` fact reads as unpaid,
+and the verdict looks plausible. One clause per fact the rules read:
+
+```prolog
+battery_input(Battery, Role, Fact, Type, Presence, Note).
+
+battery_input(invoice_rules, invoice, attribute(amount), number, required,
+    'The amount owed: the base for the late fee and the amount now due.').
+battery_input(invoice_rules, fixed(today), attribute(absolute_days), days, key,
+    'Today as a day count from 1970-01-01, the shared convention.').
+```
+
+- **Battery** is the name in `battery_module/3`.
+- **Role** names the kind of subject the fact sits on (`invoice`, `lead`,
+  `node`), or `fixed(Name)` for one named subject such as `today`, `billing` or
+  `scoring`.
+- **Fact** is `attribute(Name)`, `relation(Name)` or `metric(Name)`.
+- **Type** is the value (for a relation, the object): `number`, `integer`,
+  `days` (a day count from 1970-01-01), `date` (a day count, a `YYYYMMDD`
+  integer or an ISO atom, for batteries that convert; see Dates), `bool`
+  (`true`/`false`), `atom`, `enum([a, b, ...])`, `list`, or `ref(Role)` (names
+  a subject of Role).
+- **Presence** is `key` (having it makes a subject one of Role; every entity
+  role needs at least one key, and several keys are alternatives), `required`
+  (every subject of the role needs it), `optional`, or `default(V)` (absent
+  reads as V). On a `fixed` role, `key` means at least one of those facts must
+  exist.
+- **Note** says what the value means, for the person or agent supplying it.
+
+Like the rest of the manifest, `battery_input/6` clauses are stripped at
+install. `python3 scripts/check_inputs.py` fails when a contract does not parse
+or does not match the rules (a name they read that it omits, or one it declares
+that they never mention), and `build_registry.py` copies each contract into the
+registry entry's `inputs`.
+
+## Dates
+
+Every battery that reads a date uses one convention, so batteries installed in
+the same namespace agree about what day it is:
+
+- **Today** is `attribute(today, absolute_days, N)`: a day count from
+  1970-01-01 in the proleptic Gregorian calendar. A battery may also accept an
+  older form of its own (`today`'s `date`, or `year`/`month`/`day`), but
+  `absolute_days` wins when both are present.
+- **A date fact** is a day count from 1970-01-01, a `YYYYMMDD` integer, or an
+  ISO `'YYYY-MM-DD'` atom. A number of 10000101 or more is `YYYYMMDD`; a
+  smaller one is a day count. Convert to a day count before comparing,
+  subtracting or stepping a day: `20260531 + 1` is not a date.
+- Use the civil-day conversion `invoice_rules`, `scheduling`, `compliance` and
+  `bom_policy` carry (prefixed per battery, so they stay independent), never a
+  30-day-month approximation.
+
+DataGrout's records map writes today as `{"now": "days"}` and converts a date
+field with `"as": "days"`, in the same count.
+
 ## Portability: two engines
 
 Batteries run on SWI-Prolog and on Scryer. Directives do not survive

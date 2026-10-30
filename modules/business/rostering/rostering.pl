@@ -49,6 +49,36 @@ battery_export(rostering, 'load_imbalance/5',
 battery_export(rostering, 'roster_model/2',
     'roster_model(Shifts, Facts) — the assign battery model for the open slots of Shifts: one slot per missing seat with attribute(Slot, domain, Candidates), relation(Slot, slot_of, Shift), attribute(Slot, seat, Role), relation(Shift, distinct, Slot); assert them, add the two hook clauses from the README, and call assign_solve').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What rostering's own clauses read, for a host to validate facts against and
+%% to build a schema from (see CONTRIBUTING, "Input contract"). A worker's
+%% legality (duty periods, unavailability, policy limits, qualifications, a
+%% shift's required kinds) is read through the duty battery and declared in
+%% its contract, not here. The domain, seat, slot_of and distinct facts
+%% roster_model/2 builds are output, not input.
+
+battery_input(rostering, shift, relation(needs), ref(requirement), key,
+    'One seat requirement of the shift, one per role needed.').
+battery_input(rostering, shift, attribute(start), integer, required,
+    'When the shift starts, included, on the duty battery''s timeline and in its time unit.').
+battery_input(rostering, shift, attribute(end), integer, required,
+    'When the shift ends, excluded, in the same unit as start.').
+battery_input(rostering, shift, relation(assigned), ref(worker), optional,
+    'A worker currently on the shift; coverage, violations, load and swaps are computed from these.').
+battery_input(rostering, requirement, attribute(seat), atom, key,
+    'The role this seat requirement is for, matched against a worker''s role.').
+battery_input(rostering, requirement, attribute(count), integer, required,
+    'How many workers with that role the shift needs.').
+battery_input(rostering, worker, attribute(role), atom, key,
+    'The worker''s role; only workers whose role matches a seat are candidates for it.').
+battery_input(rostering, worker, relation(prefers), ref(shift), optional,
+    'A shift the worker would like; ranks the worker first for it.').
+battery_input(rostering, worker, relation(avoids), ref(shift), optional,
+    'A shift the worker would rather not take; ranks the worker last for it.').
+battery_input(rostering, worker, attribute(seniority), integer, default(0),
+    'Last ranking key; higher ranks earlier.').
+
 %% ── Data model ───────────────────────────────────────────────────────────────
 %%
 %% Shifts are duty-battery tasks with a window and one or more seat

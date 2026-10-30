@@ -27,6 +27,13 @@ battery_export(hierarchy, 'hier_cycle/1',       'hier_cycle(Node) — Node rolls
 battery_export(hierarchy, 'hier_multi_parent/1','hier_multi_parent(Node) — Node has more than one parent, so its amount counts under each').
 battery_export(hierarchy, 'hier_problems/1',    'hier_problems(Problems) — cycle(Node), multi_parent(Node) and non_numeric(Node, Value) findings, [] for a clean tree').
 
+%% Input contract (CONTRIBUTING, "Input contract"): a node is anything with a
+%% parent edge; roots are the parents no edge leaves.
+battery_input(hierarchy, node, relation(child_of), ref(node), key,
+    'One edge per child, to its parent. A node with two parents is reported by hier_problems.').
+battery_input(hierarchy, node, metric(amount), number, optional,
+    'The node''s own amount; several facts are summed, none counts as 0. The /3 forms take any metric name.').
+
 %% ============================================================================
 %% Hierarchy — roll a tree of accounts, cost centres, parts or org units up
 %% to totals.

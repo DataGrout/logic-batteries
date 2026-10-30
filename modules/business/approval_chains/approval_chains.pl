@@ -10,6 +10,36 @@ battery_export(approval_chains, 'fully_approved/1',    'fully_approved(Request) 
 battery_export(approval_chains, 'next_approver/2',     'next_approver(Request, Approver) — Approver is the next pending approver in sequence').
 battery_export(approval_chains, 'approval_blocked/2',  'approval_blocked(Request, Reason) — approval cannot proceed; Reason explains why').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). An approval step
+%% is its own subject naming a request, an approver and a position; a
+%% threshold rule is a subject with a threshold and an approver, and applies to
+%% every request. A request is named by its steps and carries an amount when
+%% threshold rules should see it; approvals, rejections and delegations are
+%% edges.
+
+battery_input(approval_chains, approval_step, attribute(request), ref(request), key,
+    'The request this step belongs to.').
+battery_input(approval_chains, approval_step, attribute(approver), ref(approver), required,
+    'Who must approve at this step.').
+battery_input(approval_chains, approval_step, attribute(step), integer, required,
+    'Position in the chain; steps are approved in ascending order.').
+battery_input(approval_chains, threshold_rule, attribute(threshold), number, key,
+    'Amount above which every request also needs this rule''s approver, after the numbered steps.').
+battery_input(approval_chains, threshold_rule, attribute(approver), ref(approver), required,
+    'Who must approve a request whose amount exceeds the threshold.').
+battery_input(approval_chains, request, attribute(amount), number, key,
+    'Amount compared against every threshold rule; without one no rule applies.').
+battery_input(approval_chains, request, relation(approved_by), ref(approver), optional,
+    'An approver (or their delegate) who has approved the request.').
+battery_input(approval_chains, request, relation(rejected_by), ref(approver), optional,
+    'An approver who rejected the request; any rejection stops the chain.').
+battery_input(approval_chains, request, attribute(rejection_reason), atom, default(unspecified),
+    'Why the request was rejected, returned by approval_blocked.').
+battery_input(approval_chains, approver, relation(delegated_to), ref(approver), key,
+    'Someone whose approval counts as this approver''s.').
+
 %% ── Approval Chain Data Model ─────────────────────────────────────────────────
 %%
 %% Approvers in order (step determines sequence):
