@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "category": "reasoning",
   "modules": [
     {
@@ -108,6 +108,50 @@
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/taxonomy",
       "install": "batteries.install_many",
       "tests_file": "test/reasoning/taxonomy_test.pl"
+    },
+    {
+      "id": "hierarchy",
+      "version": "1.0.0",
+      "title": "Hierarchy Rollup",
+      "description": "Roll a tree up to totals: charts of accounts, cost centres, bills of materials, org units. Over relation(Child, child_of, Parent) and metric(Node, amount, Value) facts, hier_subtotal/2 gives a node's own amount plus every descendant's at any depth, hier_subtotals/1 gives every node at once, and why/2 shows the facts behind a total. The closure is a bottom-up fixpoint, so loops in the data terminate, are reported by hier_cycle/1 and never double-count; hier_problems/1 flags loops, double parents and non-numeric amounts. Any metric name via the /3 forms. Pure ISO; runs on SWI and Scryer.",
+      "category": "reasoning",
+      "license": "Elastic-2.0",
+      "tags": [
+        "hierarchy",
+        "rollup",
+        "subtotal",
+        "tree",
+        "accounts",
+        "chart-of-accounts",
+        "bom",
+        "transitive",
+        "iso",
+        "scryer"
+      ],
+      "predicates": [
+        "hier_parent/2",
+        "hier_children/2",
+        "hier_rolls_up/2",
+        "hier_descendants/2",
+        "hier_own/2",
+        "hier_own/3",
+        "hier_subtotal/2",
+        "hier_subtotal/3",
+        "hier_subtotals/1",
+        "hier_subtotals/2",
+        "hier_depth/2",
+        "hier_path/3",
+        "hier_roots/1",
+        "hier_leaves/1",
+        "hier_nodes/1",
+        "hier_cycle/1",
+        "hier_multi_parent/1",
+        "hier_problems/1"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/hierarchy/hierarchy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/hierarchy",
+      "install": "batteries.install_many",
+      "tests_file": "test/reasoning/hierarchy_test.pl"
     },
     {
       "id": "explain",

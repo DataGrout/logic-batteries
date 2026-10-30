@@ -40,6 +40,7 @@
     'business/bom_policy_test',
     %% Reasoning
     'reasoning/taxonomy_test',
+    'reasoning/hierarchy_test',
     'reasoning/temporal_test',
     'reasoning/explain_test',
     'reasoning/fixpoint_test',

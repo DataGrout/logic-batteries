@@ -22,6 +22,7 @@ Insert a battery into a logic cell and it has new capabilities immediately — n
 | [fsm](./modules/reasoning/fsm/) | 25 | General-purpose finite state machine — reachability, shortest paths, cycle detection |
 | [temporal](./modules/reasoning/temporal/) | 12 | Event ordering, overlap, gaps, and deadline reasoning over timestamped facts |
 | [taxonomy](./modules/reasoning/taxonomy/) | 10 | Hierarchical classification with transitive membership and property inheritance |
+| [hierarchy](./modules/reasoning/hierarchy/) | 18 | Roll a tree up to totals — subtotals at any depth over `child_of` edges and amounts (charts of accounts, cost centres, BOMs); loop-safe, with loops and double parents reported |
 | [explain](./modules/reasoning/explain/) | 6 | Provenance meta-interpreter — `why/2` returns the facts supporting any conclusion; `explain/2` returns full proof trees. Built into every DataGrout cell; this module is the standalone version |
 | [fixpoint](./modules/reasoning/fixpoint/) | 4 | Bottom-up Datalog saturation — tabling's termination benefit without tabling; cyclic/left-recursive rules work verbatim |
 | [assign](./modules/reasoning/assign/) | 8 | Budgeted constraint search — domains, all-different groups, reject/pair/cost hooks, branch and bound, violation checking |
