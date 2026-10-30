@@ -45,8 +45,8 @@ end)
 ### Structural Analysis
 | Predicate | Description |
 |---|---|
-| `fsm_deterministic(Machine)` | No state has two outgoing transitions on the same event |
-| `fsm_nondeterministic_state(Machine, State, Event)` | State is ambiguous on Event |
+| `fsm_deterministic(Machine)` | No state is provably ambiguous (see below) |
+| `fsm_nondeterministic_state(Machine, State, Event)` | State has more exits than events; Event is the one event, or `unspecified` |
 | `fsm_dead_state(Machine, State)` | State has no exits and is not terminal |
 | `fsm_unreachable_state(Machine, State)` | State cannot be reached from initial state |
 
@@ -68,7 +68,7 @@ end)
 | Predicate | Description |
 |---|---|
 | `fsm_cycle(Machine, State)` | State is part of a cycle |
-| `fsm_shortest_path(Machine, From, To, Path)` | Shortest state sequence From→To |
+| `fsm_shortest_path(Machine, From, To, Path)` | A shortest state sequence From→To by edge count (breadth-first; one answer) |
 | `fsm_all_paths(Machine, From, To, Paths)` | All acyclic paths From→To |
 
 ### Inventory & Validation
@@ -115,6 +115,23 @@ relation("lap_fsm",  "visited",        "idle").
 ?- fsm_shortest_path("lap_fsm", "idle", "complete", Path).
 %% Path = ["idle", "running", "complete"]
 ```
+
+## Semantics worth knowing
+
+**Events belong to states, not edges.** `attribute(State, on, Event)` says
+State's exits fire on Event; nothing says which event takes which exit. So
+`fsm_nondeterministic_state/3` reports only what the facts prove: a state with
+more distinct exits than distinct events must fire two exits on one event.
+Event is that event when the state has exactly one, and `unspecified` when it
+has none or several (some one is shared, the facts do not say which). A state
+with at least as many events as exits — `review` on `approve` and `reject`,
+leaving for `approved` and `rejected` — is not flagged: a one-to-one reading
+exists, though the facts cannot confirm it. Each ambiguous state is reported
+once. `fsm_deterministic/1` is the absence of any such state.
+
+**Shortest means fewest edges.** `fsm_shortest_path/4` searches breadth-first
+with a visited set, so it terminates on cycles and fails when To is
+unreachable. Ties go to the path found first in fact order.
 
 ## Use Cases
 

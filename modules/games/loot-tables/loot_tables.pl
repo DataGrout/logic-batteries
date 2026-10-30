@@ -15,10 +15,26 @@ battery_export('loot-tables', 'loot_chance/3',     'loot_chance(Source, Item, Pc
 %% ── Rarity tiers ─────────────────────────────────────────────────────────────
 %% Set by asserting: { type:"attribute", entity:"rare_gem", attribute:"rarity", value:"rare" }
 
+%% rarity_tier(?Item, ?Tier) — unbound, Item ranges over every item with a
+%% rarity or a place in a drop table, so the cut picks a tier per item.
 rarity_tier(Item, Tier) :-
+    (   var(Item)
+    ->  loot_item(Item)
+    ;   true
+    ),
+    rarity_tier_of(Item, Tier).
+
+rarity_tier_of(Item, Tier) :-
     attribute(Item, rarity, Tier), !.
-rarity_tier(Item, common) :-
+rarity_tier_of(Item, common) :-
     \+ attribute(Item, rarity, _).
+
+loot_item(Item) :-
+    setof(I, loot_item_named(I), Items),
+    member(Item, Items).
+
+loot_item_named(I) :- attribute(I, rarity, _).
+loot_item_named(I) :- relation(_, can_drop, I).
 
 %% ── Condition evaluation ─────────────────────────────────────────────────────
 %% Conditions are facts asserted into the world namespace:
@@ -74,10 +90,24 @@ eligible_loot(Source, Item, Context) :-
     ;   true   %% no conditions = always eligible
     ).
 
-%% loot_chance/3 — drop chance by rarity tier
-loot_chance(_, Item, Chance) :-
+%% loot_chance(?Source, ?Item, -Chance) — drop chance by rarity tier.
+%% A bound Source must have Item in its drop table (Item unbound lists that
+%% table); with both unbound it lists every can_drop pair. With only Item
+%% bound it is the item's odds and Source stays unbound: the chance itself is
+%% per item, the same from every source.
+loot_chance(Source, Item, Chance) :-
+    (   nonvar(Source)
+    ->  drops(Source, Item)
+    ;   var(Item)
+    ->  setof(S-I, drops(S, I), Pairs),
+        member(Source-Item, Pairs)
+    ;   true
+    ),
+    item_chance(Item, Chance).
+
+item_chance(Item, Chance) :-
     attribute(Item, drop_chance, Chance), !.
-loot_chance(_, Item, Chance) :-
+item_chance(Item, Chance) :-
     rarity_tier(Item, Tier),
     tier_chance(Tier, Chance).
 

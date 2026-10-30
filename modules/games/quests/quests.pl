@@ -21,13 +21,57 @@ quest_state_key(Player, Quest, Key) :-
     atom_concat(Player, '_', Tmp),
     atom_concat(Tmp, Quest, Key).
 
+%% quest_in_progress(?Player, ?Quest), quest_complete(?Player, ?Quest)
+%% Bound, these check the <player>_<quest> key. With one side unbound it is
+%% read back off the status keys, so the lister returns exactly the values the
+%% bound check accepts. With both unbound, Quest runs over the quests the
+%% definition facts name (quest_known/1) and Player is read off the keys.
 quest_in_progress(Player, Quest) :-
-    quest_state_key(Player, Quest, Key),
-    attribute(Key, status, in_progress).
+    quest_status(Player, Quest, in_progress).
 
 quest_complete(Player, Quest) :-
+    quest_status(Player, Quest, complete).
+
+quest_status(Player, Quest, Status) :-
+    (   nonvar(Player), nonvar(Quest)
+    ->  true
+    ;   var(Player), var(Quest)
+    ->  quest_known(Quest),
+        quest_status_split(Player, Quest, Status)
+    ;   quest_status_split(Player, Quest, Status)
+    ),
     quest_state_key(Player, Quest, Key),
-    attribute(Key, status, complete).
+    attribute(Key, status, Status).
+
+%% quest_status_split(?Player, ?Quest, +Status) — one side bound; each
+%% Player-Quest pair once.
+quest_status_split(Player, Quest, Status) :-
+    setof(P-Q, quest_key_split(Status, P, Q), Pairs),
+    member(Player-Quest, Pairs).
+
+quest_key_split(Status, Player, Quest) :-
+    attribute(Key, status, Status),
+    atom(Key),
+    (   nonvar(Player)
+    ->  atom_concat(Player, '_', Prefix),
+        atom_concat(Prefix, Quest, Key)
+    ;   atom_concat(Prefix, Quest, Key),
+        atom_concat(Player, '_', Prefix)
+    ),
+    Player \== '',
+    Quest \== ''.
+
+%% quest_known(-Quest) — each quest the definition facts name, once.
+quest_known(Quest) :-
+    setof(Q, quest_named(Q), Qs),
+    member(Quest, Qs).
+
+quest_named(Q) :- relation(world, quest_exists, Q).
+quest_named(Q) :- attribute(Q, requires_quest, _).
+quest_named(Q) :- attribute(Q, requires_level, _).
+quest_named(Q) :- attribute(Q, requires_item, _).
+quest_named(Q) :- attribute(_, requires_quest, Q).
+quest_named(Q) :- attribute(Obj, quest, Q), attribute(Obj, order, _).
 
 %% ── Prerequisites ─────────────────────────────────────────────────────────────
 %% Assert quest prerequisites:
@@ -35,20 +79,15 @@ quest_complete(Player, Quest) :-
 %%   { type:"attribute", entity:"slay_dragon", attribute:"requires_level", value:10 }
 %%   { type:"attribute", entity:"slay_dragon", attribute:"requires_item", value:"dragon_bane" }
 
-prerequisite_met(_Player, Quest) :-
-    \+ attribute(Quest, requires_quest, _),
-    \+ attribute(Quest, requires_level, _),
-    \+ attribute(Quest, requires_item, _).
+%% prerequisite_met(+Player, +Quest) — every requires_* fact holds (all-of).
+%% One clause, so a quest with no prerequisites succeeds once.
 prerequisite_met(Player, Quest) :-
-    (   attribute(Quest, requires_quest, ReqQ)
-    ->  quest_complete(Player, ReqQ)
-    ;   true ),
-    (   attribute(Quest, requires_level, ReqL)
-    ->  attribute(Player, level, L), L >= ReqL
-    ;   true ),
-    (   attribute(Quest, requires_item, ReqItem)
-    ->  relation(Player, has_item, ReqItem)
-    ;   true ).
+    \+ ( attribute(Quest, requires_quest, ReqQ),
+         \+ quest_complete(Player, ReqQ) ),
+    \+ ( attribute(Quest, requires_level, ReqL),
+         \+ ( attribute(Player, level, L), L >= ReqL ) ),
+    \+ ( attribute(Quest, requires_item, ReqItem),
+         \+ relation(Player, has_item, ReqItem) ).
 
 %% ── Availability ─────────────────────────────────────────────────────────────
 
@@ -79,11 +118,45 @@ quest_blocked_by(Player, Quest, requires_item(ReqItem)) :-
 %% Mark complete:
 %%   { type:"attribute", entity:"alice_slay_dragon_obj1", attribute:"complete", value:true }
 
+%% objective_complete(?Player, ?Obj)
+%% Bound, this checks the <player>_<obj> key. With either side unbound it is
+%% read back off the `complete` keys like quest_status/3, each pair once; with
+%% both unbound, Obj runs over the objectives the facts define.
 objective_complete(Player, Obj) :-
-    quest_state_key(Player, Obj, Key),
-    attribute(Key, complete, true).
+    (   nonvar(Player), nonvar(Obj)
+    ->  quest_state_key(Player, Obj, Key),
+        attribute(Key, complete, true)
+    ;   setof(P-O, quest_objective_split(P, O), Pairs),
+        member(Player-Obj, Pairs)
+    ).
 
+quest_objective_split(Player, Obj) :-
+    ( var(Player), var(Obj) -> quest_objective(Obj) ; true ),
+    attribute(Key, complete, true),
+    atom(Key),
+    (   nonvar(Player)
+    ->  atom_concat(Player, '_', Prefix),
+        atom_concat(Prefix, Obj, Key)
+    ;   atom_concat(Prefix, Obj, Key),
+        atom_concat(Player, '_', Prefix)
+    ),
+    Player \== '',
+    Obj \== ''.
+
+quest_objective(Obj) :-
+    attribute(Obj, quest, _),
+    attribute(Obj, order, _).
+
+%% next_objective(?Player, ?Quest, ?Obj)
+%% Unbound Player ranges over the players the facts tie to the quest: a status
+%% on it, or a completed objective of it (quest_objective_player/2). A bound
+%% player with no facts still starts at the first objective.
 next_objective(Player, Quest, Obj) :-
+    (   var(Player)
+    ->  ( var(Quest) -> quest_with_objectives(Quest) ; true ),
+        quest_objective_player(Quest, Player)
+    ;   true
+    ),
     attribute(Obj, quest, Quest),
     attribute(Obj, order, _),
     \+ objective_complete(Player, Obj),
@@ -94,6 +167,24 @@ next_objective(Player, Quest, Obj) :-
         O2 < O1,
         \+ objective_complete(Player, Obj2)
     ).
+
+quest_with_objectives(Quest) :-
+    setof(Q, quest_has_objective(Q), Qs),
+    member(Quest, Qs).
+
+quest_has_objective(Quest) :-
+    attribute(Obj, quest, Quest),
+    attribute(Obj, order, _).
+
+quest_objective_player(Quest, Player) :-
+    setof(P, quest_objective_holder(Quest, P), Players),
+    member(Player, Players).
+
+quest_objective_holder(Quest, Player) :-
+    quest_status(Player, Quest, _).
+quest_objective_holder(Quest, Player) :-
+    attribute(Obj, quest, Quest),
+    objective_complete(Player, Obj).
 
 can_turn_in(Player, Quest) :-
     quest_in_progress(Player, Quest),

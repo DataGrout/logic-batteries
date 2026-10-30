@@ -21,10 +21,10 @@ From Tether: `dg:batteries().install("ai-director", "my-game", cb)`.
 
 | Predicate | Description |
 |---|---|
-| `threat_level(Zone, Level)` | Current threat score for Zone; 0 when none is set |
+| `threat_level(Zone, Level)` | Current threat score for Zone; 0 when none is set. Unbound, lists every known zone |
 | `pacing_state(Zone, State)` | `recovery` / `calm` / `building` / `tense` / `peak`, from the thresholds below |
 | `difficulty_modifier(Zone, Modifier)` | The multiplier for Zone's current state |
-| `spawn_eligible(Enemy, Zone)` | Threat is within the enemy's `min_threat`..`max_threat` and the zone is not in `recovery` |
+| `spawn_eligible(Enemy, Zone)` | Threat is within the enemy's `min_threat`..`max_threat` and the zone is not in `recovery`. Either argument may be unbound |
 | `director_event(Zone, Event)` | The `<state>_event` configured for the zone's current state, if any |
 
 ## Facts this battery reads
@@ -120,6 +120,15 @@ give smoother transitions than jumps.
 
 **One director, many zones.** Thresholds and modifiers are global; threat is
 per zone. Two zones with the same threat are always in the same state.
+
+**Unbound arguments list.** With `Zone` unbound, `threat_level`,
+`pacing_state`, `difficulty_modifier` and `director_event` range over every
+zone the director knows: one with a `threat` fact or named by some enemy's
+`spawn_zone` (the latter reads as threat 0). With `Enemy` unbound,
+`spawn_eligible` ranges over every enemy with a `spawn_zone`, `min_threat` or
+`max_threat` fact; an enemy with no rule at all is eligible everywhere but has
+to be named. A bound output is compared with the computed answer, so
+`pacing_state(Zone, calm)` is false for a zone at `peak`.
 
 ## What this battery does not do
 

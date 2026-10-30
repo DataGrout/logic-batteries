@@ -79,6 +79,11 @@ dg:query("my-game", "is_nighttime", function(r) if #r > 0 then spawnNightEnemies
 **Set the period or the hour, not both.** An explicit `time_of_day` wins
 outright; a stale one will mask a live `hour`.
 
+**A filled-in check agrees with the query.** `world_weather(clear)` holds
+exactly when `world_weather(W)` gives `W = clear`: the default answers only
+when no `weather` is set. The same goes for every reader, including a period
+derived from `hour`.
+
 **Other batteries read the facts, not the predicates.** `loot-tables` checks
 `attribute(world, time_of_day, night)` directly, so a world driven only by
 `hour` will not satisfy a `time(night)` loot condition. When another battery

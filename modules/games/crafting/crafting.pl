@@ -33,40 +33,126 @@ crafting_skill_key(Player, Skill, Key) :-
     atom_concat(Player, '_', Tmp),
     atom_concat(Tmp, Skill, Key).
 
-%% crafting_skill(+Player, +Skill, -Level)
+%% crafting_skill(?Player, ?Skill, ?Level)
+%% Bound, Level is the `<player>_<skill>` level, or 0 when none is set; it is
+%% computed before it is compared. Unbound Player or Skill ranges over the
+%% level facts keyed that way, each pair once, with no 0 default: a bound Player
+%% reads the key after `<player>_`, a bound Skill the key before `_<skill>`, and
+%% with both unbound Skill ranges over the skills some item requires.
 crafting_skill(Player, Skill, Level) :-
-    crafting_skill_key(Player, Skill, Key),
+    (   nonvar(Player), nonvar(Skill)
+    ->  crafting_skill_key(Player, Skill, Key),
+        crafting_key_level(Key, Level0),
+        Level = Level0
+    ;   setof(Player-Skill, crafting_skill_held(Player, Skill), Pairs),
+        member(Player-Skill, Pairs),
+        crafting_skill_key(Player, Skill, Key),
+        crafting_key_level(Key, Level)
+    ).
+
+crafting_key_level(Key, Level) :-
     attribute(Key, level, Level), !.
-crafting_skill(_, _, 0).
+crafting_key_level(_, 0).
+
+crafting_skill_held(Player, Skill) :-
+    nonvar(Player), !,
+    atom_concat(Player, '_', Prefix),
+    attribute(Key, level, _),
+    atom(Key),
+    atom_concat(Prefix, Skill, Key),
+    Skill \== ''.
+crafting_skill_held(Player, Skill) :-
+    ( var(Skill) -> crafting_required_skill(Skill) ; true ),
+    atom_concat('_', Skill, Suffix),
+    attribute(Key, level, _),
+    atom(Key),
+    atom_concat(Player, Suffix, Key),
+    Player \== ''.
+
+crafting_required_skill(Skill) :-
+    skill_requirement(_, Skill, _).
 
 %% skill_requirement(+Item, ?Skill, ?MinLevel)
 skill_requirement(Item, Skill, MinLevel) :-
     attribute(Item, Attr, MinLevel),
     atom_concat(requires_, Skill, Attr).
 
-%% recipe_known(+Player, +Recipe)
+%% recipe_known(?Player, ?Recipe)
+%% Unbound Recipe ranges over every recipe the facts name. A starter recipe is
+%% known to anyone, so it leaves an unbound Player unbound; otherwise an
+%% unbound Player ranges over the players who were taught it or can discover
+%% it, each once. Bound, it succeeds at most once.
 recipe_known(Player, Recipe) :-
-    relation(Player, knows_recipe, Recipe), !.
-recipe_known(_, Recipe) :-
-    attribute(Recipe, starter_recipe, true), !.
-recipe_known(Player, Recipe) :-
-    recipe_discoverable(Player, Recipe).
+    ( var(Recipe) -> crafting_recipe(Recipe) ; true ),
+    (   attribute(Recipe, starter_recipe, true) -> true
+    ;   var(Player)
+    ->  setof(P, crafting_recipe_holder(P, Recipe), Players),
+        member(Player, Players)
+    ;   crafting_recipe_holder(Player, Recipe) -> true
+    ).
 
-%% recipe_discoverable(+Player, +Recipe)
+crafting_recipe_holder(Player, Recipe) :-
+    relation(Player, knows_recipe, Recipe).
+crafting_recipe_holder(Player, Recipe) :-
+    crafting_discovers(Player, Recipe).
+
+crafting_recipe(Recipe) :-
+    setof(R, crafting_recipe_named(R), Recipes),
+    member(Recipe, Recipes).
+
+crafting_recipe_named(R) :- relation(_, knows_recipe, R).
+crafting_recipe_named(R) :- attribute(R, starter_recipe, true).
+crafting_recipe_named(R) :- attribute(R, discover_on_level, _).
+crafting_recipe_named(R) :- attribute(R, discover_on_quest, _).
+crafting_recipe_named(R) :- attribute(R, discover_on_item, _).
+
+%% recipe_discoverable(?Player, ?Recipe)
+%% Unbound, each argument ranges over every match, each pair once.
 recipe_discoverable(Player, Recipe) :-
+    ( var(Recipe) -> crafting_recipe(Recipe) ; true ),
+    (   var(Player)
+    ->  setof(P, crafting_discovers(P, Recipe), Players),
+        member(Player, Players)
+    ;   crafting_discovers(Player, Recipe) -> true
+    ).
+
+crafting_discovers(Player, Recipe) :-
     attribute(Recipe, discover_on_level, ReqLevel),
     attribute(Player, level, PlayerLevel),
-    PlayerLevel >= ReqLevel, !.
-recipe_discoverable(Player, Recipe) :-
+    PlayerLevel >= ReqLevel.
+crafting_discovers(Player, Recipe) :-
     attribute(Recipe, discover_on_quest, Quest),
-    relation(Player, completed_quest, Quest), !.
-recipe_discoverable(Player, Recipe) :-
+    relation(Player, completed_quest, Quest).
+crafting_discovers(Player, Recipe) :-
     attribute(Recipe, discover_on_item, Item),
     relation(Player, has_item, Item).
 
-%% can_craft_skilled(+Player, +Item)
+%% can_craft_skilled(?Player, ?Item)
+%% Unbound, Item ranges over the recipes Player knows. A starter recipe leaves
+%% Player unbound from recipe_known; then, if the item requires some skill above
+%% 0, Player ranges over the players holding one of its skills, else it stays
+%% unbound (anyone can craft it).
 can_craft_skilled(Player, Item) :-
     recipe_known(Player, Item),
+    (   var(Player)
+    ->  (   crafting_demands_skill(Item)
+        ->  setof(P, crafting_skill_holder(Item, P), Players),
+            member(Player, Players),
+            crafting_meets_requirements(Player, Item)
+        ;   true
+        )
+    ;   crafting_meets_requirements(Player, Item)
+    ).
+
+crafting_meets_requirements(Player, Item) :-
     \+ ( skill_requirement(Item, Skill, Required),
          crafting_skill(Player, Skill, Have),
          Have < Required ).
+
+crafting_demands_skill(Item) :-
+    skill_requirement(Item, _, Required),
+    Required > 0, !.
+
+crafting_skill_holder(Item, Player) :-
+    skill_requirement(Item, Skill, _),
+    crafting_skill(Player, Skill, _).

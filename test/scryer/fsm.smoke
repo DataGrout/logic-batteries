@@ -1,6 +1,8 @@
 # fsm battery on scryer-prolog: structured facts as atoms, reachability,
-# structural analysis, paths and validation. Under double_quotes=chars a
-# quoted literal never matches a stored atom, so every fact name is an atom.
+# structural analysis (a shared event on a branching state is ambiguous; an
+# event per exit is not), breadth-first shortest paths and validation. Under
+# double_quotes=chars a quoted literal never matches a stored atom, so every
+# fact name is an atom.
 # Facts are grouped by predicate: Scryer treats a second, non-contiguous block
 # of relation/3 clauses as a redefinition of the first.
 modules/reasoning/fsm/fsm.pl
@@ -15,6 +17,25 @@ relation(cyc, has_state, a).
 relation(cyc, has_state, b).
 relation(a, transitions_to, b).
 relation(b, transitions_to, a).
+relation(se, has_state, p1).
+relation(se, has_state, p2).
+relation(se, has_state, p3).
+relation(p1, transitions_to, p2).
+relation(p1, transitions_to, p3).
+relation(br, has_state, r0).
+relation(br, has_state, r1).
+relation(br, has_state, r2).
+relation(r0, transitions_to, r1).
+relation(r0, transitions_to, r2).
+relation(sc, has_state, q1).
+relation(sc, has_state, q2).
+relation(sc, has_state, q3).
+relation(sc, has_state, q4).
+relation(q1, transitions_to, q2).
+relation(q2, transitions_to, q1).
+relation(q2, transitions_to, q3).
+relation(q3, transitions_to, q4).
+relation(q1, transitions_to, q4).
 attribute(idle, state_type, initial).
 attribute(complete, state_type, terminal).
 attribute(m, machine_type, fsm).
@@ -22,6 +43,9 @@ attribute(idle, on, start_lap).
 attribute(running, on, stop_lap).
 attribute(m, current_state, running).
 attribute(a, state_type, initial).
+attribute(p1, on, go).
+attribute(r0, on, accept).
+attribute(r0, on, reject).
 lc_flex_match(X, X).
 check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
 smoke :-
@@ -32,6 +56,10 @@ smoke :-
     check(dead_and_unreachable, (fsm_dead_state(m, orphan), fsm_unreachable_state(m, orphan))),
     check(deterministic, fsm_deterministic(m)),
     check(path, fsm_shortest_path(m, idle, complete, [idle, running, complete])),
+    check(shortest_not_first, (findall(P, fsm_shortest_path(sc, q1, q4, P), Ps), Ps == [[q1, q4]])),
+    check(shortest_unreachable, \+ fsm_shortest_path(sc, q4, q1, _)),
+    check(shared_event, (findall(NS-NE, fsm_nondeterministic_state(se, NS, NE), ND), ND == [p1-go])),
+    check(event_per_exit, (fsm_deterministic(br), \+ fsm_deterministic(se))),
     check(cycle, (fsm_cycle(cyc, a), \+ fsm_cycle(m, idle))),
     check(machines, fsm_machines([m])),
     check(validate, (fsm_validate(m, Issues), Issues == [dead_state(orphan), unreachable_state(orphan)])),

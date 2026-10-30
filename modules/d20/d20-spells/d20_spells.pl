@@ -146,16 +146,35 @@ spell_upcast_heal(healing_word, 1).
 %%
 %% Prepared casters must have the spell prepared; everyone else casts from
 %% what they know. Cantrips are never prepared — known is enough for all.
+%%
+%% spell_known(?Caster, ?Spell)
+%% With either argument unbound it enumerates the caster-spell pairs named by
+%% knows_spell / prepared_spell, so the cuts below pick a rule per pair rather
+%% than committing to the first cantrip or the first preparing caster.
 
 spell_known(Caster, Spell) :-
+    (   ( var(Caster) ; var(Spell) )
+    ->  spell_known_candidate(Caster, Spell)
+    ;   true
+    ),
+    spell_known_rule(Caster, Spell).
+
+spell_known_candidate(Caster, Spell) :-
+    setof(Caster-Spell, spell_named(Caster, Spell), Pairs),
+    member(Caster-Spell, Pairs).
+
+spell_named(Caster, Spell) :- relation(Caster, knows_spell, Spell).
+spell_named(Caster, Spell) :- relation(Caster, prepared_spell, Spell).
+
+spell_known_rule(Caster, Spell) :-
     d20_spell(Spell, 0, _),
     !,
     relation(Caster, knows_spell, Spell).
-spell_known(Caster, Spell) :-
+spell_known_rule(Caster, Spell) :-
     attribute(Caster, prepares_spells, true),
     !,
     relation(Caster, prepared_spell, Spell).
-spell_known(Caster, Spell) :-
+spell_known_rule(Caster, Spell) :-
     relation(Caster, knows_spell, Spell).
 
 %% ── Slots ────────────────────────────────────────────────────────────────────
@@ -184,15 +203,23 @@ spell_slot_available(Caster, SlotLevel) :-
 
 %% ── The Casting Gate ─────────────────────────────────────────────────────────
 %%
-%% d20_can_cast(Caster, Spell, SlotLevel):
+%% d20_can_cast(?Caster, ?Spell, ?SlotLevel):
 %%   cantrips cast at SlotLevel 0, always free;
 %%   levelled spells need a free slot at their level or higher (upcasting).
+%% An unbound Spell walks the grimoire, so the cantrip cut applies per spell.
 
-d20_can_cast(Caster, Spell, 0) :-
+d20_can_cast(Caster, Spell, SlotLevel) :-
+    (   var(Spell)
+    ->  d20_spell(Spell, _, _)
+    ;   true
+    ),
+    d20_can_cast_spell(Caster, Spell, SlotLevel).
+
+d20_can_cast_spell(Caster, Spell, 0) :-
     d20_spell(Spell, 0, _),
     !,
     spell_known(Caster, Spell).
-d20_can_cast(Caster, Spell, SlotLevel) :-
+d20_can_cast_spell(Caster, Spell, SlotLevel) :-
     d20_spell(Spell, Level, _),
     Level >= 1,
     spell_known(Caster, Spell),
@@ -200,7 +227,16 @@ d20_can_cast(Caster, Spell, SlotLevel) :-
     SlotLevel >= Level,
     spell_slot_available(Caster, SlotLevel).
 
+%% spell_castable(?Caster, ?Spell) — one answer per caster-spell pair, however
+%% many slot levels would serve.
 spell_castable(Caster, Spell) :-
+    (   ( var(Caster) ; var(Spell) )
+    ->  spell_known_candidate(Caster, Spell)
+    ;   true
+    ),
+    spell_castable_pair(Caster, Spell).
+
+spell_castable_pair(Caster, Spell) :-
     d20_can_cast(Caster, Spell, _),
     !.
 

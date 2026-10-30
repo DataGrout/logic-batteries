@@ -1,0 +1,26 @@
+# compliance battery on scryer-prolog: violation/3 and compliant/2 enumerate
+# the entities in scope of a policy before the negation, and compliant/2
+# lists policies for a bound entity.
+modules/business/compliance/compliance.pl
+---
+relation(gdpr, requires, marketing_consent).
+relation(gdpr, requires, data_minimization).
+relation(hipaa, requires, phi_encryption).
+relation(hipaa, requires, audit_log).
+attribute(cust_ok, marketing_consent, true).
+attribute(cust_ok, data_minimization, true).
+attribute(cust_no, marketing_consent, false).
+attribute(cust_no, data_minimization, true).
+attribute(cust_half, data_minimization, true).
+attribute(sys_ok, phi_encryption, true).
+attribute(sys_ok, audit_log, true).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(violations, (findall(E-R, violation(E, gdpr, R), V0), sort(V0, V),
+        V == [cust_half-missing_requirement(marketing_consent),
+              cust_no-missing_requirement(marketing_consent)])),
+    check(compliant, (findall(E, compliant(E, gdpr), C), C == [cust_ok])),
+    check(policies, (findall(P, compliant(cust_ok, P), Ps), Ps == [gdpr])),
+    check(both, (findall(E-P, compliant(E, P), B0), sort(B0, B),
+        B == [cust_ok-gdpr, sys_ok-hipaa])),
+    write(smoke_ok), nl.

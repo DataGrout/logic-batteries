@@ -125,3 +125,38 @@ test(at_hostile_threshold_is_hostile, [setup(setup_fac_fix_negative_scores), cle
     faction_standing(alice, g4, S), assertion(S == hostile).
 
 :- end_tests(faction_negative_standings).
+
+%% ── Unbound faction: every ally / enemy, both directions ─────────────────────
+
+fac_setup_listers :-
+    assertz(relation(elves, allied_with, dwarves)),
+    assertz(relation(men, allied_with, elves)),
+    assertz(relation(elves, at_war_with, orcs)),
+    assertz(relation(goblins, at_war_with, elves)),
+    assertz(relation(elves, at_war_with, trolls)).
+
+:- begin_tests(faction_unbound).
+
+test(faction_allied_lists_every_ally, [setup(fac_setup_listers), cleanup(clear_facts)]) :-
+    findall(F, faction_allied(elves, F), Fs0),
+    msort(Fs0, Fs),
+    assertion(Fs == [dwarves, men]),
+    findall(F, faction_allied(F, elves), Gs0),
+    msort(Gs0, Gs),
+    assertion(Gs == [dwarves, men]).
+
+test(faction_at_war_lists_every_enemy, [setup(fac_setup_listers), cleanup(clear_facts)]) :-
+    findall(F, faction_at_war(elves, F), Fs0),
+    msort(Fs0, Fs),
+    assertion(Fs == [goblins, orcs, trolls]).
+
+test(faction_allied_both_unbound, [setup(fac_setup_listers), cleanup(clear_facts)]) :-
+    findall(A-B, faction_allied(A, B), Ps0),
+    msort(Ps0, Ps),
+    assertion(Ps == [dwarves-elves, elves-dwarves, elves-men, men-elves]).
+
+test(faction_allied_bound_is_deterministic, [setup(fac_setup_listers), cleanup(clear_facts)]) :-
+    findall(x, faction_allied(dwarves, elves), Xs),
+    assertion(Xs == [x]).
+
+:- end_tests(faction_unbound).

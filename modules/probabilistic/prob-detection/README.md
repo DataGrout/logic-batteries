@@ -25,7 +25,7 @@ From Tether: `dg:batteries().install_many({"combat", "prob-detection"}, "my-game
 | Predicate | Description |
 |---|---|
 | `detected(Guard, Player)` | Probabilistic; query its marginal with `probability(detected(G, P), X)`. Weights in the table below |
-| `detection_probability(Guard, Player, P)` | Deterministic: the guard's tier weight × environment × stealth, clamped to 0.01–0.99 |
+| `detection_probability(Guard, Player, P)` | Deterministic: the guard's tier weight × environment × stealth, clamped to 0.01–0.99. Guard or Player may be unbound to list |
 | `stealth_success(Guard, Player)` | `detection_probability` below 0.5 |
 | `environmental_detection_factor(_, Factor)` | Product of the environmental multipliers. The first argument is ignored; the factor is global |
 
@@ -116,6 +116,12 @@ dg:query("my-game", "detection_probability(guard_a, player, P)", function(r) if 
 
 **Disguise only helps against passive guards.** An alerted guard sees through
 the uniform in both predicates.
+
+**Listing reads who has facts.** With `Guard` unbound, `detection_probability`
+and `stealth_success` range over every entity with `perception` or
+`alert_state`; with `Player` unbound, over every entity with `stealth_bonus` or
+a `has_item` (never the guard itself). A bound guard or player needs no facts
+at all — the defaults apply.
 
 **Environment is global.** Multipliers come from `world`; there is no per-guard
 or per-location lighting.

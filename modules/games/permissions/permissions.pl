@@ -56,11 +56,31 @@ permission_granted(Entity, Permission) :-
     has_role(Entity, Role),
     role_grants(Role, Permission).
 
-%% can_access(+Entity, +Resource)
-can_access(_Entity, Resource) :-
-    attribute(Resource, public, true), !.
+%% can_access(?Entity, ?Resource)
+%% Unbound Resource ranges over every resource with a `public`, `owner` or
+%% `requires_permission` fact. A public resource is open to anyone, so it
+%% leaves an unbound Entity unbound; otherwise an unbound Entity ranges over
+%% the owner and every holder of the permission, each once. Bound, it
+%% succeeds at most once.
 can_access(Entity, Resource) :-
-    is_owner(Entity, Resource), !.
-can_access(Entity, Resource) :-
+    ( var(Resource) -> permissions_resource(Resource) ; true ),
+    (   attribute(Resource, public, true) -> true
+    ;   var(Entity)
+    ->  setof(E, permissions_grantee(E, Resource), Entities),
+        member(Entity, Entities)
+    ;   permissions_grantee(Entity, Resource) -> true
+    ).
+
+permissions_grantee(Entity, Resource) :-
+    is_owner(Entity, Resource).
+permissions_grantee(Entity, Resource) :-
     attribute(Resource, requires_permission, Permission),
     permission_granted(Entity, Permission).
+
+permissions_resource(Resource) :-
+    setof(R, permissions_resource_named(R), Resources),
+    member(Resource, Resources).
+
+permissions_resource_named(R) :- attribute(R, public, true).
+permissions_resource_named(R) :- attribute(R, owner, _).
+permissions_resource_named(R) :- attribute(R, requires_permission, _).

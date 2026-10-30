@@ -172,3 +172,29 @@ test(stable_market_price_equals_base, [setup(setup_stable_rock_price), cleanup(c
     assertion(Price =:= 10).
 
 :- end_tests(prob_economy_expected_price).
+
+%% ── Item unbound: one answer per item, not the max across all items ──────────
+
+setup_econ_listing :-
+    assertz(attribute(silk, import_dependent, true)),
+    assertz(attribute(grain, perishable, true)),
+    assertz(attribute(potion, category, healing)),
+    assertz(attribute(bread, category, food)),
+    assertz(attribute(world, weather, storm)),
+    assertz(attribute(world, recent_conflict, true)).
+
+:- begin_tests(prob_economy_listing).
+
+test(supply_disruption_per_item, [setup(setup_econ_listing), cleanup(clear_facts)]) :-
+    findall(I-P, supply_disruption(I, P), Ps), msort(Ps, Sorted),
+    assertion(Sorted == [grain-0.40, silk-0.65]).
+
+test(demand_spike_per_item, [setup(setup_econ_listing), cleanup(clear_facts)]) :-
+    findall(I-P, demand_spike(I, P), Ps), msort(Ps, Sorted),
+    assertion(Sorted == [bread-0.0, potion-0.75]).
+
+test(volatility_per_item, [setup(setup_econ_listing), cleanup(clear_facts)]) :-
+    findall(I-Ps-Pd, market_volatility(I, Ps, Pd), Vs), msort(Vs, Sorted),
+    assertion(Sorted == [bread-0.0-0.0, grain-0.40-0.0, potion-0.0-0.75, silk-0.65-0.0]).
+
+:- end_tests(prob_economy_listing).

@@ -235,3 +235,34 @@ test(world_conditions_ignore_the_context, [setup(setup_loot_fix_world_gated), cl
     assertion(eligible_loot(lake, night_fish)).
 
 :- end_tests(loot_tables_eligible_with_context).
+
+%% ── loot_chance/3 and rarity_tier/2 listing (Source matters) ─────────────────
+
+setup_loot_listing :-
+    assertz(relation(crypt, can_drop, bone)),
+    assertz(relation(crypt, can_drop, relic)),
+    assertz(relation(crypt, can_drop, cursed_ring)),
+    assertz(relation(well, can_drop, coin)),
+    assertz(attribute(relic, rarity, rare)),
+    assertz(attribute(cursed_ring, rarity, epic)),
+    assertz(attribute(cursed_ring, drop_chance, 5)).
+
+:- begin_tests(loot_tables_listing).
+
+test(chance_lists_every_item_of_the_source, [setup(setup_loot_listing), cleanup(clear_facts)]) :-
+    findall(I-C, loot_chance(crypt, I, C), Ps), msort(Ps, Sorted),
+    assertion(Sorted == [bone-70, cursed_ring-5, relic-10]).
+
+test(chance_requires_the_item_in_the_source_table, [setup(setup_loot_listing), cleanup(clear_facts)]) :-
+    assertion(\+ loot_chance(well, relic, _)),
+    assertion(loot_chance(well, coin, 70)).
+
+test(chance_lists_source_item_pairs, [setup(setup_loot_listing), cleanup(clear_facts)]) :-
+    findall(S-I, loot_chance(S, I, _), Ps), msort(Ps, Sorted),
+    assertion(Sorted == [crypt-bone, crypt-cursed_ring, crypt-relic, well-coin]).
+
+test(rarity_lists_every_item, [setup(setup_loot_listing), cleanup(clear_facts)]) :-
+    findall(I-T, rarity_tier(I, T), Ps), msort(Ps, Sorted),
+    assertion(Sorted == [bone-common, coin-common, cursed_ring-epic, relic-rare]).
+
+:- end_tests(loot_tables_listing).

@@ -137,3 +137,42 @@ test(concentration_check_outcomes, [setup(setup_tough_concentrator), cleanup(cle
     d20_concentration_check(conc, 8, 7, broken).
 
 :- end_tests(d20_spells).
+
+%% ── Listing with unbound arguments ───────────────────────────────────────────
+%% Neither caster knows fire_bolt (the grimoire's first cantrip), and the first
+%% preparing caster has nothing prepared, so a cut on the first candidate shows.
+
+setup_spell_listing :-
+    assertz(attribute(lister, slots_l1, 1)),
+    assertz(relation(lister, knows_spell, ray_of_frost)),
+    assertz(relation(lister, knows_spell, magic_missile)),
+    assertz(attribute(idle_cleric, prepares_spells, true)),
+    assertz(attribute(busy_cleric, prepares_spells, true)),
+    assertz(attribute(busy_cleric, slots_l1, 1)),
+    assertz(relation(busy_cleric, prepared_spell, bless)),
+    assertz(relation(busy_cleric, knows_spell, sacred_flame)).
+
+:- begin_tests(d20_spells_listing, [setup(clear_spell_facts), cleanup(clear_spell_facts)]).
+
+test(known_spells_enumerate, [setup(setup_spell_listing), cleanup(clear_spell_facts)]) :-
+    findall(S, spell_known(lister, S), Ss), msort(Ss, Sorted),
+    assertion(Sorted == [magic_missile, ray_of_frost]).
+
+test(known_by_enumerates_casters, [setup(setup_spell_listing), cleanup(clear_spell_facts)]) :-
+    findall(C, spell_known(C, bless), Cs),
+    assertion(Cs == [busy_cleric]),
+    findall(C2-S, spell_known(C2, S), Pairs), msort(Pairs, SortedPairs),
+    assertion(SortedPairs == [busy_cleric-bless, busy_cleric-sacred_flame,
+                              lister-magic_missile, lister-ray_of_frost]).
+
+test(can_cast_enumerates_spells, [setup(setup_spell_listing), cleanup(clear_spell_facts)]) :-
+    findall(S-L, d20_can_cast(lister, S, L), Ps), msort(Ps, Sorted),
+    assertion(Sorted == [magic_missile-1, ray_of_frost-0]).
+
+test(castable_enumerates_each_once, [setup(setup_spell_listing), cleanup(clear_spell_facts)]) :-
+    findall(S, spell_castable(lister, S), Ss), msort(Ss, Sorted),
+    assertion(Sorted == [magic_missile, ray_of_frost]),
+    findall(C, spell_castable(C, bless), Cs),
+    assertion(Cs == [busy_cleric]).
+
+:- end_tests(d20_spells_listing).

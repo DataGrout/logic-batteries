@@ -126,3 +126,33 @@ test(cleared_room_relation_completes_a_dungeon, [setup(setup_dun_fix_cleared_roo
     assertion(dungeon_complete(alice, crypt)).
 
 :- end_tests(dungeon_paths_and_clearance).
+
+%% ── Unbound Room: locked and unlocked rooms alike ────────────────────────────
+
+dun_setup_listers :-
+    assertz(relation(crypt, has_room, gate)),
+    assertz(relation(gate, connects_to, hall)),
+    assertz(relation(hall, connects_to, throne)),
+    assertz(relation(hall, connects_to, vault)),
+    assertz(attribute(throne, requires_key, iron_key)),
+    assertz(attribute(vault, requires_key, gold_key)),
+    assertz(relation(alice, has_item, iron_key)),
+    assertz(relation(bob, has_item, iron_key)).
+
+:- begin_tests(dungeon_unbound).
+
+test(room_accessible_lists_every_room, [setup(dun_setup_listers), cleanup(clear_facts)]) :-
+    findall(R, room_accessible(alice, R), Rs0),
+    msort(Rs0, Rs),
+    assertion(Rs == [gate, hall, throne]).
+
+test(room_accessible_lists_key_holders, [setup(dun_setup_listers), cleanup(clear_facts)]) :-
+    findall(P, room_accessible(P, throne), Ps0),
+    msort(Ps0, Ps),
+    assertion(Ps == [alice, bob]),
+    assertion(\+ room_accessible(_, vault)).
+
+test(room_accessible_unlocked_is_anyone, [setup(dun_setup_listers), cleanup(clear_facts)]) :-
+    room_accessible(P, hall), assertion(var(P)).
+
+:- end_tests(dungeon_unbound).

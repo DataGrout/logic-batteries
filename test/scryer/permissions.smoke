@@ -1,0 +1,22 @@
+# permissions battery on scryer-prolog: can_access lists every resource and
+# every entity (owner and permission holders) when unbound.
+modules/games/permissions/permissions.pl
+---
+attribute(home_page, public, true).
+attribute(post_9, owner, bob).
+attribute(post_9, requires_permission, edit_posts).
+attribute(admin_console, requires_permission, manage_users).
+relation(alice, has_role, admin).
+relation(carol, has_role, editor).
+relation(bob, has_role, viewer).
+relation(admin, grants_permission, manage_users).
+relation(admin, inherits_from, editor).
+relation(editor, grants_permission, edit_posts).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(resources, (findall(R, can_access(alice, R), R0), sort(R0, Rs),
+        Rs == [admin_console, home_page, post_9])),
+    check(entities, (findall(E, can_access(E, post_9), E0), sort(E0, Es),
+        Es == [alice, bob, carol])),
+    check(public, (can_access(X, home_page), var(X))),
+    write(smoke_ok), nl.

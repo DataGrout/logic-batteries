@@ -1,0 +1,44 @@
+# crafting battery on scryer-prolog: recipe_known and recipe_discoverable
+# enumerate every recipe and every player when unbound; a starter recipe
+# leaves the player unbound. crafting_skill and can_craft_skilled enumerate an
+# unbound player or skill instead of throwing.
+modules/games/crafting/crafting.pl
+---
+relation(alice, knows_recipe, sword).
+relation(alice, knows_recipe, axe).
+relation(bob, knows_recipe, sword).
+relation(bob, completed_quest, find_alchemist).
+attribute(bandage, starter_recipe, true).
+attribute(fire_spell, discover_on_level, 10).
+attribute(alice, level, 12).
+attribute(bob, level, 15).
+attribute(carol, level, 3).
+attribute(potion, discover_on_quest, find_alchemist).
+attribute(sword, requires_smithing, 3).
+attribute(splint, starter_recipe, true).
+attribute(splint, requires_first_aid, 2).
+attribute(alice_smithing, level, 5).
+attribute(alice_first_aid, level, 1).
+attribute(bob_smithing, level, 1).
+attribute(dark_elf_first_aid, level, 4).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(recipes, (findall(R, recipe_known(alice, R), R0), sort(R0, Rs),
+        Rs == [axe, bandage, fire_spell, splint, sword])),
+    check(players, (findall(P, recipe_known(P, sword), P0), sort(P0, Ps),
+        Ps == [alice, bob])),
+    check(starter, (recipe_known(S, bandage), var(S))),
+    check(discoverable, (findall(P-R, recipe_discoverable(P, R), D0), sort(D0, D),
+        D == [alice-fire_spell, bob-fire_spell, bob-potion])),
+    check(skill_players, (findall(P-L, crafting_skill(P, smithing, L), K0), sort(K0, K),
+        K == [alice-5, bob-1])),
+    check(skill_skills, (findall(S-L, crafting_skill(alice, S, L), A0), sort(A0, A),
+        A == [first_aid-1, smithing-5])),
+    check(skill_pairs, (findall(P-S-L, crafting_skill(P, S, L), T0), sort(T0, T),
+        T == [alice-first_aid-1, alice-smithing-5, bob-smithing-1, dark_elf-first_aid-4])),
+    check(skill_bound, \+ crafting_skill(alice, smithing, 0)),
+    check(skill_default, crafting_skill(carol, smithing, 0)),
+    check(craft_players, (findall(P, can_craft_skilled(P, sword), C), C == [alice])),
+    check(craft_starter, (findall(P, can_craft_skilled(P, splint), Sp), Sp == [dark_elf])),
+    check(craft_anyone, (can_craft_skilled(B, bandage), var(B))),
+    write(smoke_ok), nl.

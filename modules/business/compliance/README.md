@@ -122,6 +122,12 @@ consent_required(send_newsletter, ConsentType)
 consent_given(customer_123, marketing)
 ```
 
+With `Entity` unbound, `violation` and `compliant` range over the entities
+*in scope* of the policy: those carrying at least one attribute the policy
+`requires`, whatever its value (`false` included). An entity with none of them
+cannot be listed; name it to check it. `compliant(Entity, Policy)` with
+`Policy` unbound ranges over every policy that has a `requires` relation.
+
 ## Agent Use Cases
 
 **Pre-action compliance gate**: Before an agent sends a marketing email, check `consent_required(send_newsletter, C)` and `consent_given(customer, C)`. If consent is absent, the agent routes to a consent-collection workflow instead.

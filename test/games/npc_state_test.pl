@@ -195,3 +195,103 @@ test(item_topic_unmet, [
     assertion(\+ dialogue_available(merchant, alice, members_discount)).
 
 :- end_tests(npc_dialogue).
+
+%% ── Unbound NPC / Player: enumerate every match ──────────────────────────────
+
+npc_setup_listers :-
+    set_relationship(merchant, alice, 50),
+    set_relationship(merchant, bob, 10),
+    set_relationship(guard, alice, -50),
+    set_relationship(guard, bob, 30),
+    assertz(attribute(innkeeper, always_friendly, true)),
+    assertz(attribute(bandit, always_hostile, true)),
+    set_relationship(bandit, bob, 90).
+
+:- begin_tests(npc_unbound).
+
+test(npc_friendly_lists_every_npc, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(N, npc_friendly(N, alice), Ns0),
+    msort(Ns0, Ns),
+    assertion(Ns == [innkeeper, merchant]),
+    findall(N, npc_friendly(N, bob), Bs0),
+    msort(Bs0, Bs),
+    assertion(Bs == [guard, innkeeper]).
+
+test(npc_friendly_lists_every_player, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(P, npc_friendly(merchant, P), Ps),
+    assertion(Ps == [alice]),
+    findall(P, npc_friendly(guard, P), Gs),
+    assertion(Gs == [bob]).
+
+test(npc_friendly_always_is_anyone, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    npc_friendly(innkeeper, P), assertion(var(P)).
+
+test(npc_hostile_lists_every_npc, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(N, npc_hostile(N, alice), Ns0),
+    msort(Ns0, Ns),
+    assertion(Ns == [bandit, guard]),
+    findall(N, npc_hostile(N, bob), Bs),
+    assertion(Bs == [bandit]).
+
+test(npc_hostile_lists_every_player, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(P, npc_hostile(guard, P), Ps),
+    assertion(Ps == [alice]).
+
+test(npc_both_unbound, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(N-P, (npc_friendly(N, P), nonvar(P)), Fs0),
+    msort(Fs0, Fs),
+    assertion(Fs == [guard-bob, merchant-alice]),
+    findall(N-P, (npc_hostile(N, P), nonvar(P)), Hs),
+    assertion(Hs == [guard-alice]).
+
+:- end_tests(npc_unbound).
+
+%% ── Unbound Player: relationship_level and dialogue_available ────────────────
+
+npc_setup_dialogue_listers :-
+    npc_setup_listers,
+    assertz(relation(merchant, has_dialogue, buy_items)),
+    assertz(relation(merchant, has_dialogue, secret_sale)),
+    assertz(attribute(secret_sale, requires_friendly, true)),
+    assertz(relation(merchant, has_dialogue, gossip)),
+    assertz(attribute(gossip, requires_relationship, 5)),
+    assertz(relation(merchant, has_dialogue, reward_topic)),
+    assertz(attribute(reward_topic, requires_quest, find_artifact)),
+    assertz(relation(carol, completed_quest, find_artifact)).
+
+:- begin_tests(npc_unbound_player).
+
+test(relationship_level_lists_players, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(P-L, relationship_level(merchant, P, L), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [alice-50, bob-10]).
+
+test(relationship_level_lists_npcs, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(N-L, relationship_level(N, bob, L), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [bandit-90, guard-30, merchant-10]).
+
+test(relationship_level_lists_every_pair, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    findall(N-P-L, relationship_level(N, P, L), Triples0),
+    msort(Triples0, Triples),
+    assertion(Triples == [bandit-bob-90, guard-alice-(-50), guard-bob-30,
+                          merchant-alice-50, merchant-bob-10]).
+
+test(relationship_level_bound_level_is_the_score, [setup(npc_setup_listers), cleanup(clear_facts)]) :-
+    %% 0 is only the default for a pair with no score
+    assertion(\+ relationship_level(merchant, alice, 0)),
+    assertion(relationship_level(merchant, carol, 0)).
+
+test(dialogue_available_lists_players, [setup(npc_setup_dialogue_listers), cleanup(clear_facts)]) :-
+    findall(P, dialogue_available(merchant, P, secret_sale), Friends),
+    assertion(Friends == [alice]),
+    findall(P, dialogue_available(merchant, P, gossip), Gossip0),
+    msort(Gossip0, Gossip),
+    assertion(Gossip == [alice, bob]),
+    findall(P, dialogue_available(merchant, P, reward_topic), Reward),
+    assertion(Reward == [carol]).
+
+test(dialogue_available_ungated_is_anyone, [setup(npc_setup_dialogue_listers), cleanup(clear_facts)]) :-
+    dialogue_available(merchant, P, buy_items), assertion(var(P)).
+
+:- end_tests(npc_unbound_player).

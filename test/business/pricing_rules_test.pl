@@ -133,3 +133,34 @@ test(ceil_clips_base_price, [setup(setup_price_ceil), cleanup(clear_facts)]) :-
     price_capped(widget, unknown_customer, P), assertion(P == 80).
 
 :- end_tests(pricing_capped).
+
+%% ── Unbound Customer: price_tier enumerates every tiered customer ────────────
+
+pricing_setup_two_customers :-
+    setup_widget_base,
+    assertz(attribute(cust_m, pricing_tier, member)),
+    assertz(attribute(cust_v, pricing_tier, vip)).
+
+:- begin_tests(pricing_unbound_customer).
+
+test(price_tier_lists_every_customer, [setup(pricing_setup_two_customers), cleanup(clear_facts)]) :-
+    findall(C-T, price_tier(widget, C, T), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [cust_m-member, cust_v-vip]).
+
+test(price_tier_filters_by_tier, [setup(pricing_setup_two_customers), cleanup(clear_facts)]) :-
+    findall(C, price_tier(widget, C, vip), Vips),
+    assertion(Vips == [cust_v]),
+    findall(C, price_tier(widget, C, standard), Std),
+    assertion(Std == []).
+
+test(price_tier_bound_tier_is_the_computed_one, [setup(pricing_setup_two_customers), cleanup(clear_facts)]) :-
+    assertion(\+ price_tier(widget, cust_v, standard)),
+    assertion(price_tier(widget, nobody, standard)).
+
+test(effective_price_lists_every_customer, [setup(pricing_setup_two_customers), cleanup(clear_facts)]) :-
+    findall(C-P, effective_price(widget, C, P), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [cust_m-90, cust_v-80]).
+
+:- end_tests(pricing_unbound_customer).

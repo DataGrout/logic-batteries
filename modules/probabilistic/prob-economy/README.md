@@ -125,6 +125,12 @@ reading to reinterpret; `expected_price` has the same sign.
 **Max, not combination.** Several matching rules do not stack in the
 deterministic predicates; only the ProbLog marginals combine evidence.
 
+**Listing is per item.** With `Item` unbound, `supply_disruption/2` answers
+once for each item with `import_dependent` or `perishable` set to `true`,
+`demand_spike/2` once for each item with a `category`, and
+`market_volatility/3` once for each item with either — 0.0 where no world
+condition applies.
+
 **No rule, no risk.** An item with no `import_dependent`, `perishable` or
 recognised `category` reads 0.0 on both sides and its range collapses to the
 base price.

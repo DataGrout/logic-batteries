@@ -68,6 +68,20 @@ test(hour_19_is_dusk, [setup(setup_hour_19), cleanup(clear_facts)]) :-
 test(default_is_day, [cleanup(clear_facts)]) :-
     world_time(T), assertion(T == day).
 
+test(bound_default_day_false_when_set, [setup(setup_time_night), cleanup(clear_facts)]) :-
+    assertion(\+ world_time(day)),
+    assertion(world_time(night)).
+
+%% hour 12 is day; a bound `night` used to fall through to the catch-all.
+test(bound_hour_period_agrees, [setup(setup_hour_12), cleanup(clear_facts)]) :-
+    assertion(\+ world_time(night)),
+    assertion(\+ world_time(dusk)),
+    assertion(world_time(day)).
+
+test(bound_hour_22_not_day, [setup(setup_hour_22), cleanup(clear_facts)]) :-
+    assertion(\+ world_time(day)),
+    assertion(world_time(night)).
+
 :- end_tests(world_time).
 
 %% ── is_daytime / is_nighttime ─────────────────────────────────────────────────
@@ -115,5 +129,30 @@ test(explicit_moon, [setup(setup_moon_full), cleanup(clear_facts)]) :-
 
 test(default_moon_crescent, [cleanup(clear_facts)]) :-
     world_moon(M), assertion(M == crescent).
+
+%% A bound check must agree with the unbound query: the default is the answer
+%% only when nothing is set.
+test(bound_default_weather_false_when_set, [setup(setup_weather_storm), cleanup(clear_facts)]) :-
+    assertion(\+ world_weather(clear)),
+    assertion(world_weather(storm)).
+
+test(bound_default_season_false_when_set, [setup(setup_season_winter), cleanup(clear_facts)]) :-
+    assertion(\+ world_season(summer)),
+    assertion(world_season(winter)).
+
+test(bound_default_moon_false_when_set, [setup(setup_moon_full), cleanup(clear_facts)]) :-
+    assertion(\+ world_moon(crescent)),
+    assertion(world_moon(full)).
+
+test(bound_defaults_hold_when_unset, [cleanup(clear_facts)]) :-
+    assertion(world_weather(clear)),
+    assertion(world_season(summer)),
+    assertion(world_moon(crescent)),
+    assertion(world_time(day)),
+    assertion(\+ world_weather(rain)).
+
+test(unbound_one_answer, [setup(setup_weather_storm), cleanup(clear_facts)]) :-
+    findall(W, world_weather(W), Ws),
+    assertion(Ws == [storm]).
 
 :- end_tests(world_conditions).

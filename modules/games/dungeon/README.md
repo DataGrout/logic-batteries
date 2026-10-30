@@ -111,6 +111,12 @@ free; ordinary doors need two facts.
 lock; a room can be accessible and still unreachable from where the player is.
 `dungeon_path` is what combines the two.
 
+**Listing rooms.** `room_accessible(alice, Room)` ranges over every room the
+facts name (either end of `connects_to`, a `has_room` object, or a room with
+`requires_key`) and returns the unlocked ones and the locked ones she holds the
+key for. An unlocked room is open to anyone, so `room_accessible(P, hall)`
+succeeds with `P` unbound.
+
 ## What this battery does not do
 
 - No shortest path, no path cost.

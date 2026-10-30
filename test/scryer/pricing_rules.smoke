@@ -1,0 +1,17 @@
+# pricing_rules battery on scryer-prolog: price_tier lists every tiered
+# customer when Customer is unbound, and a bound Tier is the computed one.
+modules/business/pricing_rules/pricing_rules.pl
+---
+attribute(widget, base_price, 100).
+attribute(cust_m, pricing_tier, member).
+attribute(cust_v, pricing_tier, vip).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(tiers, (findall(C-T, price_tier(widget, C, T), P0), sort(P0, P),
+        P == [cust_m-member, cust_v-vip])),
+    check(vip_only, (findall(C, price_tier(widget, C, vip), V), V == [cust_v])),
+    check(bound_tier, \+ price_tier(widget, cust_v, standard)),
+    check(default, price_tier(widget, nobody, standard)),
+    check(prices, (findall(C-Pr, effective_price(widget, C, Pr), E0), sort(E0, E),
+        E == [cust_m-90, cust_v-80])),
+    write(smoke_ok), nl.

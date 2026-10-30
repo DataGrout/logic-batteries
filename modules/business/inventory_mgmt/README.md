@@ -29,12 +29,12 @@ client.perform("data-grout@1/batteries.install_many@1", {
 
 | Name | On | Value | Description |
 |---|---|---|---|
-| `stock` | item | integer | Units on hand. `≤ 0` is `stockout` |
+| `stock` | item | number | Units on hand; decimals are fine. `≤ 0` is `stockout` |
 | `reorder_threshold` | item | integer | At or below this the item is `low` and `needs_reorder` |
 | `critical_threshold` | item | integer | At or below this the item is `critical`. Default: half of `reorder_threshold`, or 5 when there is neither |
 | `reorder_quantity` | item | integer | Recommended order size. When absent, `max_stock − stock`; when that is absent too, 50 |
 | `max_stock` | item | integer | Shelf capacity; only used to derive a reorder quantity |
-| `daily_usage` | item | integer | Units consumed per day, for `days_of_stock` (`stock // daily_usage`). Absent or zero gives `unknown` |
+| `daily_usage` | item | number | Units consumed per day, for `days_of_stock`: `floor(stock / daily_usage)`, never below 0, so always a whole number of days. Absent or zero gives `unknown` |
 | `preferred` | supplier | `true` | Marks the supplier `preferred_supplier` returns first; otherwise any `supplied_by` supplier is returned |
 
 **Relations**
@@ -50,11 +50,17 @@ client.perform("data-grout@1/batteries.install_many@1", {
 | Level | Condition |
 |---|---|
 | `stockout` | Stock ≤ 0 |
-| `critical` | Stock ≤ critical threshold (default: half of reorder threshold) |
+| `critical` | Stock ≤ critical threshold (default: half of reorder threshold, `reorder_threshold / 2`) |
 | `low` | Stock ≤ reorder threshold |
 | `adequate` | Everything else |
 
 `needs_reorder` succeeds for `stockout`, `critical`, and `low`.
+
+The first matching row wins, and the level is computed before it is compared:
+`stock_level(Item, low)` is false for a critical item. With `Item` unbound,
+`stock_level`, `needs_reorder`, `reorder_quantity` and `days_of_stock` range
+over every item that has a `stock` fact, and `preferred_supplier` over every
+item with a `supplied_by` relation; each gives one answer per item.
 
 ## Setup
 
@@ -80,7 +86,7 @@ client.perform("data-grout@1/batteries.install_many@1", {
 { type="relation", subject="coffee_beans", relation="supplied_by",   object="generic_supplier" }
 ```
 
-`preferred_supplier` returns the supplier marked `preferred=true` first; falls back to any `supplied_by` relation.
+`preferred_supplier` returns one supplier: the one marked `preferred=true`, else the first `supplied_by` relation. A bound `Supplier` asks whether it is that one.
 
 ### Reorder quantity fallback
 
@@ -99,7 +105,7 @@ needs_reorder(Item)
 reorder_quantity(coffee_beans, Qty)
 preferred_supplier(coffee_beans, Supplier)
 
-# How many days before stockout?
+# How many days before stockout? (80 / 15 rounds down to 5)
 days_of_stock(coffee_beans, Days)
 ```
 

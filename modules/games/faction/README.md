@@ -125,6 +125,9 @@ faction; if allied standing should carry over, compute it yourself from
 containing `_` can collide with another player-faction pair. Keep ids free of
 `_`.
 
+**Either side may be unbound.** `faction_allied(elves, F)` lists every ally,
+whichever side asserted the relation, each once; `faction_at_war` likewise.
+
 ## What this battery does not do
 
 - No reputation changes — assert the new `score`.

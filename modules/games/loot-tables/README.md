@@ -22,9 +22,9 @@ From Tether: `dg:batteries().install("loot-tables", "my-game", cb)`.
 | `drops_at(Source, Item, Conditions)` | The item's `loot_conditions` list, for items that have one |
 | `eligible_loot(Source, Item)` | Drops, and every condition holds against `world` right now — player conditions cannot hold here |
 | `eligible_loot(Source, Item, Player)` | The same with a player as context, so `player_level_gte` and `player_has` are evaluated against that player. World conditions still read `world` |
-| `rarity_tier(Item, Tier)` | The item's `rarity`; `common` when unset |
+| `rarity_tier(Item, Tier)` | The item's `rarity`; `common` when unset. Unbound, lists every item with a rarity or a `can_drop` entry |
 | `condition_met(Condition, Context)` | One condition term, evaluated against a context entity |
-| `loot_chance(Source, Item, Pct)` | `drop_chance` if set, else the tier's default |
+| `loot_chance(Source, Item, Pct)` | `drop_chance` if set, else the tier's default. A bound Source must `can_drop` the item; Item unbound lists the source's table |
 
 ## Facts this battery reads
 
@@ -136,8 +136,12 @@ the value has to reach the cell as `[time(night), weather(rain)]`, not as text.
 How that is encoded depends on your client — confirm one conditional drop
 works before relying on it.
 
-**Chance is per item, not per source.** `loot_chance` ignores its `Source`
-argument; the same item drops at the same odds everywhere.
+**Chance is per item, not per source.** The same item drops at the same odds
+everywhere. `Source` decides which items are asked about: bound, the item must
+be in that source's `can_drop` table, and `loot_chance(cave_chest, I, C)` lists
+the whole table with odds. Leave `Source` unbound with a bound item to ask for
+the item's odds alone (it stays unbound); leave both unbound to list every
+source-item pair.
 
 ## What this battery does not do
 

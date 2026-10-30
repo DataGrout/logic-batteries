@@ -86,6 +86,32 @@ setup_turn_in_not_done :-
     assertz(attribute(obj1, quest, slay_dragon)),
     assertz(attribute(obj1, order, 1)).
 
+%% A board with several quests and two players, for the lister modes.
+%% find_sword is only ever named as a prerequisite (no quest_exists fact).
+setup_quest_board :-
+    setup_quest(slay_dragon),
+    setup_quest(gather_herbs),
+    setup_quest(vault_quest),
+    setup_quest(hard_quest),
+    assertz(attribute(slay_dragon, requires_quest, find_sword)),
+    assertz(attribute(vault_quest, requires_item, golden_key)),
+    assertz(attribute(hard_quest, requires_level, 20)),
+    assertz(attribute(alice, level, 5)),
+    set_complete(alice, find_sword),
+    set_in_progress(alice, gather_herbs),
+    set_in_progress(bob, slay_dragon),
+    assertz(attribute(herbs_obj1, quest, gather_herbs)),
+    assertz(attribute(herbs_obj1, order, 1)),
+    quest_state_key(alice, herbs_obj1, Key),
+    assertz(attribute(Key, complete, true)).
+
+%% Two quest prerequisites, only the first met.
+setup_two_quest_prereqs :-
+    setup_quest(epic),
+    assertz(attribute(epic, requires_quest, find_sword)),
+    assertz(attribute(epic, requires_quest, find_shield)),
+    set_complete(alice, find_sword).
+
 %% ── quest_state_key ───────────────────────────────────────────────────────────
 
 :- begin_tests(quest_state_key).
@@ -240,3 +266,118 @@ test(cannot_turn_in_not_in_progress, [
     assertion(\+ can_turn_in(alice, slay_dragon)).
 
 :- end_tests(quest_turn_in).
+
+%% ── Listing (unbound arguments) ──────────────────────────────────────────────
+
+:- begin_tests(quest_listing).
+
+test(available_no_prereqs_once, [setup(setup_quest(easy_quest)), cleanup(clear_facts)]) :-
+    findall(Q, quest_available(alice, Q), Qs),
+    assertion(Qs == [easy_quest]),
+    findall(x, quest_available(alice, easy_quest), Xs),
+    assertion(Xs == [x]).
+
+test(available_lists_each_once, [setup(setup_quest_board), cleanup(clear_facts)]) :-
+    findall(Q, quest_available(alice, Q), A),
+    assertion(A == [slay_dragon]),
+    findall(Q, quest_available(bob, Q), B),
+    assertion(B == [gather_herbs]).
+
+test(prerequisites_all_of, [setup(setup_two_quest_prereqs), cleanup(clear_facts)]) :-
+    assertion(\+ quest_available(alice, epic)),
+    findall(R, quest_blocked_by(alice, epic, R), Rs),
+    assertion(Rs == [requires_quest(find_shield)]).
+
+test(complete_lists_quests, [setup(setup_quest_board), cleanup(clear_facts)]) :-
+    findall(Q, quest_complete(alice, Q), Qs),
+    assertion(Qs == [find_sword]).
+
+test(in_progress_lists_quests, [setup(setup_quest_board), cleanup(clear_facts)]) :-
+    findall(Q, quest_in_progress(alice, Q), A),
+    assertion(A == [gather_herbs]),
+    findall(Q, quest_in_progress(bob, Q), B),
+    assertion(B == [slay_dragon]).
+
+test(in_progress_lists_players, [setup(setup_quest_board), cleanup(clear_facts)]) :-
+    findall(P, quest_in_progress(P, slay_dragon), Ps),
+    assertion(Ps == [bob]),
+    findall(P, quest_complete(P, find_sword), Cs),
+    assertion(Cs == [alice]).
+
+test(in_progress_lists_pairs, [setup(setup_quest_board), cleanup(clear_facts)]) :-
+    findall(P-Q, quest_in_progress(P, Q), Pairs),
+    msort(Pairs, Sorted),
+    assertion(Sorted == [alice-gather_herbs, bob-slay_dragon]).
+
+test(blocked_by_lists_quests, [setup(setup_quest_board), cleanup(clear_facts)]) :-
+    findall(Q-R, quest_blocked_by(alice, Q, R), Found),
+    msort(Found, Sorted),
+    assertion(Sorted == [find_sword-'already complete',
+                         hard_quest-requires_level(20),
+                         vault_quest-requires_item(golden_key)]).
+
+test(can_turn_in_lists_quests, [setup(setup_quest_board), cleanup(clear_facts)]) :-
+    findall(Q, can_turn_in(alice, Q), A),
+    assertion(A == [gather_herbs]),
+    findall(Q, can_turn_in(bob, Q), B),
+    assertion(B == [slay_dragon]).
+
+test(nothing_listed_without_state, [cleanup(clear_facts)]) :-
+    findall(Q, quest_complete(alice, Q), Qs),
+    assertion(Qs == []),
+    findall(Q, can_turn_in(alice, Q), Ts),
+    assertion(Ts == []).
+
+:- end_tests(quest_listing).
+
+%% ── Unbound Player: next_objective and objective_complete ────────────────────
+
+%% alice is on obj2 of slay_dragon, bob on obj1, carol has finished obj1 of
+%% gather_herbs without a status fact, dave has finished slay_dragon outright.
+%% Objective ids are not suffixes of one another (see the README's `_` note).
+setup_objective_board :-
+    setup_quest_with_objectives,
+    set_in_progress(bob, slay_dragon),
+    set_complete(dave, slay_dragon),
+    quest_state_key(alice, obj1, KA),
+    assertz(attribute(KA, complete, true)),
+    quest_state_key(dave, obj1, KD1),
+    assertz(attribute(KD1, complete, true)),
+    quest_state_key(dave, obj2, KD2),
+    assertz(attribute(KD2, complete, true)),
+    assertz(attribute(herb1, quest, gather_herbs)),
+    assertz(attribute(herb1, order, 1)),
+    assertz(attribute(herb2, quest, gather_herbs)),
+    assertz(attribute(herb2, order, 2)),
+    quest_state_key(carol, herb1, KC),
+    assertz(attribute(KC, complete, true)).
+
+:- begin_tests(quest_unbound_player).
+
+test(objective_complete_lists_players, [setup(setup_objective_board), cleanup(clear_facts)]) :-
+    findall(P, objective_complete(P, obj1), Ps0),
+    msort(Ps0, Ps),
+    assertion(Ps == [alice, dave]).
+
+test(objective_complete_lists_pairs, [setup(setup_objective_board), cleanup(clear_facts)]) :-
+    findall(P-O, objective_complete(P, O), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [alice-obj1, carol-herb1, dave-obj1, dave-obj2]).
+
+test(next_objective_lists_players, [setup(setup_objective_board), cleanup(clear_facts)]) :-
+    findall(P-O, next_objective(P, slay_dragon, O), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(Pairs == [alice-obj2, bob-obj1]).
+
+test(next_objective_lists_every_triple, [setup(setup_objective_board), cleanup(clear_facts)]) :-
+    findall(P-Q-O, next_objective(P, Q, O), Triples0),
+    msort(Triples0, Triples),
+    assertion(Triples == [alice-slay_dragon-obj2, bob-slay_dragon-obj1,
+                          carol-gather_herbs-herb2]).
+
+test(next_objective_bound_unchanged, [setup(setup_objective_board), cleanup(clear_facts)]) :-
+    %% a bound player with no facts still starts at the first objective
+    findall(O, next_objective(erin, slay_dragon, O), Os),
+    assertion(Os == [obj1]).
+
+:- end_tests(quest_unbound_player).

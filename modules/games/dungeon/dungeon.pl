@@ -32,12 +32,29 @@ battery_export(dungeon, 'dungeon_complete/2','dungeon_complete(Player, Dungeon) 
 room_connected(Room1, Room2) :-
     relation(Room1, connects_to, Room2).
 
-%% room_accessible(+Player, +Room)
-room_accessible(_, Room) :-
-    \+ attribute(Room, requires_key, _), !.
+%% room_accessible(?Player, ?Room)
+%% Unbound Room ranges over every room the facts name (either end of
+%% `connects_to`, the object of `has_room`, or a `requires_key` holder), locked
+%% and unlocked alike. An unlocked room is open to anyone and leaves an unbound
+%% Player unbound; a locked one binds Player to each holder of the key.
 room_accessible(Player, Room) :-
+    ( var(Room) -> dungeon_room(Room) ; true ),
+    room_accessible_(Player, Room).
+
+room_accessible_(_, Room) :-
+    \+ attribute(Room, requires_key, _), !.
+room_accessible_(Player, Room) :-
     attribute(Room, requires_key, Key),
     relation(Player, has_item, Key).
+
+dungeon_room(Room) :-
+    setof(R, dungeon_room_named(R), Rooms),
+    member(Room, Rooms).
+
+dungeon_room_named(R) :- relation(R, connects_to, _).
+dungeon_room_named(R) :- relation(_, connects_to, R).
+dungeon_room_named(R) :- relation(_, has_room, R).
+dungeon_room_named(R) :- attribute(R, requires_key, _).
 
 %% dungeon_path(+Player, +From, -Path)
 %% Path is the sequence of accessible rooms reachable from From (DFS).

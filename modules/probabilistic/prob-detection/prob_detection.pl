@@ -70,11 +70,35 @@ battery_export('prob-detection', 'environmental_detection_factor/2',
 %% Returns a numeric probability without ProbLog inference.
 %% Combines perception, alert state, and environmental factors.
 
+%% detection_probability(?Guard, ?Player, -P)
+%% Unbound, Guard ranges over entities with perception or alert_state and
+%% Player over entities with stealth_bonus or a held item (never the guard
+%% itself), so the if-then-else below decides per pair instead of committing
+%% to the first guard or player it meets.
 detection_probability(Guard, Player, P) :-
+    (   var(Guard)
+    ->  detection_guard(Guard)
+    ;   true
+    ),
+    (   var(Player)
+    ->  detection_player(Player),
+        Player \== Guard
+    ;   true
+    ),
     base_detection_probability(Guard, Player, Base),
     environmental_detection_factor(Guard, EnvFactor),
     stealth_factor(Player, StealthFactor),
     P is min(0.99, max(0.01, Base * EnvFactor * StealthFactor)).
+
+detection_guard(Guard) :-
+    setof(G, V^( attribute(G, perception, V)
+               ; attribute(G, alert_state, V) ), Guards),
+    member(Guard, Guards).
+
+detection_player(Player) :-
+    setof(Pl, V^( attribute(Pl, stealth_bonus, V)
+                ; relation(Pl, has_item, V) ), Players),
+    member(Player, Players).
 
 %% One model. The base is the same tier table the annotated detected/2 clauses
 %% carry, so a ProbLog marginal and this accessor start from the same number;

@@ -1,0 +1,46 @@
+# quests battery on scryer-prolog: a quest with no prerequisites is available
+# once, prerequisites are all-of, and the status predicates list quests and
+# players (read back off the <player>_<quest> keys) instead of throwing;
+# next_objective and objective_complete take an unbound player.
+modules/games/quests/quests.pl
+---
+relation(world, quest_exists, slay_dragon).
+relation(world, quest_exists, gather_herbs).
+relation(world, quest_exists, vault_quest).
+relation(world, quest_exists, epic).
+attribute(slay_dragon, requires_quest, find_sword).
+attribute(vault_quest, requires_item, golden_key).
+attribute(epic, requires_quest, find_sword).
+attribute(epic, requires_quest, find_shield).
+attribute(alice_find_sword, status, complete).
+attribute(alice_gather_herbs, status, in_progress).
+attribute(bob_slay_dragon, status, in_progress).
+attribute(herbs_obj1, quest, gather_herbs).
+attribute(herbs_obj1, order, 1).
+attribute(alice_herbs_obj1, complete, true).
+attribute(dragon_a, quest, slay_dragon).
+attribute(dragon_a, order, 1).
+attribute(dragon_b, quest, slay_dragon).
+attribute(dragon_b, order, 2).
+attribute(bob_dragon_a, complete, true).
+attribute(carol_dragon_a, complete, true).
+attribute(carol_dragon_b, complete, true).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(available_once, (findall(Q1, quest_available(bob, Q1), B), B == [gather_herbs])),
+    check(available_alice, (findall(Q2, quest_available(alice, Q2), A), A == [slay_dragon])),
+    check(all_of, findall(R1, quest_blocked_by(alice, epic, R1), [requires_quest(find_shield)])),
+    check(complete_lists, findall(Q3, quest_complete(alice, Q3), [find_sword])),
+    check(in_progress_players, findall(P1, quest_in_progress(P1, slay_dragon), [bob])),
+    check(in_progress_pairs, (findall(P2-Q4, quest_in_progress(P2, Q4), Ps), sort(Ps, [alice-gather_herbs, bob-slay_dragon]))),
+    check(blocked_lists, (findall(Q5-R2, quest_blocked_by(alice, Q5, R2), Bs), sort(Bs, [epic-requires_quest(find_shield), find_sword-'already complete', vault_quest-requires_item(golden_key)]))),
+    check(turn_in_lists, findall(Q6, can_turn_in(alice, Q6), [gather_herbs])),
+    check(obj_players, (findall(P3, objective_complete(P3, dragon_a), O1), sort(O1, [bob, carol]))),
+    check(obj_pairs, (findall(P4-O, objective_complete(P4, O), O2), sort(O2,
+        [alice-herbs_obj1, bob-dragon_a, carol-dragon_a, carol-dragon_b]))),
+    check(next_players, (findall(P5-N, next_objective(P5, slay_dragon, N), N1), sort(N1,
+        [bob-dragon_b]))),
+    check(next_triples, (findall(P6-Q7-N2, next_objective(P6, Q7, N2), N3), sort(N3,
+        [bob-slay_dragon-dragon_b]))),
+    check(next_bound, findall(N4, next_objective(erin, slay_dragon, N4), [dragon_a])),
+    write(smoke_ok), nl, halt.

@@ -129,3 +129,19 @@ test(empty_keeps_accumulator) :-
     assertion(Best == none).
 
 :- end_tests(prob_decide_best_pair).
+
+%% ── eu/2 with Action unbound: one EU per declared action ─────────────────────
+
+:- begin_tests(prob_decide_eu_listing).
+
+test(eu_lists_each_action, [setup(setup_portfolio), cleanup(cleanup_model)]) :-
+    findall(A-EU, eu(A, EU), Pairs), msort(Pairs, Sorted),
+    Sorted = [hold-EH, sell_now-ES],
+    assertion(abs(EH - 10.0) < 1.0e-9),
+    assertion(abs(ES - 17.0) < 1.0e-9).
+
+test(eu_lists_nothing_without_actions, [cleanup(cleanup_model)]) :-
+    findall(A-EU, eu(A, EU), Pairs),
+    assertion(Pairs == []).
+
+:- end_tests(prob_decide_eu_listing).
