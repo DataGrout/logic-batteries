@@ -24,6 +24,13 @@ setup_current_invoice :-
     assertz(attribute(inv_002, due_month, 4)),
     assertz(attribute(inv_002, due_day,   30)).
 
+setup_paid_second_invoice :-
+    assertz(attribute(inv_003, amount,    200)),
+    assertz(attribute(inv_003, due_year,  2026)),
+    assertz(attribute(inv_003, due_month, 1)),
+    assertz(attribute(inv_003, due_day,   5)),
+    assertz(attribute(inv_003, paid,      true)).
+
 setup_paid_invoice :-
     setup_overdue_invoice,
     retractall(attribute(inv_001, paid, false)),
@@ -60,6 +67,10 @@ test(current_not_overdue, [setup((setup_today_april_25, setup_current_invoice)),
 
 test(paid_not_overdue, [setup((setup_today_april_25, setup_paid_invoice)), cleanup(clear_facts)]) :-
     assertion(\+ invoice_overdue(inv_001)).
+
+test(lists_overdue_past_a_paid_invoice, [setup((setup_today_april_25, setup_overdue_invoice, setup_paid_second_invoice)), cleanup(clear_facts)]) :-
+    findall(I, invoice_overdue(I), Overdue),
+    Overdue == [inv_001].
 
 :- end_tests(invoice_overdue).
 

@@ -61,12 +61,20 @@ due_days(Invoice, Days) :-
     attribute(Invoice, due_day,   D),
     date_to_days(Y, Mo, D, Days).
 
-%% invoice_overdue(+Invoice)
+%% invoice_overdue(?Invoice)
+%% Unbound, it enumerates every invoice with a due date, so one paid invoice
+%% does not hide the rest (\+ over an unbound Invoice would).
 invoice_overdue(Invoice) :-
+    ( var(Invoice) -> invoice_with_due_date(Invoice) ; true ),
     \+ attribute(Invoice, paid, true),
     today_days(Today),
     due_days(Invoice, Due),
     Today > Due.
+
+invoice_with_due_date(Invoice) :-
+    setof(I, D^( attribute(I, due_absolute_days, D)
+               ; attribute(I, due_year, D) ), Invoices),
+    member(Invoice, Invoices).
 
 %% days_overdue(+Invoice, -Days)
 days_overdue(Invoice, Days) :-
