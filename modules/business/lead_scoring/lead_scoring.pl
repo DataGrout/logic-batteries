@@ -14,23 +14,25 @@ battery_export(lead_scoring, 'scoring_factor/3', 'scoring_factor(Lead, Factor, P
 %%
 %% What the rules read (see CONTRIBUTING, "Input contract"). The rules never
 %% enumerate leads; a lead is whatever the caller asks about, and every lead
-%% record carries a size or an engagement level. Weights and thresholds all
-%% live on the fixed subject `scoring` and all have defaults.
+%% record carries a size or an engagement level. A lead is a prospective buyer:
+%% the company and the contact who speaks for it, so a fact about the contact
+%% is a fact about the lead. Weights and thresholds all live on the fixed
+%% subject `scoring` and all have defaults.
 
 battery_input(lead_scoring, lead, attribute(company_size), enum([enterprise, mid_market, smb]), key,
-    'Company size: enterprise or mid_market score points; any other size (smb) scores nothing.').
+    'Company size: smb under 100 employees, mid_market 100 to 999, enterprise 1,000 or more. enterprise or mid_market score points; smb scores nothing.').
 battery_input(lead_scoring, lead, attribute(engagement), enum([high, medium, low]), key,
     'Engagement level: high or medium score points; low or absent scores nothing.').
 battery_input(lead_scoring, lead, attribute(budget_confirmed), bool, optional,
     'true scores budget_points; false disqualifies the lead (no_budget); absent does neither.').
 battery_input(lead_scoring, lead, attribute(decision_maker), bool, default(false),
-    'true when the contact can sign; scores decision_maker_points.').
+    'true when the contact makes, approves or signs off on the buying decision; scores decision_maker_points.').
 battery_input(lead_scoring, lead, attribute(timeline), enum([q1, q2, q3, q4, later, unknown]), optional,
     'Quarter the lead expects to buy in: q1 or q2 score points; later or unknown scores nothing.').
 battery_input(lead_scoring, lead, attribute(competitor), bool, default(false),
-    'true when the lead works for a competitor; disqualifies it.').
+    'true when the lead works for or sells for a competitor; disqualifies it.').
 battery_input(lead_scoring, lead, attribute(student), bool, default(false),
-    'true when the lead is a student; disqualifies it.').
+    'true when the contact is a student or the purchase is a student project; disqualifies it.').
 battery_input(lead_scoring, fixed(scoring), attribute(enterprise_points), number, default(30),
     'Points for an enterprise company.').
 battery_input(lead_scoring, fixed(scoring), attribute(mid_market_points), number, default(15),
