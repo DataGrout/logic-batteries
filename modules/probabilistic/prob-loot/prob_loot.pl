@@ -13,6 +13,15 @@ battery_export('prob-loot', 'drop_probability/3',
 battery_export('prob-loot', 'expected_drops/4',
     'expected_drops(Source, Item, N, Expected) — Expected number of Item drops from N kills of Source').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Sources, drops,
+%% rarity and chances come from `loot-tables`, which reads its own facts; this
+%% battery reads only the item's drop_chance, for guaranteed_drop/2.
+
+battery_input('prob-loot', item, attribute(drop_chance), number, key,
+    'Drop chance in percent; at 100 or more the item always drops from its sources.').
+
 %% ── Probabilistic drop rules ───────────────────────────────────────────────
 %% Install loot-tables in the same namespace first.
 %% Rarity tiers map to default drop probabilities. ProbLog interprets each

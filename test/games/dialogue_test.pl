@@ -120,3 +120,17 @@ test(does_not_remember_undiscussed, [setup(setup_memory), cleanup(clear_facts)])
     assertion(\+ npc_remembers(merchant_alice, player1, sell_items)).
 
 :- end_tests(dialogue_memory).
+
+%% ── npc_says/4 with the line bound ───────────────────────────────────────────
+
+:- begin_tests(dialogue_npc_says_bound).
+
+test(bound_base_line_is_not_what_a_friendly_npc_says, [setup(setup_merchant_friendly_line), cleanup(clear_facts)]) :-
+    %% merchant_alice says the friendly line, so checking the base line fails
+    assertion(\+ npc_says(merchant_alice, player1, buy_items, "What would you like?")),
+    assertion(npc_says(merchant_alice, player1, buy_items, "Great to see you!")).
+
+test(bound_empty_line_only_when_there_is_no_line, [setup(setup_merchant_buy_topic), cleanup(clear_facts)]) :-
+    assertion(\+ npc_says(merchant_alice, player1, buy_items, "")).
+
+:- end_tests(dialogue_npc_says_bound).

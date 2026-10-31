@@ -51,6 +51,10 @@ setup_hard_quest_high_requirement :-
     assertz(attribute(hard_quest, requires_level, 20)),
     assertz(attribute(alice, level, 5)).
 
+setup_hard_quest_no_player_level :-
+    setup_quest(hard_quest),
+    assertz(attribute(hard_quest, requires_level, 10)).
+
 setup_vault_quest_with_key :-
     setup_quest(vault_quest),
     assertz(attribute(vault_quest, requires_item, golden_key)),
@@ -214,6 +218,15 @@ test(blocked_requires_level, [
         cleanup(clear_facts)]) :-
     quest_blocked_by(alice, hard_quest, Reason),
     assertion(Reason == requires_level(20)).
+
+%% A player with no level fails the level gate in quest_available, so the
+%% gate is also the reason it gives (it used to give none).
+test(blocked_requires_level_when_player_has_no_level, [
+        setup(setup_hard_quest_no_player_level),
+        cleanup(clear_facts)]) :-
+    assertion(\+ quest_available(alice, hard_quest)),
+    findall(R, quest_blocked_by(alice, hard_quest, R), Rs),
+    assertion(Rs == [requires_level(10)]).
 
 test(blocked_requires_item, [
         setup(setup_vault_quest_no_key),

@@ -11,6 +11,19 @@ battery_export(world, 'world_moon/1',    'world_moon(Phase) — current moon pha
 battery_export(world, 'is_daytime/0',    'is_daytime — succeeds during dawn and day periods').
 battery_export(world, 'is_nighttime/0',  'is_nighttime — succeeds during dusk and night periods').
 
+%% Input contract (CONTRIBUTING, "Input contract"). Everything sits on the
+%% fixed subject `world`, and every value has a fallback.
+battery_input(world, fixed(world), attribute(time_of_day), enum([dawn, day, dusk, night]), optional,
+    'Current time period; absent, it comes from hour, and with neither it is day.').
+battery_input(world, fixed(world), attribute(hour), integer, optional,
+    'Hour of the day, 0-23, read only when time_of_day is absent.').
+battery_input(world, fixed(world), attribute(weather), atom, default(clear),
+    'Current weather, such as clear, rain, storm, fog or snow.').
+battery_input(world, fixed(world), attribute(season), atom, default(summer),
+    'Current season, such as spring, summer, autumn or winter.').
+battery_input(world, fixed(world), attribute(moon_phase), atom, default(crescent),
+    'Current moon phase, such as new, crescent, quarter, gibbous or full.').
+
 %% ── World State ──────────────────────────────────────────────────────────────
 %%
 %% Assert the current world state as attribute facts on the atom `world`:

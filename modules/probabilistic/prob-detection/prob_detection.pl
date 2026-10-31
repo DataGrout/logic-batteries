@@ -14,6 +14,32 @@ battery_export('prob-detection', 'stealth_success/2',
 battery_export('prob-detection', 'environmental_detection_factor/2',
     'environmental_detection_factor(Condition, Factor) — Factor (0.0–1.0) multiplied into detection probability').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). The guard is an
+%% npc; with Guard or Player unbound, detection_probability/3 lists npcs by
+%% perception or alert_state and players by stealth_bonus or a held item, which
+%% is why those are the keys. World conditions sit on the fixed subject `world`.
+
+battery_input('prob-detection', npc, attribute(perception), number, key,
+    'Guard perception on a 1-10 scale: above 8 is the high tier, above 5 medium, else low; without it the base is 0.5 active, 0.3 passive.').
+battery_input('prob-detection', npc, attribute(alert_state), enum([active, passive]), key,
+    'active when the guard is alerted; passive, any other value or none counts as unalerted.').
+battery_input('prob-detection', npc, attribute(faction), atom, optional,
+    'The guard''s faction, matched against a held item''s disguise_faction.').
+battery_input('prob-detection', player, attribute(stealth_bonus), number, key,
+    'Stealth on a 0-10 scale, cutting detection by 0.07 a point down to a 0.1 factor; none counts as 0.').
+battery_input('prob-detection', player, relation(has_item), ref(item), key,
+    'An item the player holds, read for the disguise rule.').
+battery_input('prob-detection', item, attribute(disguise_faction), atom, key,
+    'The faction the item passes its holder off as; a match drops an unalerted guard''s base to 0.10.').
+battery_input('prob-detection', fixed(world), attribute(light_level), enum([dark, dim, bright]), optional,
+    'dark multiplies detection by 0.5 and dim by 0.75; bright or none leaves it.').
+battery_input('prob-detection', fixed(world), attribute(weather), atom, optional,
+    'rain multiplies detection by 0.8 and fog by 0.85; other weather leaves it.').
+battery_input('prob-detection', fixed(world), attribute(noise_level), enum([silent, ambient, loud]), optional,
+    'loud multiplies detection by 1.3; silent, ambient or none leaves it.').
+
 %% ── Detection probability by perception tier and alert state ─────────────────
 %% Requires combat battery (uses can_attack/2 to establish line-of-sight/range).
 %%

@@ -12,6 +12,28 @@ battery_export('loot-tables', 'rarity_tier/2',     'rarity_tier(Item, Tier) — 
 battery_export('loot-tables', 'condition_met/2',   'condition_met(Condition, Context) — Condition is satisfied in Context').
 battery_export('loot-tables', 'loot_chance/3',     'loot_chance(Source, Item, Pct) — Pct is drop chance 0-100').
 
+%% Input contract (CONTRIBUTING, "Input contract"). Player conditions are read
+%% off the context subject eligible_loot/3 is given; eligible_loot/2 uses
+%% `world` as the context, so they never hold there.
+battery_input('loot-tables', source, relation(can_drop), ref(item), key,
+    'One edge per item in the source''s drop table.').
+battery_input('loot-tables', item, attribute(rarity), enum([common, uncommon, rare, epic, legendary]), key,
+    'Rarity tier; it sets the drop chance when drop_chance is absent, and an item without one is common.').
+battery_input('loot-tables', item, attribute(drop_chance), number, optional,
+    'Drop chance in percent (0-100); overrides the rarity tier''s chance.').
+battery_input('loot-tables', item, attribute(loot_conditions), list, optional,
+    'Conditions that must all hold for a drop, from time(T), weather(W), moon(M), player_level_gte(L), player_has(I) and always; absent, it always drops.').
+battery_input('loot-tables', fixed(world), attribute(time_of_day), atom, optional,
+    'Current time period, for time(T) conditions; absent, none holds.').
+battery_input('loot-tables', fixed(world), attribute(weather), atom, optional,
+    'Current weather, for weather(W) conditions; absent, none holds.').
+battery_input('loot-tables', fixed(world), attribute(moon_phase), atom, optional,
+    'Current moon phase, for moon(M) conditions; absent, none holds.').
+battery_input('loot-tables', player, attribute(level), integer, key,
+    'The context player''s level, for player_level_gte(L) conditions; absent, none holds.').
+battery_input('loot-tables', player, relation(has_item), atom, key,
+    'An item the context player holds, for player_has(I) conditions.').
+
 %% ── Rarity tiers ─────────────────────────────────────────────────────────────
 %% Set by asserting: { type:"attribute", entity:"rare_gem", attribute:"rarity", value:"rare" }
 
@@ -94,7 +116,8 @@ eligible_loot(Source, Item, Context) :-
 %% A bound Source must have Item in its drop table (Item unbound lists that
 %% table); with both unbound it lists every can_drop pair. With only Item
 %% bound it is the item's odds and Source stays unbound: the chance itself is
-%% per item, the same from every source.
+%% per item, the same from every source. Chance is computed before it is
+%% compared: bound, it could otherwise skip drop_chance and match the tier's.
 loot_chance(Source, Item, Chance) :-
     (   nonvar(Source)
     ->  drops(Source, Item)
@@ -103,7 +126,8 @@ loot_chance(Source, Item, Chance) :-
         member(Source-Item, Pairs)
     ;   true
     ),
-    item_chance(Item, Chance).
+    item_chance(Item, Chance0),
+    Chance = Chance0.
 
 item_chance(Item, Chance) :-
     attribute(Item, drop_chance, Chance), !.

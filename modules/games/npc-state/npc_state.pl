@@ -10,6 +10,40 @@ battery_export('npc-state', 'dialogue_available/3', 'dialogue_available(NPC, Pla
 battery_export('npc-state', 'faction_member/2',     'faction_member(Entity, Faction) — Entity belongs to Faction').
 battery_export('npc-state', 'relationship_level/3', 'relationship_level(NPC, Player, Level) — Level is the numeric relationship score').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A score sits on a
+%% composite subject named `<npc>_<player>`, the same shape dialogue keeps its
+%% memory on; enumerating NPCs from scores is exact only when NPC ids contain
+%% no `_`. The two thresholds live on the fixed subject `relationship`.
+
+battery_input('npc-state', npc, attribute(always_friendly), bool, key,
+    'true makes the NPC friendly to every player whatever the score, and never hostile.').
+battery_input('npc-state', npc, attribute(always_hostile), bool, key,
+    'true makes the NPC hostile to every player whatever the score, unless it is also always_friendly.').
+battery_input('npc-state', npc, relation(has_dialogue), ref(topic), key,
+    'A topic the NPC can talk about; dialogue_available checks the topic''s gates.').
+battery_input('npc-state', npc, attribute(faction), atom, optional,
+    'The faction this NPC (or any entity) belongs to, as faction_member reports it.').
+battery_input('npc-state', npc_player, attribute(score), number, key,
+    'The relationship score between the NPC and the player, on the subject <npc>_<player>; absent reads as 0.').
+battery_input('npc-state', fixed(relationship), attribute(friendly_threshold), number, default(25),
+    'Score at or above which an NPC is friendly.').
+battery_input('npc-state', fixed(relationship), attribute(hostile_threshold), number, default(-25),
+    'Score at or below which an NPC is hostile.').
+battery_input('npc-state', topic, attribute(requires_friendly), bool, key,
+    'true opens the topic only to a player the NPC is friendly to.').
+battery_input('npc-state', topic, attribute(requires_relationship), number, key,
+    'The least relationship score that opens the topic.').
+battery_input('npc-state', topic, attribute(requires_quest), atom, key,
+    'A quest the player must have completed to open the topic.').
+battery_input('npc-state', topic, attribute(requires_item), atom, key,
+    'An item the player must have to open the topic.').
+battery_input('npc-state', player, relation(completed_quest), atom, key,
+    'A quest the player has finished, matched against a topic''s requires_quest.').
+battery_input('npc-state', player, relation(has_item), atom, key,
+    'An item the player holds, matched against a topic''s requires_item.').
+
 %% ── Relationship Levels ──────────────────────────────────────────────────────
 %%
 %% Numeric relationship score between an NPC and a player:

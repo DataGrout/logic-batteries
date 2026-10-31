@@ -38,6 +38,41 @@ battery_export('d20-spells', 'd20_spell_save/5',       'd20_spell_save(Caster, T
 battery_export('d20-spells', 'd20_concentration_dc/2',     'd20_concentration_dc(Damage, DC) — CON save DC when damaged while concentrating: max(10, Damage // 2)').
 battery_export('d20-spells', 'd20_concentration_check/4', 'd20_concentration_check(Entity, Damage, Roll, Outcome) — Outcome: holds | broken').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A creature is a
+%% caster when it knows or has prepared a spell. Its spellcasting_ability,
+%% ability scores and level are d20-core's inputs, read through d20-core's
+%% predicates for save DCs and concentration saves; the spells themselves are
+%% the built-in grimoire, not facts.
+
+battery_input('d20-spells', creature, relation(knows_spell), atom, key,
+    'A grimoire spell the creature knows; the only route for cantrips.').
+battery_input('d20-spells', creature, relation(prepared_spell), atom, key,
+    'A grimoire spell prepared today, which a preparing caster needs for a levelled spell.').
+battery_input('d20-spells', creature, attribute(prepares_spells), bool, default(false),
+    'true makes levelled spells known only while prepared, not merely known.').
+battery_input('d20-spells', creature, attribute(slots_l1), integer, optional,
+    'Level 1 spell slots in total; without it the creature has none.').
+battery_input('d20-spells', creature, attribute(slots_l2), integer, optional,
+    'Level 2 spell slots in total; without it the creature has none.').
+battery_input('d20-spells', creature, attribute(slots_l3), integer, optional,
+    'Level 3 spell slots in total; without it the creature has none.').
+battery_input('d20-spells', creature, attribute(slots_l4), integer, optional,
+    'Level 4 spell slots in total; without it the creature has none.').
+battery_input('d20-spells', creature, attribute(slots_l5), integer, optional,
+    'Level 5 spell slots in total; without it the creature has none.').
+battery_input('d20-spells', creature, attribute(slots_l1_used), integer, default(0),
+    'Level 1 spell slots already spent.').
+battery_input('d20-spells', creature, attribute(slots_l2_used), integer, default(0),
+    'Level 2 spell slots already spent.').
+battery_input('d20-spells', creature, attribute(slots_l3_used), integer, default(0),
+    'Level 3 spell slots already spent.').
+battery_input('d20-spells', creature, attribute(slots_l4_used), integer, default(0),
+    'Level 4 spell slots already spent.').
+battery_input('d20-spells', creature, attribute(slots_l5_used), integer, default(0),
+    'Level 5 spell slots already spent.').
+
 %% ── Spellcasting Data Model ──────────────────────────────────────────────────
 %%
 %% Spell slots (mutate like hp — retract and re-assert the used count):

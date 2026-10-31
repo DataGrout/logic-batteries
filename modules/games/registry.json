@@ -27,7 +27,119 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/inventory/inventory.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/inventory",
       "install": "batteries.install_many",
-      "tests_file": "test/games/inventory_test.pl"
+      "tests_file": "test/games/inventory_test.pl",
+      "inputs": [
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": {
+            "ref": "item"
+          },
+          "presence": "key",
+          "note": "An item the player carries; each counts once toward weight and slots."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "max_carry_weight",
+          "type": "number",
+          "presence": {
+            "default": 50
+          },
+          "note": "Total weight the player can carry."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "max_slots",
+          "type": "integer",
+          "presence": {
+            "default": 20
+          },
+          "note": "How many items the player can carry."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "owns_slot",
+          "type": {
+            "ref": "slot"
+          },
+          "presence": "optional",
+          "note": "An equipment slot the player has; slot_available only reports owned slots."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "equipped_in",
+          "type": {
+            "ref": "slot"
+          },
+          "presence": "optional",
+          "note": "A slot the player has equipped; item_in_slot reads what it contains."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "weight",
+          "type": "number",
+          "presence": "key",
+          "note": "Carry weight of one item; an item without one weighs 1."
+        },
+        {
+          "role": "slot",
+          "kind": "attribute",
+          "name": "slot_type",
+          "type": "atom",
+          "presence": "key",
+          "note": "The kind of slot (head, hand, ...); a slot without one is never available."
+        },
+        {
+          "role": "slot",
+          "kind": "relation",
+          "name": "contains",
+          "type": {
+            "ref": "item"
+          },
+          "presence": "optional",
+          "note": "The item in the slot; none means the slot is empty."
+        }
+      ],
+      "reads": {
+        "can_carry/2": [
+          "attribute(max_carry_weight)",
+          "attribute(max_slots)",
+          "attribute(weight)",
+          "relation(has_item)"
+        ],
+        "inventory_full/1": [
+          "attribute(max_carry_weight)",
+          "attribute(max_slots)",
+          "attribute(weight)",
+          "relation(has_item)"
+        ],
+        "carrying_weight/2": [
+          "attribute(weight)",
+          "relation(has_item)"
+        ],
+        "item_count/2": [
+          "relation(has_item)"
+        ],
+        "has_item/2": [
+          "relation(has_item)"
+        ],
+        "item_in_slot/3": [
+          "relation(contains)",
+          "relation(equipped_in)"
+        ],
+        "slot_available/2": [
+          "attribute(slot_type)",
+          "relation(contains)",
+          "relation(equipped_in)",
+          "relation(owns_slot)"
+        ]
+      }
     },
     {
       "id": "loot-tables",
@@ -55,7 +167,140 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/loot-tables/loot_tables.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/loot-tables",
       "install": "batteries.install_many",
-      "tests_file": "test/games/loot_tables_test.pl"
+      "tests_file": "test/games/loot_tables_test.pl",
+      "inputs": [
+        {
+          "role": "source",
+          "kind": "relation",
+          "name": "can_drop",
+          "type": {
+            "ref": "item"
+          },
+          "presence": "key",
+          "note": "One edge per item in the source's drop table."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "rarity",
+          "type": {
+            "enum": [
+              "common",
+              "uncommon",
+              "rare",
+              "epic",
+              "legendary"
+            ]
+          },
+          "presence": "key",
+          "note": "Rarity tier; it sets the drop chance when drop_chance is absent, and an item without one is common."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "drop_chance",
+          "type": "number",
+          "presence": "optional",
+          "note": "Drop chance in percent (0-100); overrides the rarity tier's chance."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "loot_conditions",
+          "type": "list",
+          "presence": "optional",
+          "note": "Conditions that must all hold for a drop, from time(T), weather(W), moon(M), player_level_gte(L), player_has(I) and always; absent, it always drops."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "time_of_day",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Current time period, for time(T) conditions; absent, none holds."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "weather",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Current weather, for weather(W) conditions; absent, none holds."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "moon_phase",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Current moon phase, for moon(M) conditions; absent, none holds."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "level",
+          "type": "integer",
+          "presence": "key",
+          "note": "The context player's level, for player_level_gte(L) conditions; absent, none holds."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the context player holds, for player_has(I) conditions."
+        }
+      ],
+      "reads": {
+        "drops/2": [
+          "relation(can_drop)"
+        ],
+        "drops_at/3": [
+          "attribute(loot_conditions)",
+          "relation(can_drop)"
+        ],
+        "eligible_loot/2": [
+          "attribute(level)",
+          "attribute(loot_conditions)",
+          "attribute(moon_phase)",
+          "attribute(time_of_day)",
+          "attribute(weather)",
+          "relation(can_drop)",
+          "relation(has_item)"
+        ],
+        "rarity_tier/2": [
+          "attribute(rarity)",
+          "relation(can_drop)"
+        ],
+        "condition_met/2": [
+          "attribute(level)",
+          "attribute(moon_phase)",
+          "attribute(time_of_day)",
+          "attribute(weather)",
+          "relation(has_item)"
+        ],
+        "loot_chance/3": [
+          "attribute(drop_chance)",
+          "attribute(rarity)",
+          "relation(can_drop)"
+        ],
+        "eligible_loot/3": [
+          "attribute(level)",
+          "attribute(loot_conditions)",
+          "attribute(moon_phase)",
+          "attribute(time_of_day)",
+          "attribute(weather)",
+          "relation(can_drop)",
+          "relation(has_item)"
+        ]
+      }
     },
     {
       "id": "quests",
@@ -82,7 +327,164 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/quests/quests.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/quests",
       "install": "batteries.install_many",
-      "tests_file": "test/games/quests_test.pl"
+      "tests_file": "test/games/quests_test.pl",
+      "inputs": [
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "relation",
+          "name": "quest_exists",
+          "type": {
+            "ref": "quest"
+          },
+          "presence": "key",
+          "note": "One edge per quest on offer; only these can be available."
+        },
+        {
+          "role": "quest",
+          "kind": "attribute",
+          "name": "requires_quest",
+          "type": {
+            "ref": "quest"
+          },
+          "presence": "key",
+          "note": "A quest the player must have completed first; several are all required."
+        },
+        {
+          "role": "quest",
+          "kind": "attribute",
+          "name": "requires_level",
+          "type": "integer",
+          "presence": "key",
+          "note": "Minimum player level; a player with no level never meets it."
+        },
+        {
+          "role": "quest",
+          "kind": "attribute",
+          "name": "requires_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the player must hold (has_item); several are all required."
+        },
+        {
+          "role": "objective",
+          "kind": "attribute",
+          "name": "quest",
+          "type": {
+            "ref": "quest"
+          },
+          "presence": "key",
+          "note": "The quest this objective belongs to."
+        },
+        {
+          "role": "objective",
+          "kind": "attribute",
+          "name": "order",
+          "type": "integer",
+          "presence": "required",
+          "note": "Position within the quest; lower comes first, and an objective without one is ignored."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "level",
+          "type": "integer",
+          "presence": "key",
+          "note": "The player's level, checked against requires_level; absent, no level requirement is met."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the player holds, checked against requires_item."
+        },
+        {
+          "role": "player_quest",
+          "kind": "attribute",
+          "name": "status",
+          "type": {
+            "enum": [
+              "in_progress",
+              "complete"
+            ]
+          },
+          "presence": "key",
+          "note": "The player's status on the quest, on the subject <player>_<quest>; absent means not started."
+        },
+        {
+          "role": "player_objective",
+          "kind": "attribute",
+          "name": "complete",
+          "type": "bool",
+          "presence": "key",
+          "note": "true on <player>_<objective> once the player has done that objective."
+        }
+      ],
+      "reads": {
+        "quest_available/2": [
+          "attribute(level)",
+          "attribute(order)",
+          "attribute(quest)",
+          "attribute(requires_item)",
+          "attribute(requires_level)",
+          "attribute(requires_quest)",
+          "attribute(status)",
+          "relation(has_item)",
+          "relation(quest_exists)"
+        ],
+        "quest_in_progress/2": [
+          "attribute(order)",
+          "attribute(quest)",
+          "attribute(requires_item)",
+          "attribute(requires_level)",
+          "attribute(requires_quest)",
+          "attribute(status)",
+          "relation(quest_exists)"
+        ],
+        "quest_complete/2": [
+          "attribute(order)",
+          "attribute(quest)",
+          "attribute(requires_item)",
+          "attribute(requires_level)",
+          "attribute(requires_quest)",
+          "attribute(status)",
+          "relation(quest_exists)"
+        ],
+        "next_objective/3": [
+          "attribute(complete)",
+          "attribute(order)",
+          "attribute(quest)",
+          "attribute(requires_item)",
+          "attribute(requires_level)",
+          "attribute(requires_quest)",
+          "attribute(status)",
+          "relation(quest_exists)"
+        ],
+        "quest_blocked_by/3": [
+          "attribute(level)",
+          "attribute(order)",
+          "attribute(quest)",
+          "attribute(requires_item)",
+          "attribute(requires_level)",
+          "attribute(requires_quest)",
+          "attribute(status)",
+          "relation(has_item)",
+          "relation(quest_exists)"
+        ],
+        "can_turn_in/2": [
+          "attribute(complete)",
+          "attribute(order)",
+          "attribute(quest)",
+          "attribute(requires_item)",
+          "attribute(requires_level)",
+          "attribute(requires_quest)",
+          "attribute(status)",
+          "relation(quest_exists)"
+        ]
+      }
     },
     {
       "id": "combat",
@@ -108,7 +510,159 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/combat/combat.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/combat",
       "install": "batteries.install_many",
-      "tests_file": "test/games/combat_test.pl"
+      "tests_file": "test/games/combat_test.pl",
+      "inputs": [
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "hp",
+          "type": "number",
+          "presence": "key",
+          "note": "Current hit points; at 0 or below the combatant is defeated, and absent it never is."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "speed",
+          "type": "number",
+          "presence": {
+            "default": 0
+          },
+          "note": "Turn order key, highest first; ties go by name."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "status",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An active status effect, one fact per effect; stunned, frozen and sleeping stop the combatant attacking."
+        },
+        {
+          "role": "combatant",
+          "kind": "relation",
+          "name": "out_of_range",
+          "type": {
+            "ref": "combatant"
+          },
+          "presence": "optional",
+          "note": "A target this combatant cannot reach this turn."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "damage_type",
+          "type": "atom",
+          "presence": {
+            "default": "physical"
+          },
+          "note": "The damage type this combatant deals as an attacker."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "buff_damage",
+          "type": "number",
+          "presence": {
+            "default": 1.0
+          },
+          "note": "Multiplier on the damage this combatant deals."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "debuff_damage",
+          "type": "number",
+          "presence": {
+            "default": 1.0
+          },
+          "note": "A second multiplier on the damage this combatant deals; both apply."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "element",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The combatant's own element, looked up in the type chart when it is the target."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "armor",
+          "type": "number",
+          "presence": {
+            "default": 0
+          },
+          "note": "Flat reduction to damage taken, after multipliers and resistance."
+        },
+        {
+          "role": "combatant",
+          "kind": "attribute",
+          "name": "armor_type",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The only damage type armor blocks; absent, armor blocks every type."
+        },
+        {
+          "role": "damage_type",
+          "kind": "relation",
+          "name": "strong_against",
+          "type": "atom",
+          "presence": "key",
+          "note": "An element this damage type does double damage to, when no resistance attribute applies."
+        },
+        {
+          "role": "damage_type",
+          "kind": "relation",
+          "name": "weak_against",
+          "type": "atom",
+          "presence": "key",
+          "note": "An element this damage type does half damage to, when no resistance attribute or strong_against applies."
+        }
+      ],
+      "reads": {
+        "effective_damage/4": [
+          "attribute(armor)",
+          "attribute(armor_type)",
+          "attribute(buff_damage)",
+          "attribute(damage_type)",
+          "attribute(debuff_damage)",
+          "attribute(element)",
+          "attribute(hp)",
+          "attribute(speed)",
+          "attribute(status)",
+          "relation(strong_against)",
+          "relation(weak_against)"
+        ],
+        "can_attack/2": [
+          "attribute(hp)",
+          "attribute(status)",
+          "relation(out_of_range)"
+        ],
+        "status_effect_active/2": [
+          "attribute(status)"
+        ],
+        "turn_order/2": [
+          "attribute(speed)"
+        ],
+        "is_defeated/1": [
+          "attribute(hp)"
+        ],
+        "resistance/3": [
+          "attribute(armor)",
+          "attribute(armor_type)",
+          "attribute(buff_damage)",
+          "attribute(damage_type)",
+          "attribute(debuff_damage)",
+          "attribute(element)",
+          "attribute(hp)",
+          "attribute(speed)",
+          "attribute(status)",
+          "relation(strong_against)",
+          "relation(weak_against)"
+        ]
+      }
     },
     {
       "id": "progression",
@@ -134,7 +688,289 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/progression/progression.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/progression",
       "install": "batteries.install_many",
-      "tests_file": "test/games/progression_test.pl"
+      "tests_file": "test/games/progression_test.pl",
+      "inputs": [
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "xp",
+          "type": "number",
+          "presence": "key",
+          "note": "Total experience; the level is derived from it when no level is set, and absent reads as 0."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "level",
+          "type": "integer",
+          "presence": "key",
+          "note": "Explicit level; wins over the level xp would give."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "class",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The player's class, matched against an unlock's class gate; without it a class-gated unlock is unavailable."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "completed_quest",
+          "type": "atom",
+          "presence": "optional",
+          "note": "A quest the player has finished, matched against prestige's requires_quest."
+        },
+        {
+          "role": {
+            "fixed": "xp_curve"
+          },
+          "kind": "attribute",
+          "name": "type",
+          "type": {
+            "enum": [
+              "linear",
+              "exponential",
+              "custom"
+            ]
+          },
+          "presence": {
+            "default": "linear"
+          },
+          "note": "Which XP formula sets levels without a breakpoint; custom applies none, so the level_<N> breakpoints are the ceiling."
+        },
+        {
+          "role": {
+            "fixed": "xp_curve"
+          },
+          "kind": "attribute",
+          "name": "base_xp",
+          "type": "number",
+          "presence": {
+            "default": 100
+          },
+          "note": "XP from level 1 to level 2, the first step of either formula."
+        },
+        {
+          "role": {
+            "fixed": "xp_curve"
+          },
+          "kind": "attribute",
+          "name": "increment",
+          "type": "number",
+          "presence": {
+            "default": 50
+          },
+          "note": "Linear curve: how much more each further level costs than the one before."
+        },
+        {
+          "role": {
+            "fixed": "xp_curve"
+          },
+          "kind": "attribute",
+          "name": "multiplier",
+          "type": "number",
+          "presence": {
+            "default": 1.5
+          },
+          "note": "Exponential curve: how many times more each further level costs than the one before."
+        },
+        {
+          "role": {
+            "fixed": "xp_curve"
+          },
+          "kind": "attribute",
+          "name": "max_level",
+          "type": "integer",
+          "presence": {
+            "default": 100
+          },
+          "note": "The highest level; level_for_xp stops here and can_prestige may require it."
+        },
+        {
+          "role": "breakpoint",
+          "kind": "attribute",
+          "name": "xp_required",
+          "type": "number",
+          "presence": "key",
+          "note": "Cumulative XP to reach level N, on a subject named level_<N>; overrides the formula for that level."
+        },
+        {
+          "role": "stat",
+          "kind": "attribute",
+          "name": "base_value",
+          "type": "number",
+          "presence": "key",
+          "note": "The stat at level 1; absent reads as 0 on a linear stat and as 1 on an exponential one."
+        },
+        {
+          "role": "stat",
+          "kind": "attribute",
+          "name": "per_level",
+          "type": "number",
+          "presence": "key",
+          "note": "Linear stat: added per level above 1; absent reads as 0."
+        },
+        {
+          "role": "stat",
+          "kind": "attribute",
+          "name": "scale",
+          "type": {
+            "enum": [
+              "linear",
+              "exponential"
+            ]
+          },
+          "presence": {
+            "default": "linear"
+          },
+          "note": "exponential makes the stat base_value * multiplier^(level-1); any other value is linear."
+        },
+        {
+          "role": "stat",
+          "kind": "attribute",
+          "name": "multiplier",
+          "type": "number",
+          "presence": {
+            "default": 1.1
+          },
+          "note": "Exponential stat: growth factor per level."
+        },
+        {
+          "role": "unlock",
+          "kind": "attribute",
+          "name": "unlock_at_level",
+          "type": "integer",
+          "presence": "key",
+          "note": "The player level at which the unlock becomes available."
+        },
+        {
+          "role": "unlock",
+          "kind": "attribute",
+          "name": "requires_level",
+          "type": "integer",
+          "presence": "key",
+          "note": "Alias for unlock_at_level, read only when unlock_at_level is absent."
+        },
+        {
+          "role": "unlock",
+          "kind": "attribute",
+          "name": "unlock_requires_class",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The class the player must have for this unlock."
+        },
+        {
+          "role": "unlock",
+          "kind": "attribute",
+          "name": "requires_class",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Alias for unlock_requires_class, read only when unlock_requires_class is absent."
+        },
+        {
+          "role": {
+            "fixed": "prestige"
+          },
+          "kind": "attribute",
+          "name": "requires_max_level",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true makes prestige need the player at max_level; it wins over requires_level."
+        },
+        {
+          "role": {
+            "fixed": "prestige"
+          },
+          "kind": "attribute",
+          "name": "requires_level",
+          "type": "integer",
+          "presence": "optional",
+          "note": "The level prestige needs when requires_max_level is not true; with neither, nobody can prestige."
+        },
+        {
+          "role": {
+            "fixed": "prestige"
+          },
+          "kind": "attribute",
+          "name": "requires_quest",
+          "type": "atom",
+          "presence": "optional",
+          "note": "A quest the player must have completed to prestige."
+        }
+      ],
+      "reads": {
+        "level_for_xp/2": [
+          "attribute(base_xp)",
+          "attribute(increment)",
+          "attribute(max_level)",
+          "attribute(multiplier)",
+          "attribute(type)",
+          "attribute(xp_required)"
+        ],
+        "xp_to_next_level/2": [
+          "attribute(base_xp)",
+          "attribute(increment)",
+          "attribute(level)",
+          "attribute(max_level)",
+          "attribute(multiplier)",
+          "attribute(type)",
+          "attribute(xp)",
+          "attribute(xp_required)"
+        ],
+        "stat_at_level/3": [
+          "attribute(base_value)",
+          "attribute(base_xp)",
+          "attribute(class)",
+          "attribute(increment)",
+          "attribute(level)",
+          "attribute(max_level)",
+          "attribute(multiplier)",
+          "attribute(per_level)",
+          "attribute(requires_class)",
+          "attribute(requires_level)",
+          "attribute(requires_max_level)",
+          "attribute(requires_quest)",
+          "attribute(scale)",
+          "attribute(type)",
+          "attribute(unlock_at_level)",
+          "attribute(unlock_requires_class)",
+          "attribute(xp)",
+          "attribute(xp_required)"
+        ],
+        "unlock_available/2": [
+          "attribute(base_xp)",
+          "attribute(class)",
+          "attribute(increment)",
+          "attribute(level)",
+          "attribute(max_level)",
+          "attribute(multiplier)",
+          "attribute(requires_class)",
+          "attribute(requires_level)",
+          "attribute(type)",
+          "attribute(unlock_at_level)",
+          "attribute(unlock_requires_class)",
+          "attribute(xp)",
+          "attribute(xp_required)"
+        ],
+        "can_prestige/1": [
+          "attribute(base_xp)",
+          "attribute(increment)",
+          "attribute(level)",
+          "attribute(max_level)",
+          "attribute(multiplier)",
+          "attribute(requires_level)",
+          "attribute(requires_max_level)",
+          "attribute(requires_quest)",
+          "attribute(type)",
+          "attribute(xp)",
+          "attribute(xp_required)",
+          "relation(completed_quest)"
+        ]
+      }
     },
     {
       "id": "economy",
@@ -160,7 +996,116 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/economy/economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/economy",
       "install": "batteries.install_many",
-      "tests_file": "test/games/economy_test.pl"
+      "tests_file": "test/games/economy_test.pl",
+      "inputs": [
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "base_price",
+          "type": "number",
+          "presence": "key",
+          "note": "Vendor price before supply and demand; an item without one has no buy or sell price."
+        },
+        {
+          "role": "item",
+          "kind": "relation",
+          "name": "requires",
+          "type": {
+            "ref": "item"
+          },
+          "presence": "key",
+          "note": "A material in the item's recipe; quantity in <material>_qty, default 1."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "supply_factor",
+          "type": "number",
+          "presence": {
+            "default": 1.0
+          },
+          "note": "Multiplier on base_price for supply; below 1 when the item is abundant."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "demand_factor",
+          "type": "number",
+          "presence": {
+            "default": 1.0
+          },
+          "note": "Multiplier on base_price for demand; above 1 when the item is sought after."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "recipe_gold_cost",
+          "type": "number",
+          "presence": "optional",
+          "note": "A flat craft cost that replaces the sum of the material prices."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_material",
+          "type": {
+            "ref": "item"
+          },
+          "presence": "key",
+          "note": "One unit of a material the player holds; a <material>_qty attribute on the player overrides the count."
+        },
+        {
+          "role": {
+            "fixed": "economy"
+          },
+          "kind": "attribute",
+          "name": "sell_ratio",
+          "type": "number",
+          "presence": {
+            "default": 0.5
+          },
+          "note": "Fraction of the buy price a vendor pays."
+        }
+      ],
+      "reads": {
+        "can_craft/2": [
+          "attribute(base_price)",
+          "attribute(demand_factor)",
+          "attribute(recipe_gold_cost)",
+          "attribute(sell_ratio)",
+          "attribute(supply_factor)",
+          "relation(has_material)",
+          "relation(requires)"
+        ],
+        "craft_cost/2": [
+          "attribute(base_price)",
+          "attribute(demand_factor)",
+          "attribute(recipe_gold_cost)",
+          "attribute(sell_ratio)",
+          "attribute(supply_factor)",
+          "relation(requires)"
+        ],
+        "buy_price/2": [
+          "attribute(base_price)",
+          "attribute(demand_factor)",
+          "attribute(supply_factor)"
+        ],
+        "sell_price/2": [
+          "attribute(base_price)",
+          "attribute(demand_factor)",
+          "attribute(sell_ratio)",
+          "attribute(supply_factor)"
+        ],
+        "missing_materials/3": [
+          "attribute(base_price)",
+          "attribute(demand_factor)",
+          "attribute(recipe_gold_cost)",
+          "attribute(sell_ratio)",
+          "attribute(supply_factor)",
+          "relation(has_material)",
+          "relation(requires)"
+        ]
+      }
     },
     {
       "id": "npc-state",
@@ -186,7 +1131,144 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/npc-state/npc_state.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/npc-state",
       "install": "batteries.install_many",
-      "tests_file": "test/games/npc_state_test.pl"
+      "tests_file": "test/games/npc_state_test.pl",
+      "inputs": [
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "always_friendly",
+          "type": "bool",
+          "presence": "key",
+          "note": "true makes the NPC friendly to every player whatever the score, and never hostile."
+        },
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "always_hostile",
+          "type": "bool",
+          "presence": "key",
+          "note": "true makes the NPC hostile to every player whatever the score, unless it is also always_friendly."
+        },
+        {
+          "role": "npc",
+          "kind": "relation",
+          "name": "has_dialogue",
+          "type": {
+            "ref": "topic"
+          },
+          "presence": "key",
+          "note": "A topic the NPC can talk about; dialogue_available checks the topic's gates."
+        },
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "faction",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The faction this NPC (or any entity) belongs to, as faction_member reports it."
+        },
+        {
+          "role": "npc_player",
+          "kind": "attribute",
+          "name": "score",
+          "type": "number",
+          "presence": "key",
+          "note": "The relationship score between the NPC and the player, on the subject <npc>_<player>; absent reads as 0."
+        },
+        {
+          "role": {
+            "fixed": "relationship"
+          },
+          "kind": "attribute",
+          "name": "friendly_threshold",
+          "type": "number",
+          "presence": {
+            "default": 25
+          },
+          "note": "Score at or above which an NPC is friendly."
+        },
+        {
+          "role": {
+            "fixed": "relationship"
+          },
+          "kind": "attribute",
+          "name": "hostile_threshold",
+          "type": "number",
+          "presence": {
+            "default": -25
+          },
+          "note": "Score at or below which an NPC is hostile."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "requires_friendly",
+          "type": "bool",
+          "presence": "key",
+          "note": "true opens the topic only to a player the NPC is friendly to."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "requires_relationship",
+          "type": "number",
+          "presence": "key",
+          "note": "The least relationship score that opens the topic."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "requires_quest",
+          "type": "atom",
+          "presence": "key",
+          "note": "A quest the player must have completed to open the topic."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "requires_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the player must have to open the topic."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "completed_quest",
+          "type": "atom",
+          "presence": "key",
+          "note": "A quest the player has finished, matched against a topic's requires_quest."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the player holds, matched against a topic's requires_item."
+        }
+      ],
+      "reads": {
+        "npc_friendly/2": [
+          "attribute(always_friendly)",
+          "attribute(always_hostile)",
+          "attribute(friendly_threshold)",
+          "attribute(score)",
+          "relation(has_dialogue)"
+        ],
+        "npc_hostile/2": [
+          "attribute(always_friendly)",
+          "attribute(always_hostile)",
+          "attribute(hostile_threshold)",
+          "attribute(score)",
+          "relation(has_dialogue)"
+        ],
+        "dialogue_available/3": [],
+        "faction_member/2": [],
+        "relationship_level/3": [
+          "attribute(score)"
+        ]
+      }
     },
     {
       "id": "puzzle-fsm",
@@ -211,7 +1293,153 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/puzzle-fsm/puzzle_fsm.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/puzzle-fsm",
       "install": "batteries.install_many",
-      "tests_file": "test/games/puzzle_fsm_test.pl"
+      "tests_file": "test/games/puzzle_fsm_test.pl",
+      "inputs": [
+        {
+          "role": "puzzle",
+          "kind": "attribute",
+          "name": "initial_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "Where the puzzle starts and valid_sequence searches from; also the current state when current_state is absent."
+        },
+        {
+          "role": "puzzle",
+          "kind": "attribute",
+          "name": "current_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "optional",
+          "note": "Where the puzzle is now; absent, it is at initial_state."
+        },
+        {
+          "role": "puzzle",
+          "kind": "attribute",
+          "name": "solve_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "optional",
+          "note": "A winning state."
+        },
+        {
+          "role": "puzzle",
+          "kind": "relation",
+          "name": "solve_state",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "optional",
+          "note": "A winning state; one fact per state."
+        },
+        {
+          "role": "puzzle",
+          "kind": "relation",
+          "name": "player_has",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An item available to this puzzle directly, satisfying a move's requires_item."
+        },
+        {
+          "role": "puzzle",
+          "kind": "attribute",
+          "name": "player",
+          "type": {
+            "ref": "player"
+          },
+          "presence": "optional",
+          "note": "The player whose has_item facts satisfy a move's requires_item."
+        },
+        {
+          "role": "state",
+          "kind": "relation",
+          "name": "move",
+          "type": {
+            "ref": "move"
+          },
+          "presence": "key",
+          "note": "A move available from this state; one fact per move."
+        },
+        {
+          "role": "move",
+          "kind": "attribute",
+          "name": "leads_to",
+          "type": {
+            "ref": "state"
+          },
+          "presence": "key",
+          "note": "The state the move goes to; a move without it is never taken."
+        },
+        {
+          "role": "move",
+          "kind": "attribute",
+          "name": "requires_item",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An item the move needs, through player_has or the named player's has_item."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the player holds."
+        }
+      ],
+      "reads": {
+        "can_transition/3": [
+          "attribute(current_state)",
+          "attribute(initial_state)",
+          "attribute(leads_to)",
+          "attribute(player)",
+          "attribute(requires_item)",
+          "relation(has_item)",
+          "relation(move)",
+          "relation(player_has)"
+        ],
+        "puzzle_solved/1": [
+          "attribute(current_state)",
+          "attribute(initial_state)",
+          "attribute(solve_state)",
+          "relation(solve_state)"
+        ],
+        "valid_sequence/2": [
+          "attribute(initial_state)",
+          "attribute(leads_to)",
+          "attribute(player)",
+          "attribute(requires_item)",
+          "attribute(solve_state)",
+          "relation(has_item)",
+          "relation(move)",
+          "relation(player_has)",
+          "relation(solve_state)"
+        ],
+        "hint_for/2": [
+          "attribute(current_state)",
+          "attribute(initial_state)",
+          "attribute(leads_to)",
+          "attribute(player)",
+          "attribute(requires_item)",
+          "relation(has_item)",
+          "relation(move)",
+          "relation(player_has)"
+        ],
+        "blocked_by/2": [
+          "attribute(current_state)",
+          "attribute(initial_state)",
+          "attribute(player)",
+          "attribute(requires_item)",
+          "attribute(solve_state)",
+          "relation(has_item)",
+          "relation(move)",
+          "relation(player_has)",
+          "relation(solve_state)"
+        ]
+      }
     },
     {
       "id": "world",
@@ -237,7 +1465,107 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/world/world.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/world",
       "install": "batteries.install_many",
-      "tests_file": "test/games/world_test.pl"
+      "tests_file": "test/games/world_test.pl",
+      "inputs": [
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "time_of_day",
+          "type": {
+            "enum": [
+              "dawn",
+              "day",
+              "dusk",
+              "night"
+            ]
+          },
+          "presence": "optional",
+          "note": "Current time period; absent, it comes from hour, and with neither it is day."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "hour",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Hour of the day, 0-23, read only when time_of_day is absent."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "weather",
+          "type": "atom",
+          "presence": {
+            "default": "clear"
+          },
+          "note": "Current weather, such as clear, rain, storm, fog or snow."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "season",
+          "type": "atom",
+          "presence": {
+            "default": "summer"
+          },
+          "note": "Current season, such as spring, summer, autumn or winter."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "moon_phase",
+          "type": "atom",
+          "presence": {
+            "default": "crescent"
+          },
+          "note": "Current moon phase, such as new, crescent, quarter, gibbous or full."
+        }
+      ],
+      "reads": {
+        "world_time/1": [
+          "attribute(hour)",
+          "attribute(time_of_day)"
+        ],
+        "world_weather/1": [
+          "attribute(hour)",
+          "attribute(moon_phase)",
+          "attribute(season)",
+          "attribute(time_of_day)",
+          "attribute(weather)"
+        ],
+        "world_season/1": [
+          "attribute(hour)",
+          "attribute(moon_phase)",
+          "attribute(season)",
+          "attribute(time_of_day)",
+          "attribute(weather)"
+        ],
+        "world_moon/1": [
+          "attribute(hour)",
+          "attribute(moon_phase)",
+          "attribute(season)",
+          "attribute(time_of_day)",
+          "attribute(weather)"
+        ],
+        "is_daytime/0": [
+          "attribute(hour)",
+          "attribute(time_of_day)"
+        ],
+        "is_nighttime/0": [
+          "attribute(hour)",
+          "attribute(time_of_day)"
+        ]
+      }
     },
     {
       "id": "faction",
@@ -262,7 +1590,170 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/faction/faction.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/faction",
       "install": "batteries.install_many",
-      "tests_file": "test/games/faction_test.pl"
+      "tests_file": "test/games/faction_test.pl",
+      "inputs": [
+        {
+          "role": "player_faction",
+          "kind": "attribute",
+          "name": "score",
+          "type": "number",
+          "presence": "key",
+          "note": "Reputation of <player> with <faction> on the subject <player>_<faction>; absent reads as 0."
+        },
+        {
+          "role": "faction",
+          "kind": "relation",
+          "name": "allied_with",
+          "type": {
+            "ref": "faction"
+          },
+          "presence": "key",
+          "note": "An ally; one edge in either direction makes the pair allied."
+        },
+        {
+          "role": "faction",
+          "kind": "relation",
+          "name": "at_war_with",
+          "type": {
+            "ref": "faction"
+          },
+          "presence": "key",
+          "note": "An enemy; one edge in either direction puts the pair at war."
+        },
+        {
+          "role": "area",
+          "kind": "attribute",
+          "name": "requires_faction",
+          "type": {
+            "ref": "faction"
+          },
+          "presence": "key",
+          "note": "The faction whose standing gates entry to the area."
+        },
+        {
+          "role": "area",
+          "kind": "attribute",
+          "name": "requires_standing",
+          "type": {
+            "enum": [
+              "hostile",
+              "unfriendly",
+              "neutral",
+              "friendly",
+              "honored",
+              "revered",
+              "exalted"
+            ]
+          },
+          "presence": "optional",
+          "note": "Lowest standing that may enter; absent, any standing but hostile may."
+        },
+        {
+          "role": {
+            "fixed": "faction"
+          },
+          "kind": "attribute",
+          "name": "exalted_threshold",
+          "type": "number",
+          "presence": {
+            "default": 21000
+          },
+          "note": "Score at or above which a player is exalted."
+        },
+        {
+          "role": {
+            "fixed": "faction"
+          },
+          "kind": "attribute",
+          "name": "revered_threshold",
+          "type": "number",
+          "presence": {
+            "default": 12000
+          },
+          "note": "Score at or above which a player is revered."
+        },
+        {
+          "role": {
+            "fixed": "faction"
+          },
+          "kind": "attribute",
+          "name": "honored_threshold",
+          "type": "number",
+          "presence": {
+            "default": 9000
+          },
+          "note": "Score at or above which a player is honored."
+        },
+        {
+          "role": {
+            "fixed": "faction"
+          },
+          "kind": "attribute",
+          "name": "friendly_threshold",
+          "type": "number",
+          "presence": {
+            "default": 3000
+          },
+          "note": "Score at or above which a player is friendly; below it and above unfriendly_threshold is neutral."
+        },
+        {
+          "role": {
+            "fixed": "faction"
+          },
+          "kind": "attribute",
+          "name": "unfriendly_threshold",
+          "type": "number",
+          "presence": {
+            "default": -3000
+          },
+          "note": "Score at or below which a player is unfriendly."
+        },
+        {
+          "role": {
+            "fixed": "faction"
+          },
+          "kind": "attribute",
+          "name": "hostile_threshold",
+          "type": "number",
+          "presence": {
+            "default": -6000
+          },
+          "note": "Score at or below which a player is hostile."
+        }
+      ],
+      "reads": {
+        "faction_reputation/3": [
+          "attribute(score)"
+        ],
+        "faction_standing/3": [
+          "attribute(exalted_threshold)",
+          "attribute(friendly_threshold)",
+          "attribute(honored_threshold)",
+          "attribute(hostile_threshold)",
+          "attribute(revered_threshold)",
+          "attribute(score)",
+          "attribute(unfriendly_threshold)"
+        ],
+        "faction_allied/2": [
+          "relation(allied_with)",
+          "relation(at_war_with)"
+        ],
+        "faction_at_war/2": [
+          "relation(allied_with)",
+          "relation(at_war_with)"
+        ],
+        "faction_access/2": [
+          "attribute(exalted_threshold)",
+          "attribute(friendly_threshold)",
+          "attribute(honored_threshold)",
+          "attribute(hostile_threshold)",
+          "attribute(requires_faction)",
+          "attribute(requires_standing)",
+          "attribute(revered_threshold)",
+          "attribute(score)",
+          "attribute(unfriendly_threshold)"
+        ]
+      }
     },
     {
       "id": "dialogue",
@@ -288,7 +1779,163 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/dialogue/dialogue.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/dialogue",
       "install": "batteries.install_many",
-      "tests_file": "test/games/dialogue_test.pl"
+      "tests_file": "test/games/dialogue_test.pl",
+      "inputs": [
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "line",
+          "type": "atom",
+          "presence": "key",
+          "note": "The base line the NPC says on this topic; absent, npc_says gives an empty line."
+        },
+        {
+          "role": "topic",
+          "kind": "relation",
+          "name": "has_choice",
+          "type": {
+            "ref": "choice"
+          },
+          "presence": "key",
+          "note": "A reply the player may pick on this topic; one fact per choice."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "line_friendly",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Said instead of line when the NPC is always_friendly."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "line_hostile",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Said instead of line when the NPC is always_hostile and not always_friendly."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "line_repeat",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Said instead of line when the NPC has discussed this topic with the player before."
+        },
+        {
+          "role": "choice",
+          "kind": "attribute",
+          "name": "leads_to",
+          "type": {
+            "ref": "topic"
+          },
+          "presence": "key",
+          "note": "The topic picking this choice moves to."
+        },
+        {
+          "role": "choice",
+          "kind": "attribute",
+          "name": "ends_dialogue",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true makes the choice an exit: it is left out of player_choices and does not keep a topic open."
+        },
+        {
+          "role": "choice",
+          "kind": "attribute",
+          "name": "requires_gold",
+          "type": "number",
+          "presence": "optional",
+          "note": "Gold the player must hold for the choice to be offered."
+        },
+        {
+          "role": "choice",
+          "kind": "attribute",
+          "name": "requires_item",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An item the player must have for the choice to be offered."
+        },
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "always_friendly",
+          "type": "bool",
+          "presence": "key",
+          "note": "true makes the NPC use a topic's line_friendly; absent reads as false."
+        },
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "always_hostile",
+          "type": "bool",
+          "presence": "key",
+          "note": "true makes the NPC use a topic's line_hostile; absent reads as false."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "gold",
+          "type": "number",
+          "presence": "key",
+          "note": "Gold the player holds; without it every gold-gated choice is withheld."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the player holds, matched against a choice's requires_item."
+        },
+        {
+          "role": "npc_player",
+          "kind": "relation",
+          "name": "discussed",
+          "type": {
+            "ref": "topic"
+          },
+          "presence": "key",
+          "note": "A topic this NPC has discussed with this player, on the subject <npc>_<player>."
+        }
+      ],
+      "reads": {
+        "npc_says/4": [
+          "attribute(always_friendly)",
+          "attribute(always_hostile)",
+          "attribute(line)",
+          "attribute(line_friendly)",
+          "attribute(line_hostile)",
+          "attribute(line_repeat)",
+          "relation(discussed)"
+        ],
+        "player_choices/4": [
+          "attribute(ends_dialogue)",
+          "attribute(gold)",
+          "attribute(requires_gold)",
+          "attribute(requires_item)",
+          "relation(has_choice)",
+          "relation(has_item)"
+        ],
+        "choice_leads_to/3": [
+          "attribute(leads_to)",
+          "relation(has_choice)"
+        ],
+        "npc_remembers/3": [
+          "relation(discussed)"
+        ],
+        "dialogue_complete/3": [
+          "attribute(ends_dialogue)",
+          "attribute(gold)",
+          "attribute(requires_gold)",
+          "attribute(requires_item)",
+          "relation(has_choice)",
+          "relation(has_item)"
+        ]
+      }
     },
     {
       "id": "crafting",
@@ -313,7 +1960,129 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/crafting/crafting.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/crafting",
       "install": "batteries.install_many",
-      "tests_file": "test/games/crafting_test.pl"
+      "tests_file": "test/games/crafting_test.pl",
+      "inputs": [
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "knows_recipe",
+          "type": {
+            "ref": "recipe"
+          },
+          "presence": "key",
+          "note": "A recipe the player was taught or bought."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "level",
+          "type": "integer",
+          "presence": "optional",
+          "note": "The player's level, for discover_on_level; absent, no level discovery applies."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "completed_quest",
+          "type": "atom",
+          "presence": "optional",
+          "note": "A quest the player has completed, for discover_on_quest."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An item the player holds, for discover_on_item."
+        },
+        {
+          "role": "recipe",
+          "kind": "attribute",
+          "name": "starter_recipe",
+          "type": "bool",
+          "presence": "key",
+          "note": "true when every player knows the recipe."
+        },
+        {
+          "role": "recipe",
+          "kind": "attribute",
+          "name": "discover_on_level",
+          "type": "integer",
+          "presence": "key",
+          "note": "A player at this level or above discovers the recipe."
+        },
+        {
+          "role": "recipe",
+          "kind": "attribute",
+          "name": "discover_on_quest",
+          "type": "atom",
+          "presence": "key",
+          "note": "A player who completed this quest (completed_quest) discovers the recipe."
+        },
+        {
+          "role": "recipe",
+          "kind": "attribute",
+          "name": "discover_on_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "A player holding this item (has_item) discovers the recipe."
+        },
+        {
+          "role": "player_skill",
+          "kind": "attribute",
+          "name": "level",
+          "type": "integer",
+          "presence": "key",
+          "note": "The player's level in the skill, on the subject <player>_<skill>; absent reads as 0."
+        }
+      ],
+      "reads": {
+        "recipe_known/2": [
+          "attribute(discover_on_item)",
+          "attribute(discover_on_level)",
+          "attribute(discover_on_quest)",
+          "attribute(level)",
+          "attribute(starter_recipe)",
+          "relation(completed_quest)",
+          "relation(has_item)",
+          "relation(knows_recipe)"
+        ],
+        "can_craft_skilled/2": [
+          "attribute(discover_on_item)",
+          "attribute(discover_on_level)",
+          "attribute(discover_on_quest)",
+          "attribute(level)",
+          "attribute(starter_recipe)",
+          "relation(completed_quest)",
+          "relation(has_item)",
+          "relation(knows_recipe)"
+        ],
+        "crafting_skill/3": [
+          "attribute(discover_on_item)",
+          "attribute(discover_on_level)",
+          "attribute(discover_on_quest)",
+          "attribute(level)",
+          "attribute(starter_recipe)"
+        ],
+        "skill_requirement/3": [
+          "attribute(discover_on_item)",
+          "attribute(discover_on_level)",
+          "attribute(discover_on_quest)",
+          "attribute(level)",
+          "attribute(starter_recipe)"
+        ],
+        "recipe_discoverable/2": [
+          "attribute(discover_on_item)",
+          "attribute(discover_on_level)",
+          "attribute(discover_on_quest)",
+          "attribute(level)",
+          "attribute(starter_recipe)",
+          "relation(completed_quest)",
+          "relation(has_item)",
+          "relation(knows_recipe)"
+        ]
+      }
     },
     {
       "id": "permissions",
@@ -495,7 +2264,203 @@
           "goal": "director_event(forest, E)",
           "expect": "E == boss_spawn"
         }
-      ]
+      ],
+      "inputs": [
+        {
+          "role": "zone",
+          "kind": "attribute",
+          "name": "threat",
+          "type": "number",
+          "presence": "key",
+          "note": "The zone's current threat score (0-100 by convention); a zone named only by spawn_zone reads as 0."
+        },
+        {
+          "role": "enemy",
+          "kind": "attribute",
+          "name": "spawn_zone",
+          "type": {
+            "ref": "zone"
+          },
+          "presence": "key",
+          "note": "A zone the enemy may spawn in; one fact per zone, and an enemy with none may spawn in any zone."
+        },
+        {
+          "role": "enemy",
+          "kind": "attribute",
+          "name": "min_threat",
+          "type": "number",
+          "presence": "key",
+          "note": "The enemy spawns only where the threat is at least this."
+        },
+        {
+          "role": "enemy",
+          "kind": "attribute",
+          "name": "max_threat",
+          "type": "number",
+          "presence": "key",
+          "note": "The enemy spawns only where the threat is at most this."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "peak_threshold",
+          "type": "number",
+          "presence": {
+            "default": 80
+          },
+          "note": "Threat at or above which a zone is at peak."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "tense_threshold",
+          "type": "number",
+          "presence": {
+            "default": 50
+          },
+          "note": "Threat at or above which a zone below peak is tense."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "building_threshold",
+          "type": "number",
+          "presence": {
+            "default": 20
+          },
+          "note": "Threat at or above which a zone below tense is building."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "recovery_threshold",
+          "type": "number",
+          "presence": {
+            "default": 5
+          },
+          "note": "Threat below which a zone is in recovery, where nothing spawns; between this and building is calm."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "peak_modifier",
+          "type": "number",
+          "presence": {
+            "default": 1.6
+          },
+          "note": "Difficulty multiplier at peak."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "tense_modifier",
+          "type": "number",
+          "presence": {
+            "default": 1.3
+          },
+          "note": "Difficulty multiplier when tense."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "building_modifier",
+          "type": "number",
+          "presence": {
+            "default": 1.0
+          },
+          "note": "Difficulty multiplier when building."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "calm_modifier",
+          "type": "number",
+          "presence": {
+            "default": 0.7
+          },
+          "note": "Difficulty multiplier when calm."
+        },
+        {
+          "role": {
+            "fixed": "director"
+          },
+          "kind": "attribute",
+          "name": "recovery_modifier",
+          "type": "number",
+          "presence": {
+            "default": 0.5
+          },
+          "note": "Difficulty multiplier in recovery."
+        }
+      ],
+      "reads": {
+        "spawn_eligible/2": [
+          "attribute(building_threshold)",
+          "attribute(max_threat)",
+          "attribute(min_threat)",
+          "attribute(peak_threshold)",
+          "attribute(recovery_threshold)",
+          "attribute(spawn_zone)",
+          "attribute(tense_threshold)",
+          "attribute(threat)"
+        ],
+        "difficulty_modifier/2": [
+          "attribute(building_modifier)",
+          "attribute(building_threshold)",
+          "attribute(calm_modifier)",
+          "attribute(peak_modifier)",
+          "attribute(peak_threshold)",
+          "attribute(recovery_modifier)",
+          "attribute(recovery_threshold)",
+          "attribute(spawn_zone)",
+          "attribute(tense_modifier)",
+          "attribute(tense_threshold)",
+          "attribute(threat)"
+        ],
+        "pacing_state/2": [
+          "attribute(building_threshold)",
+          "attribute(peak_threshold)",
+          "attribute(recovery_threshold)",
+          "attribute(spawn_zone)",
+          "attribute(tense_threshold)",
+          "attribute(threat)"
+        ],
+        "threat_level/2": [
+          "attribute(spawn_zone)",
+          "attribute(threat)"
+        ],
+        "director_event/2": [
+          "attribute(building_modifier)",
+          "attribute(building_threshold)",
+          "attribute(calm_modifier)",
+          "attribute(max_threat)",
+          "attribute(min_threat)",
+          "attribute(peak_modifier)",
+          "attribute(peak_threshold)",
+          "attribute(recovery_modifier)",
+          "attribute(recovery_threshold)",
+          "attribute(spawn_zone)",
+          "attribute(tense_modifier)",
+          "attribute(tense_threshold)",
+          "attribute(threat)"
+        ]
+      }
     },
     {
       "id": "dungeon",
@@ -522,7 +2487,95 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/games/dungeon/dungeon.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/games/dungeon",
       "install": "batteries.install_many",
-      "tests_file": "test/games/dungeon_test.pl"
+      "tests_file": "test/games/dungeon_test.pl",
+      "inputs": [
+        {
+          "role": "room",
+          "kind": "relation",
+          "name": "connects_to",
+          "type": {
+            "ref": "room"
+          },
+          "presence": "key",
+          "note": "A directed passage to another room; assert both directions for a two-way one."
+        },
+        {
+          "role": "room",
+          "kind": "attribute",
+          "name": "requires_key",
+          "type": "atom",
+          "presence": "key",
+          "note": "The item a player must hold to enter; absent, the room is unlocked."
+        },
+        {
+          "role": "dungeon",
+          "kind": "relation",
+          "name": "has_room",
+          "type": {
+            "ref": "room"
+          },
+          "presence": "key",
+          "note": "A room that must be cleared to complete the dungeon."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": "atom",
+          "presence": "key",
+          "note": "An item the player holds, checked against requires_key."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "cleared_room",
+          "type": {
+            "ref": "room"
+          },
+          "presence": "key",
+          "note": "A room the player has cleared, in whichever dungeon has it."
+        },
+        {
+          "role": "player_dungeon",
+          "kind": "relation",
+          "name": "cleared",
+          "type": {
+            "ref": "room"
+          },
+          "presence": "key",
+          "note": "A room cleared, on <player>_<dungeon> for that dungeon only, or on <player>_dungeon for every dungeon."
+        }
+      ],
+      "reads": {
+        "room_connected/2": [
+          "relation(connects_to)"
+        ],
+        "room_accessible/2": [
+          "attribute(requires_key)",
+          "relation(connects_to)",
+          "relation(has_item)",
+          "relation(has_room)"
+        ],
+        "dungeon_path/3": [
+          "attribute(requires_key)",
+          "relation(connects_to)",
+          "relation(has_item)",
+          "relation(has_room)"
+        ],
+        "room_cleared/2": [
+          "relation(cleared)",
+          "relation(cleared_room)"
+        ],
+        "dungeon_complete/2": [
+          "relation(cleared)",
+          "relation(cleared_room)",
+          "relation(has_room)"
+        ],
+        "room_cleared/3": [
+          "relation(cleared)",
+          "relation(cleared_room)"
+        ]
+      }
     },
     {
       "id": "risk-assessment",

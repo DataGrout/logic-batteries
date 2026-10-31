@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-29",
+  "updated_at": "2026-10-30",
   "category": "probabilistic",
   "modules": [
     {
@@ -29,7 +29,25 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-loot/prob_loot.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-loot",
       "install": "batteries.install_many",
-      "tests_file": "test/probabilistic/prob_loot_test.pl"
+      "tests_file": "test/probabilistic/prob_loot_test.pl",
+      "inputs": [
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "drop_chance",
+          "type": "number",
+          "presence": "key",
+          "note": "Drop chance in percent; at 100 or more the item always drops from its sources."
+        }
+      ],
+      "reads": {
+        "drop_occurs/2": [],
+        "guaranteed_drop/2": [
+          "attribute(drop_chance)"
+        ],
+        "drop_probability/3": [],
+        "expected_drops/4": []
+      }
     },
     {
       "id": "prob-detection",
@@ -58,7 +76,136 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-detection/prob_detection.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-detection",
       "install": "batteries.install_many",
-      "tests_file": "test/probabilistic/prob_detection_test.pl"
+      "tests_file": "test/probabilistic/prob_detection_test.pl",
+      "inputs": [
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "perception",
+          "type": "number",
+          "presence": "key",
+          "note": "Guard perception on a 1-10 scale: above 8 is the high tier, above 5 medium, else low; without it the base is 0.5 active, 0.3 passive."
+        },
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "alert_state",
+          "type": {
+            "enum": [
+              "active",
+              "passive"
+            ]
+          },
+          "presence": "key",
+          "note": "active when the guard is alerted; passive, any other value or none counts as unalerted."
+        },
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "faction",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The guard's faction, matched against a held item's disguise_faction."
+        },
+        {
+          "role": "player",
+          "kind": "attribute",
+          "name": "stealth_bonus",
+          "type": "number",
+          "presence": "key",
+          "note": "Stealth on a 0-10 scale, cutting detection by 0.07 a point down to a 0.1 factor; none counts as 0."
+        },
+        {
+          "role": "player",
+          "kind": "relation",
+          "name": "has_item",
+          "type": {
+            "ref": "item"
+          },
+          "presence": "key",
+          "note": "An item the player holds, read for the disguise rule."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "disguise_faction",
+          "type": "atom",
+          "presence": "key",
+          "note": "The faction the item passes its holder off as; a match drops an unalerted guard's base to 0.10."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "light_level",
+          "type": {
+            "enum": [
+              "dark",
+              "dim",
+              "bright"
+            ]
+          },
+          "presence": "optional",
+          "note": "dark multiplies detection by 0.5 and dim by 0.75; bright or none leaves it."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "weather",
+          "type": "atom",
+          "presence": "optional",
+          "note": "rain multiplies detection by 0.8 and fog by 0.85; other weather leaves it."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "noise_level",
+          "type": {
+            "enum": [
+              "silent",
+              "ambient",
+              "loud"
+            ]
+          },
+          "presence": "optional",
+          "note": "loud multiplies detection by 1.3; silent, ambient or none leaves it."
+        }
+      ],
+      "reads": {
+        "detected/2": [],
+        "detection_probability/3": [
+          "attribute(alert_state)",
+          "attribute(disguise_faction)",
+          "attribute(faction)",
+          "attribute(light_level)",
+          "attribute(noise_level)",
+          "attribute(perception)",
+          "attribute(stealth_bonus)",
+          "attribute(weather)",
+          "relation(has_item)"
+        ],
+        "stealth_success/2": [
+          "attribute(alert_state)",
+          "attribute(disguise_faction)",
+          "attribute(faction)",
+          "attribute(light_level)",
+          "attribute(noise_level)",
+          "attribute(perception)",
+          "attribute(stealth_bonus)",
+          "attribute(weather)",
+          "relation(has_item)"
+        ],
+        "environmental_detection_factor/2": [
+          "attribute(light_level)",
+          "attribute(noise_level)",
+          "attribute(weather)"
+        ]
+      }
     },
     {
       "id": "prob-economy",
@@ -88,7 +235,135 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-economy/prob_economy.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-economy",
       "install": "batteries.install_many",
-      "tests_file": "test/probabilistic/prob_economy_test.pl"
+      "tests_file": "test/probabilistic/prob_economy_test.pl",
+      "inputs": [
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "import_dependent",
+          "type": "bool",
+          "presence": "key",
+          "note": "true when the item relies on imports: storms, a blocked route and winter disrupt its supply."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "perishable",
+          "type": "bool",
+          "presence": "key",
+          "note": "true when the item spoils: storms and summer disrupt its supply."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "category",
+          "type": "atom",
+          "presence": "key",
+          "note": "healing, weapons, food or tools pick the demand rules that apply; any other category never spikes."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "weather",
+          "type": "atom",
+          "presence": "optional",
+          "note": "storm disrupts import-dependent and perishable supply; other weather does nothing here."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "season",
+          "type": "atom",
+          "presence": "optional",
+          "note": "winter disrupts imports and raises food demand, summer disrupts perishables; absent, no season rule applies."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "trade_route_blocked",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true disrupts import-dependent supply and raises demand for tools."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "recent_conflict",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true raises demand for healing items and weapons."
+        },
+        {
+          "role": {
+            "fixed": "world"
+          },
+          "kind": "attribute",
+          "name": "threat_rising",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true raises demand for healing items and weapons."
+        }
+      ],
+      "reads": {
+        "supply_disruption/2": [
+          "attribute(import_dependent)",
+          "attribute(perishable)",
+          "attribute(season)",
+          "attribute(trade_route_blocked)",
+          "attribute(weather)"
+        ],
+        "demand_spike/2": [
+          "attribute(category)",
+          "attribute(recent_conflict)",
+          "attribute(season)",
+          "attribute(threat_rising)",
+          "attribute(trade_route_blocked)"
+        ],
+        "price_range/4": [
+          "attribute(category)",
+          "attribute(import_dependent)",
+          "attribute(perishable)",
+          "attribute(recent_conflict)",
+          "attribute(season)",
+          "attribute(threat_rising)",
+          "attribute(trade_route_blocked)",
+          "attribute(weather)"
+        ],
+        "market_volatility/3": [
+          "attribute(category)",
+          "attribute(import_dependent)",
+          "attribute(perishable)",
+          "attribute(recent_conflict)",
+          "attribute(season)",
+          "attribute(threat_rising)",
+          "attribute(trade_route_blocked)",
+          "attribute(weather)"
+        ],
+        "expected_price/2": [
+          "attribute(category)",
+          "attribute(import_dependent)",
+          "attribute(perishable)",
+          "attribute(recent_conflict)",
+          "attribute(season)",
+          "attribute(threat_rising)",
+          "attribute(trade_route_blocked)",
+          "attribute(weather)"
+        ]
+      }
     },
     {
       "id": "prob-npc",
@@ -119,7 +394,79 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/probabilistic/prob-npc/prob_npc.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/probabilistic/prob-npc",
       "install": "batteries.install_many",
-      "tests_file": "test/probabilistic/prob_npc_test.pl"
+      "tests_file": "test/probabilistic/prob_npc_test.pl",
+      "inputs": [
+        {
+          "role": "npc",
+          "kind": "attribute",
+          "name": "faction",
+          "type": "atom",
+          "presence": "key",
+          "note": "The npc's faction: trust starts from the player's standing with it, or 0.35 without one."
+        },
+        {
+          "role": "npc",
+          "kind": "relation",
+          "name": "knows_topic",
+          "type": {
+            "ref": "topic"
+          },
+          "presence": "key",
+          "note": "A topic the npc can share at all."
+        },
+        {
+          "role": "npc",
+          "kind": "relation",
+          "name": "can_assist",
+          "type": {
+            "ref": "task"
+          },
+          "presence": "key",
+          "note": "A task the npc can help with at all."
+        },
+        {
+          "role": "topic",
+          "kind": "attribute",
+          "name": "sensitivity",
+          "type": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "secret"
+            ]
+          },
+          "presence": "key",
+          "note": "How guarded the topic is: each step lowers the sharing weight and from medium up needs a closer relationship; none is the most open."
+        },
+        {
+          "role": "task",
+          "kind": "attribute",
+          "name": "assistance_cost",
+          "type": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "presence": "key",
+          "note": "What the favour costs the npc: each step lowers the assist weight and from medium up needs a closer relationship; none is the cheapest."
+        }
+      ],
+      "reads": {
+        "trust_probability/3": [
+          "attribute(faction)"
+        ],
+        "will_share_info/3": [],
+        "will_assist/3": [],
+        "npc_price_modifier/3": [
+          "attribute(faction)"
+        ],
+        "disposition_probability/3": [
+          "attribute(faction)"
+        ]
+      }
     },
     {
       "id": "prob-core-iso",

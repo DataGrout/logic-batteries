@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-30",
   "category": "d20",
   "license": "Elastic-2.0 AND CC-BY-4.0",
   "srd_note": "All stat blocks and mechanics are from the Systems Reference Document 5.1, published under the Creative Commons Attribution 4.0 International License by Wizards of the Coast LLC.",
@@ -35,7 +35,245 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-core/d20_core.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-core",
       "install": "batteries.install_many",
-      "tests_file": "test/d20/d20_core_test.pl"
+      "tests_file": "test/d20/d20_core_test.pl",
+      "inputs": [
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "str",
+          "type": "integer",
+          "presence": "key",
+          "note": "Strength score; a missing score reads as 10, modifier 0."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "dex",
+          "type": "integer",
+          "presence": "key",
+          "note": "Dexterity score; a missing score reads as 10, modifier 0."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "con",
+          "type": "integer",
+          "presence": "key",
+          "note": "Constitution score; a missing score reads as 10, modifier 0."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "int",
+          "type": "integer",
+          "presence": "key",
+          "note": "Intelligence score; a missing score reads as 10, modifier 0."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "wis",
+          "type": "integer",
+          "presence": "key",
+          "note": "Wisdom score; a missing score reads as 10, modifier 0."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "cha",
+          "type": "integer",
+          "presence": "key",
+          "note": "Charisma score; a missing score reads as 10, modifier 0."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "level",
+          "type": "integer",
+          "presence": {
+            "default": 1
+          },
+          "note": "Character level, which sets the proficiency bonus."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "spellcasting_ability",
+          "type": {
+            "enum": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ]
+          },
+          "presence": "optional",
+          "note": "Ability behind the spell save DC and spell attacks; without it neither exists."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "attack_bonus",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Stated total attack bonus that overrides the derived one for every attack type."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "attack_ability",
+          "type": {
+            "enum": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ]
+          },
+          "presence": "optional",
+          "note": "Ability for weapon attacks; absent, melee uses str and ranged uses dex."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "finesse_attack",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true makes melee attacks use the better of str and dex."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "proficient_attack",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true adds the proficiency bonus to melee and ranged attacks."
+        }
+      ],
+      "reads": {
+        "ability_modifier/2": [],
+        "proficiency_bonus/2": [],
+        "skill_modifier/3": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ],
+        "saving_throw_modifier/3": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ],
+        "passive_perception/2": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ],
+        "spell_save_dc/2": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ],
+        "attack_bonus/3": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ],
+        "d20_check/4": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ],
+        "d20_save/4": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ],
+        "d20_contest/7": [
+          "attribute(attack_ability)",
+          "attribute(attack_bonus)",
+          "attribute(cha)",
+          "attribute(con)",
+          "attribute(dex)",
+          "attribute(finesse_attack)",
+          "attribute(int)",
+          "attribute(level)",
+          "attribute(proficient_attack)",
+          "attribute(spellcasting_ability)",
+          "attribute(str)",
+          "attribute(wis)"
+        ]
+      }
     },
     {
       "id": "d20-combat",
@@ -78,7 +316,259 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-combat/d20_combat.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-combat",
       "install": "batteries.install_many",
-      "tests_file": "test/d20/d20_combat_test.pl"
+      "tests_file": "test/d20/d20_combat_test.pl",
+      "inputs": [
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "hp",
+          "type": "integer",
+          "presence": "key",
+          "note": "Current hit points; at 0 or below the creature is defeated, and without them it never is."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "hp_max",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Hit point maximum, the bar for instant death; without it there is none."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "ac",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Stated armor class that overrides the derived one."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "armor_base_ac",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Armor base for derived AC; without it the base is 10 and dex always adds."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "no_dex_to_ac",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true stops dex adding to armor_base_ac (heavy armor)."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "shield",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true adds 2 to derived AC."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "initiative",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Rolled initiative; without it the dex modifier orders the creature."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "damage_type",
+          "type": "atom",
+          "presence": {
+            "default": "bludgeoning"
+          },
+          "note": "Damage type the creature deals, matched against the target's damage flags."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "damage_bonus",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Stated flat damage bonus that overrides the ability modifier."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "damage_ability",
+          "type": {
+            "enum": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ]
+          },
+          "presence": "optional",
+          "note": "Ability whose modifier adds to damage; absent, str or the finesse best of str and dex."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "finesse_attack",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true makes damage use the better of the str and dex modifiers."
+        },
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "adjacent_to",
+          "type": {
+            "ref": "creature"
+          },
+          "presence": "optional",
+          "note": "Within reach of the target: a prone target gives advantage, otherwise disadvantage."
+        },
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "can_see",
+          "type": {
+            "ref": "creature"
+          },
+          "presence": "optional",
+          "note": "Sees the target; a frightened attacker that does has disadvantage."
+        },
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "flanking",
+          "type": {
+            "ref": "creature"
+          },
+          "presence": "optional",
+          "note": "Flanks the target, for advantage."
+        },
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "has_high_ground_vs",
+          "type": {
+            "ref": "creature"
+          },
+          "presence": "optional",
+          "note": "Holds high ground over the target, for advantage."
+        },
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "has_cover_vs",
+          "type": {
+            "ref": "creature"
+          },
+          "presence": "optional",
+          "note": "Cover stands between this attacker and the target, so the attacker has disadvantage."
+        },
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "out_of_range",
+          "type": {
+            "ref": "creature"
+          },
+          "presence": "optional",
+          "note": "The target is out of range, so the attacker cannot attack it."
+        }
+      ],
+      "reads": {
+        "hits_ac/3": [
+          "attribute(ac)",
+          "attribute(armor_base_ac)",
+          "attribute(no_dex_to_ac)",
+          "attribute(shield)"
+        ],
+        "hits_ac/4": [
+          "attribute(ac)",
+          "attribute(armor_base_ac)",
+          "attribute(no_dex_to_ac)",
+          "attribute(shield)"
+        ],
+        "d20_damage/4": [
+          "attribute(ac)",
+          "attribute(armor_base_ac)",
+          "attribute(damage_ability)",
+          "attribute(damage_bonus)",
+          "attribute(damage_type)",
+          "attribute(finesse_attack)",
+          "attribute(hp)",
+          "attribute(hp_max)",
+          "attribute(initiative)",
+          "attribute(no_dex_to_ac)",
+          "attribute(shield)"
+        ],
+        "d20_crit_damage/4": [
+          "attribute(ac)",
+          "attribute(armor_base_ac)",
+          "attribute(damage_ability)",
+          "attribute(damage_bonus)",
+          "attribute(damage_type)",
+          "attribute(finesse_attack)",
+          "attribute(hp)",
+          "attribute(hp_max)",
+          "attribute(initiative)",
+          "attribute(no_dex_to_ac)",
+          "attribute(shield)"
+        ],
+        "d20_is_defeated/1": [
+          "attribute(hp)"
+        ],
+        "d20_initiative_order/2": [
+          "attribute(initiative)"
+        ],
+        "d20_resistance/3": [
+          "attribute(ac)",
+          "attribute(armor_base_ac)",
+          "attribute(damage_ability)",
+          "attribute(damage_bonus)",
+          "attribute(damage_type)",
+          "attribute(finesse_attack)",
+          "attribute(hp)",
+          "attribute(hp_max)",
+          "attribute(initiative)",
+          "attribute(no_dex_to_ac)",
+          "attribute(shield)"
+        ],
+        "d20_damage_category/2": [],
+        "advantage_on_attack/2": [
+          "relation(adjacent_to)",
+          "relation(flanking)",
+          "relation(has_high_ground_vs)"
+        ],
+        "disadvantage_on_attack/2": [
+          "relation(adjacent_to)",
+          "relation(can_see)",
+          "relation(has_cover_vs)"
+        ],
+        "d20_can_attack/2": [
+          "attribute(hp)",
+          "relation(out_of_range)"
+        ],
+        "d20_attack_roll_mode/3": [
+          "relation(adjacent_to)",
+          "relation(can_see)",
+          "relation(flanking)",
+          "relation(has_cover_vs)",
+          "relation(has_high_ground_vs)"
+        ],
+        "d20_death_save/2": [],
+        "d20_instant_death/2": [
+          "attribute(hp_max)"
+        ]
+      }
     },
     {
       "id": "d20-conditions",
@@ -108,7 +598,69 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-conditions/d20_conditions.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-conditions",
       "install": "batteries.install_many",
-      "tests_file": "test/d20/d20_conditions_test.pl"
+      "tests_file": "test/d20/d20_conditions_test.pl",
+      "inputs": [
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "condition",
+          "type": {
+            "enum": [
+              "blinded",
+              "charmed",
+              "deafened",
+              "exhaustion",
+              "frightened",
+              "grappled",
+              "incapacitated",
+              "invisible",
+              "paralyzed",
+              "petrified",
+              "poisoned",
+              "prone",
+              "restrained",
+              "stunned",
+              "unconscious"
+            ]
+          },
+          "presence": "key",
+          "note": "One fact per active SRD condition; any other name is active but has no effect."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "exhaustion",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Exhaustion level 1 to 6; each level carries the effects of the levels below it."
+        }
+      ],
+      "reads": {
+        "d20_condition_active/2": [
+          "attribute(condition)"
+        ],
+        "condition_effect/3": [],
+        "exhaustion_level/2": [
+          "attribute(exhaustion)"
+        ],
+        "active_exhaustion_effect/3": [
+          "attribute(exhaustion)"
+        ],
+        "condition_blocks_action/1": [
+          "attribute(condition)"
+        ],
+        "condition_blocks_reaction/1": [
+          "attribute(condition)"
+        ],
+        "condition_grants_advantage_on_attack/2": [
+          "attribute(condition)"
+        ],
+        "condition_imposes_disadvantage_on_attack/2": [
+          "attribute(condition)"
+        ]
+      }
     },
     {
       "id": "d20-monsters",
@@ -139,7 +691,134 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-monsters/d20_monsters.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-monsters",
       "install": "batteries.install_many",
-      "tests_file": "test/d20/d20_monsters_test.pl"
+      "tests_file": "test/d20/d20_monsters_test.pl",
+      "inputs": [
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "cr",
+          "type": {
+            "enum": [
+              0,
+              "1/8",
+              "1/4",
+              "1/2",
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
+            ]
+          },
+          "presence": "key",
+          "note": "Challenge rating: an integer, or a quoted fraction atom below 1."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "monster_type",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Creature type such as humanoid, undead or beast."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "xp",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Base XP award for defeating the monster."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "srd",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true marks a built-in SRD stat block rather than one the caller asserted."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "attack_bonus",
+          "type": "integer",
+          "presence": "optional",
+          "note": "To-hit bonus of the primary attack; without it there is no attack profile."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "damage_dice",
+          "type": "atom",
+          "presence": "optional",
+          "note": "Damage dice of the primary attack, such as '1d6'; without them there is no attack profile."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "damage_bonus",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Flat damage of the primary attack; without it there is no attack profile."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "damage_type",
+          "type": "atom",
+          "presence": {
+            "default": "bludgeoning"
+          },
+          "note": "Damage type of the primary attack."
+        }
+      ],
+      "reads": {
+        "monster_cr/2": [
+          "attribute(cr)"
+        ],
+        "monster_type/2": [
+          "attribute(monster_type)"
+        ],
+        "monster_xp/2": [
+          "attribute(xp)"
+        ],
+        "srd_monster/1": [
+          "attribute(srd)"
+        ],
+        "d20_monster_attack/5": [
+          "attribute(attack_bonus)",
+          "attribute(damage_bonus)",
+          "attribute(damage_dice)",
+          "attribute(damage_type)"
+        ]
+      }
     },
     {
       "id": "d20-xp",
@@ -170,7 +849,27 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-xp/d20_xp.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-xp",
       "install": "batteries.install_many",
-      "tests_file": "test/d20/d20_xp_test.pl"
+      "tests_file": "test/d20/d20_xp_test.pl",
+      "inputs": [
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "xp",
+          "type": "integer",
+          "presence": "key",
+          "note": "Base XP award; a named monster without one makes the encounter query fail."
+        }
+      ],
+      "reads": {
+        "xp_for_cr/2": [],
+        "encounter_threshold/3": [],
+        "xp_multiplier/2": [],
+        "adjusted_xp/3": [],
+        "encounter_difficulty/4": [],
+        "party_encounter_difficulty/4": [
+          "attribute(xp)"
+        ]
+      }
     },
     {
       "id": "d20-grid",
@@ -248,7 +947,213 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/d20/d20-spells/d20_spells.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/d20/d20-spells",
       "install": "batteries.install_many",
-      "tests_file": "test/d20/d20_spells_test.pl"
+      "tests_file": "test/d20/d20_spells_test.pl",
+      "inputs": [
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "knows_spell",
+          "type": "atom",
+          "presence": "key",
+          "note": "A grimoire spell the creature knows; the only route for cantrips."
+        },
+        {
+          "role": "creature",
+          "kind": "relation",
+          "name": "prepared_spell",
+          "type": "atom",
+          "presence": "key",
+          "note": "A grimoire spell prepared today, which a preparing caster needs for a levelled spell."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "prepares_spells",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true makes levelled spells known only while prepared, not merely known."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l1",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Level 1 spell slots in total; without it the creature has none."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l2",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Level 2 spell slots in total; without it the creature has none."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l3",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Level 3 spell slots in total; without it the creature has none."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l4",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Level 4 spell slots in total; without it the creature has none."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l5",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Level 5 spell slots in total; without it the creature has none."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l1_used",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Level 1 spell slots already spent."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l2_used",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Level 2 spell slots already spent."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l3_used",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Level 3 spell slots already spent."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l4_used",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Level 4 spell slots already spent."
+        },
+        {
+          "role": "creature",
+          "kind": "attribute",
+          "name": "slots_l5_used",
+          "type": "integer",
+          "presence": {
+            "default": 0
+          },
+          "note": "Level 5 spell slots already spent."
+        }
+      ],
+      "reads": {
+        "d20_spell/3": [],
+        "spell_range/2": [],
+        "spell_cast_action/2": [],
+        "spell_save/3": [],
+        "spell_attack_roll/1": [],
+        "spell_concentration/1": [],
+        "spell_damage_type/2": [],
+        "spell_known/2": [
+          "attribute(prepares_spells)",
+          "relation(knows_spell)",
+          "relation(prepared_spell)"
+        ],
+        "spell_castable/2": [
+          "attribute(prepares_spells)",
+          "attribute(slots_l1)",
+          "attribute(slots_l1_used)",
+          "attribute(slots_l2)",
+          "attribute(slots_l2_used)",
+          "attribute(slots_l3)",
+          "attribute(slots_l3_used)",
+          "attribute(slots_l4)",
+          "attribute(slots_l4_used)",
+          "attribute(slots_l5)",
+          "attribute(slots_l5_used)",
+          "relation(knows_spell)",
+          "relation(prepared_spell)"
+        ],
+        "spell_slots_total/3": [
+          "attribute(prepares_spells)",
+          "attribute(slots_l1)",
+          "attribute(slots_l1_used)",
+          "attribute(slots_l2)",
+          "attribute(slots_l2_used)",
+          "attribute(slots_l3)",
+          "attribute(slots_l3_used)",
+          "attribute(slots_l4)",
+          "attribute(slots_l4_used)",
+          "attribute(slots_l5)",
+          "attribute(slots_l5_used)"
+        ],
+        "spell_slots_expended/3": [
+          "attribute(prepares_spells)",
+          "attribute(slots_l1)",
+          "attribute(slots_l1_used)",
+          "attribute(slots_l2)",
+          "attribute(slots_l2_used)",
+          "attribute(slots_l3)",
+          "attribute(slots_l3_used)",
+          "attribute(slots_l4)",
+          "attribute(slots_l4_used)",
+          "attribute(slots_l5)",
+          "attribute(slots_l5_used)"
+        ],
+        "spell_slot_available/2": [
+          "attribute(prepares_spells)",
+          "attribute(slots_l1)",
+          "attribute(slots_l1_used)",
+          "attribute(slots_l2)",
+          "attribute(slots_l2_used)",
+          "attribute(slots_l3)",
+          "attribute(slots_l3_used)",
+          "attribute(slots_l4)",
+          "attribute(slots_l4_used)",
+          "attribute(slots_l5)",
+          "attribute(slots_l5_used)"
+        ],
+        "d20_can_cast/3": [
+          "attribute(prepares_spells)",
+          "attribute(slots_l1)",
+          "attribute(slots_l1_used)",
+          "attribute(slots_l2)",
+          "attribute(slots_l2_used)",
+          "attribute(slots_l3)",
+          "attribute(slots_l3_used)",
+          "attribute(slots_l4)",
+          "attribute(slots_l4_used)",
+          "attribute(slots_l5)",
+          "attribute(slots_l5_used)",
+          "relation(knows_spell)",
+          "relation(prepared_spell)"
+        ],
+        "spell_effective_dice/5": [],
+        "spell_heal_profile/4": [],
+        "d20_spell_save/5": [],
+        "d20_concentration_dc/2": [],
+        "d20_concentration_check/4": []
+      }
     }
   ]
 }

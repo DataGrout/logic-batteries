@@ -10,6 +10,42 @@ battery_export(dialogue, 'choice_leads_to/3',  'choice_leads_to(Topic, Choice, N
 battery_export(dialogue, 'npc_remembers/3',    'npc_remembers(NPC, Player, Topic) — NPC has previously discussed Topic with Player').
 battery_export(dialogue, 'dialogue_complete/3','dialogue_complete(NPC, Player, Topic) — Topic has been fully exhausted (no further choices)').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A topic carries
+%% lines and choices, a choice its gates and where it leads. Conversation
+%% memory sits on a composite subject named `<npc>_<player>`, the same shape
+%% npc-state keys its scores on.
+
+battery_input(dialogue, topic, attribute(line), atom, key,
+    'The base line the NPC says on this topic; absent, npc_says gives an empty line.').
+battery_input(dialogue, topic, relation(has_choice), ref(choice), key,
+    'A reply the player may pick on this topic; one fact per choice.').
+battery_input(dialogue, topic, attribute(line_friendly), atom, optional,
+    'Said instead of line when the NPC is always_friendly.').
+battery_input(dialogue, topic, attribute(line_hostile), atom, optional,
+    'Said instead of line when the NPC is always_hostile and not always_friendly.').
+battery_input(dialogue, topic, attribute(line_repeat), atom, optional,
+    'Said instead of line when the NPC has discussed this topic with the player before.').
+battery_input(dialogue, choice, attribute(leads_to), ref(topic), key,
+    'The topic picking this choice moves to.').
+battery_input(dialogue, choice, attribute(ends_dialogue), bool, default(false),
+    'true makes the choice an exit: it is left out of player_choices and does not keep a topic open.').
+battery_input(dialogue, choice, attribute(requires_gold), number, optional,
+    'Gold the player must hold for the choice to be offered.').
+battery_input(dialogue, choice, attribute(requires_item), atom, optional,
+    'An item the player must have for the choice to be offered.').
+battery_input(dialogue, npc, attribute(always_friendly), bool, key,
+    'true makes the NPC use a topic''s line_friendly; absent reads as false.').
+battery_input(dialogue, npc, attribute(always_hostile), bool, key,
+    'true makes the NPC use a topic''s line_hostile; absent reads as false.').
+battery_input(dialogue, player, attribute(gold), number, key,
+    'Gold the player holds; without it every gold-gated choice is withheld.').
+battery_input(dialogue, player, relation(has_item), atom, key,
+    'An item the player holds, matched against a choice''s requires_item.').
+battery_input(dialogue, npc_player, relation(discussed), ref(topic), key,
+    'A topic this NPC has discussed with this player, on the subject <npc>_<player>.').
+
 %% ── Dialogue Data Model ───────────────────────────────────────────────────────
 %%
 %% Dialogue lines (NPC's words):
@@ -39,9 +75,10 @@ battery_export(dialogue, 'dialogue_complete/3','dialogue_complete(NPC, Player, T
 %% ── npc_says/4 ───────────────────────────────────────────────────────────────
 
 npc_says(NPC, Player, Topic, Line) :-
-    ( npc_says_contextual(NPC, Player, Topic, Line) -> true
-    ; attribute(Topic, line, Line) -> true
-    ; Line = "" ).
+    ( npc_says_contextual(NPC, Player, Topic, Line0) -> true
+    ; attribute(Topic, line, Line0) -> true
+    ; Line0 = "" ),
+    Line = Line0.
 
 npc_says_contextual(NPC, _Player, Topic, Line) :-
     attribute(NPC, always_friendly, true),

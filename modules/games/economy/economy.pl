@@ -9,6 +9,26 @@ battery_export(economy, 'buy_price/2',          'buy_price(Item, Price) — Pric
 battery_export(economy, 'sell_price/2',         'sell_price(Item, Price) — Price a vendor pays for Item').
 battery_export(economy, 'missing_materials/3',  'missing_materials(Player, Item, Missing) — Missing is a list of {material, need, have} maps for shortfalls').
 
+%% Input contract (CONTRIBUTING, "Input contract"). Quantities are
+%% <material>_qty attributes, whose names vary with the material, so they
+%% cannot be listed here: on an item it is how many of that material the
+%% recipe needs (default 1), on a player how many it holds (when absent, one
+%% per has_material fact).
+battery_input(economy, item, attribute(base_price), number, key,
+    'Vendor price before supply and demand; an item without one has no buy or sell price.').
+battery_input(economy, item, relation(requires), ref(item), key,
+    'A material in the item''s recipe; quantity in <material>_qty, default 1.').
+battery_input(economy, item, attribute(supply_factor), number, default(1.0),
+    'Multiplier on base_price for supply; below 1 when the item is abundant.').
+battery_input(economy, item, attribute(demand_factor), number, default(1.0),
+    'Multiplier on base_price for demand; above 1 when the item is sought after.').
+battery_input(economy, item, attribute(recipe_gold_cost), number, optional,
+    'A flat craft cost that replaces the sum of the material prices.').
+battery_input(economy, player, relation(has_material), ref(item), key,
+    'One unit of a material the player holds; a <material>_qty attribute on the player overrides the count.').
+battery_input(economy, fixed(economy), attribute(sell_ratio), number, default(0.5),
+    'Fraction of the buy price a vendor pays.').
+
 %% ── Crafting Recipes ─────────────────────────────────────────────────────────
 %%
 %% Assert one relation per ingredient:

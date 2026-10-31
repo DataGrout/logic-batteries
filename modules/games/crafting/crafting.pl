@@ -10,6 +10,30 @@ battery_export(crafting, 'crafting_skill/3',       'crafting_skill(Player, Skill
 battery_export(crafting, 'skill_requirement/3',    'skill_requirement(Item, Skill, Level) — Item requires Skill at minimum Level to craft').
 battery_export(crafting, 'recipe_discoverable/2',  'recipe_discoverable(Player, Recipe) — Player meets the discovery conditions for Recipe').
 
+%% Input contract (CONTRIBUTING, "Input contract"). A recipe is named by the
+%% item it makes. A player's skill level sits on the composite subject
+%% <player>_<skill>. An item's minimum skill is a requires_<skill> attribute
+%% whose name varies with the skill, so it cannot be listed here: the rules
+%% read every requires_* attribute on the item as a skill requirement.
+battery_input(crafting, player, relation(knows_recipe), ref(recipe), key,
+    'A recipe the player was taught or bought.').
+battery_input(crafting, player, attribute(level), integer, optional,
+    'The player''s level, for discover_on_level; absent, no level discovery applies.').
+battery_input(crafting, player, relation(completed_quest), atom, optional,
+    'A quest the player has completed, for discover_on_quest.').
+battery_input(crafting, player, relation(has_item), atom, optional,
+    'An item the player holds, for discover_on_item.').
+battery_input(crafting, recipe, attribute(starter_recipe), bool, key,
+    'true when every player knows the recipe.').
+battery_input(crafting, recipe, attribute(discover_on_level), integer, key,
+    'A player at this level or above discovers the recipe.').
+battery_input(crafting, recipe, attribute(discover_on_quest), atom, key,
+    'A player who completed this quest (completed_quest) discovers the recipe.').
+battery_input(crafting, recipe, attribute(discover_on_item), atom, key,
+    'A player holding this item (has_item) discovers the recipe.').
+battery_input(crafting, player_skill, attribute(level), integer, key,
+    'The player''s level in the skill, on the subject <player>_<skill>; absent reads as 0.').
+
 %% ── Crafting Data Model ───────────────────────────────────────────────────────
 %%
 %% Recipe knowledge (directly taught or purchased):

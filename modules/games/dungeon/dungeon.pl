@@ -11,6 +11,22 @@ battery_export(dungeon, 'dungeon_path/3',    'dungeon_path(Player, From, Path) �
 battery_export(dungeon, 'room_cleared/2',    'room_cleared(Player, Room) — Player has visited and cleared Room').
 battery_export(dungeon, 'dungeon_complete/2','dungeon_complete(Player, Dungeon) — Player has cleared all rooms in Dungeon').
 
+%% Input contract (CONTRIBUTING, "Input contract"). Per-dungeon clearance sits
+%% on the composite subject <player>_<dungeon>; the literal <player>_dungeon
+%% and the player's own cleared_room are per-player and count in every dungeon.
+battery_input(dungeon, room, relation(connects_to), ref(room), key,
+    'A directed passage to another room; assert both directions for a two-way one.').
+battery_input(dungeon, room, attribute(requires_key), atom, key,
+    'The item a player must hold to enter; absent, the room is unlocked.').
+battery_input(dungeon, dungeon, relation(has_room), ref(room), key,
+    'A room that must be cleared to complete the dungeon.').
+battery_input(dungeon, player, relation(has_item), atom, key,
+    'An item the player holds, checked against requires_key.').
+battery_input(dungeon, player, relation(cleared_room), ref(room), key,
+    'A room the player has cleared, in whichever dungeon has it.').
+battery_input(dungeon, player_dungeon, relation(cleared), ref(room), key,
+    'A room cleared, on <player>_<dungeon> for that dungeon only, or on <player>_dungeon for every dungeon.').
+
 %% ── Dungeon Data Model ────────────────────────────────────────────────────────
 %%
 %% Room connections (directed — assert both for bidirectional):

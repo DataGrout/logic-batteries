@@ -17,6 +17,15 @@ battery_export('d20-xp', 'adjusted_xp/3',               'adjusted_xp(XPList, Adj
 battery_export('d20-xp', 'encounter_difficulty/4',       'encounter_difficulty(PartyLevel, PartySize, XPList, Difficulty) — trivial/easy/medium/hard/deadly').
 battery_export('d20-xp', 'party_encounter_difficulty/4', 'party_encounter_difficulty(Level, Size, MonsterNames, Difficulty) — requires d20-monsters').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Only
+%% party_encounter_difficulty/4 reads facts: each monster named in its list
+%% is a creature with a base XP award. The tables are built in.
+
+battery_input('d20-xp', creature, attribute(xp), integer, key,
+    'Base XP award; a named monster without one makes the encounter query fail.').
+
 %% ── XP by CR ─────────────────────────────────────────────────────────────────
 %% SRD 5.1 Table: Experience Points by Challenge Rating.
 %% Fractional CRs are atoms: '1/8', '1/4', '1/2'.

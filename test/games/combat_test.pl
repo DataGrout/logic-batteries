@@ -287,3 +287,21 @@ test(single_combatant, [setup(setup_alice_speed5), cleanup(clear_facts)]) :-
     assertion(Ordered == [alice]).
 
 :- end_tests(combat_turn_order).
+
+%% ── resistance/3 with the factor bound ──────────────────────────────────────
+
+:- begin_tests(combat_resistance_bound).
+
+test(bound_neutral_factor_fails_for_a_resistant_target, [setup(setup_goblin_fire_resistant), cleanup(clear_facts)]) :-
+    %% resist_fire 0.5 is the answer; the 1.0 fallback must not also hold
+    assertion(\+ resistance(goblin, fire, 1.0)),
+    assertion(resistance(goblin, fire, 0.5)).
+
+test(bound_chart_factor_fails_under_an_explicit_resist, [
+        setup((setup_fire_strong_against_ice,
+               setup_goblin_ice_element,
+               setup_goblin_fire_resistant)),
+        cleanup(clear_facts)]) :-
+    assertion(\+ resistance(goblin, fire, 2.0)).
+
+:- end_tests(combat_resistance_bound).

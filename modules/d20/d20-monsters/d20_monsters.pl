@@ -19,6 +19,31 @@ battery_export('d20-monsters', 'monster_xp/2',   'monster_xp(Name, XP) — base 
 battery_export('d20-monsters', 'srd_monster/1',  'srd_monster(Name) — true for SRD stat blocks (vs custom assertions)').
 battery_export('d20-monsters', 'd20_monster_attack/5', 'd20_monster_attack(Name, AttackBonus, DamageDice, DamageBonus, DamageType) — primary attack profile; the client rolls DamageDice').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A creature is a
+%% monster when it has a challenge rating. The sixteen SRD stat blocks below
+%% supply these facts and more (hp, ac, speed, ability scores, damage flags)
+%% for d20-core and d20-combat to read; only the eight here are read by this
+%% battery's own rules, and a custom monster needs the same shape.
+
+battery_input('d20-monsters', creature, attribute(cr), enum([0, '1/8', '1/4', '1/2', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]), key,
+    'Challenge rating: an integer, or a quoted fraction atom below 1.').
+battery_input('d20-monsters', creature, attribute(monster_type), atom, optional,
+    'Creature type such as humanoid, undead or beast.').
+battery_input('d20-monsters', creature, attribute(xp), integer, optional,
+    'Base XP award for defeating the monster.').
+battery_input('d20-monsters', creature, attribute(srd), bool, default(false),
+    'true marks a built-in SRD stat block rather than one the caller asserted.').
+battery_input('d20-monsters', creature, attribute(attack_bonus), integer, optional,
+    'To-hit bonus of the primary attack; without it there is no attack profile.').
+battery_input('d20-monsters', creature, attribute(damage_dice), atom, optional,
+    'Damage dice of the primary attack, such as ''1d6''; without them there is no attack profile.').
+battery_input('d20-monsters', creature, attribute(damage_bonus), integer, optional,
+    'Flat damage of the primary attack; without it there is no attack profile.').
+battery_input('d20-monsters', creature, attribute(damage_type), atom, default(bludgeoning),
+    'Damage type of the primary attack.').
+
 monster_cr(Name, CR)   :- attribute(Name, cr, CR).
 monster_type(Name, T)  :- attribute(Name, monster_type, T).
 monster_xp(Name, XP)   :- attribute(Name, xp, XP).

@@ -30,6 +30,24 @@ battery_export(temporal, 'latest_event/2',
 battery_export(temporal, 'earliest_event/2',
     'earliest_event(Events, Earliest) — Earliest has the lowest timestamp in Events').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). The battery never
+%% converts a time: it compares numbers, against each other and against the
+%% Now, Window, Start and End the caller passes, so every value must be on one
+%% scale. A day count from 1970-01-01 (CONTRIBUTING, "Dates") works, as do unix
+%% seconds; a YYYYMMDD integer or an ISO date does not. Hence `number`, not
+%% `days` or `date`. One subject may be an event, an interval and a task at once.
+
+battery_input(temporal, event, attribute(timestamp), number, key,
+    'When the point event happened, on the caller''s one time scale.').
+battery_input(temporal, interval, attribute(start), number, key,
+    'When the interval begins, for event_concurrent and gap_between.').
+battery_input(temporal, interval, attribute(end), number, required,
+    'When the interval ends; without it the interval overlaps nothing and has no gap.').
+battery_input(temporal, task, attribute(deadline), number, key,
+    'When the task is due, compared with the Now the caller passes.').
+
 %% ── Ordering ─────────────────────────────────────────────────────────────────
 %% Assert timestamps as: { type="attribute", entity="event_a", attribute="timestamp", value=1700000000 }
 

@@ -44,6 +44,11 @@ test(rep_from_attribute, [setup(setup_alice_friendly_traders), cleanup(clear_fac
 test(rep_defaults_to_zero, [cleanup(clear_facts)]) :-
     faction_reputation(alice, traders_guild, R), assertion(R == 0).
 
+%% Bound, the score is compared, not skipped for the 0 default.
+test(bound_rep_checks_the_score, [setup(setup_alice_friendly_traders), cleanup(clear_facts)]) :-
+    assertion(faction_reputation(alice, traders_guild, 5000)),
+    assertion(\+ faction_reputation(alice, traders_guild, 0)).
+
 :- end_tests(faction_reputation).
 
 %% ── faction_standing/3 ───────────────────────────────────────────────────────
@@ -61,6 +66,17 @@ test(hostile_standing, [setup(setup_alice_hostile_bandits), cleanup(clear_facts)
 
 test(zero_rep_is_neutral, [setup(setup_alice_zero_rep), cleanup(clear_facts)]) :-
     faction_standing(alice, traders_guild, S), assertion(S == neutral).
+
+%% Bound, only the player's own tier holds: an exalted player used to read as
+%% revered, honored, friendly and neutral too, and a hostile one as unfriendly.
+test(bound_standing_is_the_one_tier, [setup(setup_alice_exalted_traders), cleanup(clear_facts)]) :-
+    assertion(faction_standing(alice, traders_guild, exalted)),
+    assertion(\+ faction_standing(alice, traders_guild, friendly)),
+    assertion(\+ faction_standing(alice, traders_guild, neutral)).
+
+test(bound_hostile_is_not_unfriendly, [setup(setup_alice_hostile_bandits), cleanup(clear_facts)]) :-
+    assertion(faction_standing(alice, bandits, hostile)),
+    assertion(\+ faction_standing(alice, bandits, unfriendly)).
 
 :- end_tests(faction_standing).
 

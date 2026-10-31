@@ -16,6 +16,24 @@ battery_export('prob-npc', 'npc_price_modifier/3',
 battery_export('prob-npc', 'disposition_probability/3',
     'disposition_probability(NPC, Player, P) — P is overall probability NPC responds positively to Player').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Standing and
+%% relationship come from the `faction` and `npc-state` batteries, which read
+%% their own facts; this battery reads only the npc's faction, what it knows or
+%% can help with, and how guarded those topics and tasks are.
+
+battery_input('prob-npc', npc, attribute(faction), atom, key,
+    'The npc''s faction: trust starts from the player''s standing with it, or 0.35 without one.').
+battery_input('prob-npc', npc, relation(knows_topic), ref(topic), key,
+    'A topic the npc can share at all.').
+battery_input('prob-npc', npc, relation(can_assist), ref(task), key,
+    'A task the npc can help with at all.').
+battery_input('prob-npc', topic, attribute(sensitivity), enum([low, medium, high, secret]), key,
+    'How guarded the topic is: each step lowers the sharing weight and from medium up needs a closer relationship; none is the most open.').
+battery_input('prob-npc', task, attribute(assistance_cost), enum([low, medium, high]), key,
+    'What the favour costs the npc: each step lowers the assist weight and from medium up needs a closer relationship; none is the cheapest.').
+
 %% ── Trust probability by faction standing ─────────────────────────────────
 %% Requires faction battery (faction_standing/3) and npc-state battery.
 %%

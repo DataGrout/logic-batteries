@@ -2,6 +2,45 @@
 
 ## 2026-10-30
 
+### Input contracts for 25 more batteries
+
+Every battery that reads facts now declares them: d20-core, d20-conditions,
+d20-combat, d20-spells, d20-monsters, d20-xp; progression, dialogue,
+ai-director, npc-state, combat, puzzle-fsm, quests, faction, loot-tables,
+crafting, inventory, economy, dungeon, world; prob-detection, prob-economy,
+prob-npc, prob-loot; temporal. 42 of 48 batteries have one; the other six
+(core, explain, fixpoint, prob-core-iso, prob-decide, d20-grid) read no facts.
+Families share role names (`creature` across d20; `player`, `npc`, `item`,
+`fixed(world)` across games and probabilistic). Names built at query time
+(`skill_<skill>`, `immune_<type>`, `<material>_qty`) are described in each
+contract's header comment, since a contract cannot declare a pattern.
+
+Answers the contracts pass turned up wrong, each fixed with a test that fails
+before the fix:
+- progression: `unlock_available/2` listed only the first unlock;
+  `stat_at_level/3` with the value bound fell through a level override to the
+  formula; `player_level/2` with the level bound fell through an explicit level.
+- dialogue: `npc_says/4` with the line bound fell through to the base line.
+- combat: `resistance/3` with the factor bound fell through to the type chart.
+- faction: with the tier bound, `faction_standing/3` matched every tier the
+  score cleared, and `faction_reputation/3` its 0 fallback.
+- loot-tables: `loot_chance/3` with the chance bound also matched the rarity
+  tier's chance.
+- quests: `quest_blocked_by/3` gave no reason when a player with no level
+  failed a `requires_level` gate.
+- d20-combat: a petrified creature could attack, and attacks against a
+  restrained or petrified target got no advantage.
+
+### Contract checker
+
+`check_inputs.py` reads lookups from rule bodies only, so facts a battery ships
+as data (d20-monsters' stat blocks) are not counted as reads, and a lookup whose
+name is a variable lets the contract declare names the code never spells out
+(d20-core reads `con` when a Constitution save asks for it). In `reads`, such a
+lookup reaches every declared fact of its kind, which widens five existing
+batteries' entries: over-reporting what a question can reach is safe, missing
+it was not.
+
 ### Registry
 
 Each battery with an input contract now carries `reads`: for every exported

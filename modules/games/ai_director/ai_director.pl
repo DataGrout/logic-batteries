@@ -10,6 +10,42 @@ battery_export(ai_director, 'pacing_state/2',      'pacing_state(Zone, State) �
 battery_export(ai_director, 'threat_level/2',      'threat_level(Zone, Level) — current threat score for Zone').
 battery_export(ai_director, 'director_event/2',    'director_event(Zone, Event) — Event is triggered by the director given current state').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Thresholds,
+%% modifiers and events are global, on the fixed subject `director`. The event
+%% for each pacing state is an attribute named `<state>_event` (peak_event,
+%% tense_event, building_event, calm_event, recovery_event), built from the
+%% state at query time, so it cannot be declared here; absent, that state
+%% triggers no event.
+
+battery_input(ai_director, zone, attribute(threat), number, key,
+    'The zone''s current threat score (0-100 by convention); a zone named only by spawn_zone reads as 0.').
+battery_input(ai_director, enemy, attribute(spawn_zone), ref(zone), key,
+    'A zone the enemy may spawn in; one fact per zone, and an enemy with none may spawn in any zone.').
+battery_input(ai_director, enemy, attribute(min_threat), number, key,
+    'The enemy spawns only where the threat is at least this.').
+battery_input(ai_director, enemy, attribute(max_threat), number, key,
+    'The enemy spawns only where the threat is at most this.').
+battery_input(ai_director, fixed(director), attribute(peak_threshold), number, default(80),
+    'Threat at or above which a zone is at peak.').
+battery_input(ai_director, fixed(director), attribute(tense_threshold), number, default(50),
+    'Threat at or above which a zone below peak is tense.').
+battery_input(ai_director, fixed(director), attribute(building_threshold), number, default(20),
+    'Threat at or above which a zone below tense is building.').
+battery_input(ai_director, fixed(director), attribute(recovery_threshold), number, default(5),
+    'Threat below which a zone is in recovery, where nothing spawns; between this and building is calm.').
+battery_input(ai_director, fixed(director), attribute(peak_modifier), number, default(1.6),
+    'Difficulty multiplier at peak.').
+battery_input(ai_director, fixed(director), attribute(tense_modifier), number, default(1.3),
+    'Difficulty multiplier when tense.').
+battery_input(ai_director, fixed(director), attribute(building_modifier), number, default(1.0),
+    'Difficulty multiplier when building.').
+battery_input(ai_director, fixed(director), attribute(calm_modifier), number, default(0.7),
+    'Difficulty multiplier when calm.').
+battery_input(ai_director, fixed(director), attribute(recovery_modifier), number, default(0.5),
+    'Difficulty multiplier in recovery.').
+
 %% ── AI Director Data Model ────────────────────────────────────────────────────
 %%
 %% Zone threat score (updated at runtime):
