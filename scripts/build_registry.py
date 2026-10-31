@@ -20,6 +20,9 @@ Normalisation, per category file:
     its rule file, read by scripts/check_inputs.py), so a host can validate
     facts and build a schema without parsing Prolog; it is dropped when the
     battery has no contract.
+  * `reads` maps each exported predicate to the contract facts it can read
+    through the battery's own clauses (check_inputs.reads_for), so a host can
+    report only the defaults and gaps a question's predicates reach.
   * `updated_at` is bumped to today when the category's module list differs
     from what the top-level registry last recorded for it.
 """
@@ -30,7 +33,7 @@ import sys
 from datetime import date
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_inputs import inputs_for  # noqa: E402
+from check_inputs import inputs_for, reads_for  # noqa: E402
 
 ROOT = pathlib.Path(__file__).parent.parent
 MODULES_DIR = ROOT / "modules"
@@ -84,8 +87,10 @@ def normalise(cat, data, previous_modules):
         inputs = inputs_for(path) if path else []
         if inputs:
             m["inputs"] = inputs
+            m["reads"] = reads_for(path, inputs, m.get("predicates", []))
         else:
             m.pop("inputs", None)
+            m.pop("reads", None)
         tests = tests_file_for(cat, m["id"])
         if tests:
             m["tests_file"] = tests

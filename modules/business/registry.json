@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-29",
+  "updated_at": "2026-10-30",
   "category": "business",
   "modules": [
     {
@@ -238,7 +238,79 @@
           },
           "note": "Score at or above which a lead is warm; below it the lead is cold."
         }
-      ]
+      ],
+      "reads": {
+        "lead_score/2": [
+          "attribute(budget_confirmed)",
+          "attribute(budget_points)",
+          "attribute(company_size)",
+          "attribute(decision_maker)",
+          "attribute(decision_maker_points)",
+          "attribute(engagement)",
+          "attribute(enterprise_points)",
+          "attribute(high_engagement_points)",
+          "attribute(med_engagement_points)",
+          "attribute(mid_market_points)",
+          "attribute(q1_timeline_points)",
+          "attribute(q2_timeline_points)",
+          "attribute(timeline)"
+        ],
+        "lead_qualified/1": [
+          "attribute(budget_confirmed)",
+          "attribute(budget_points)",
+          "attribute(company_size)",
+          "attribute(competitor)",
+          "attribute(decision_maker)",
+          "attribute(decision_maker_points)",
+          "attribute(engagement)",
+          "attribute(enterprise_points)",
+          "attribute(high_engagement_points)",
+          "attribute(med_engagement_points)",
+          "attribute(mid_market_points)",
+          "attribute(q1_timeline_points)",
+          "attribute(q2_timeline_points)",
+          "attribute(qualified_threshold)",
+          "attribute(student)",
+          "attribute(timeline)"
+        ],
+        "lead_tier/2": [
+          "attribute(budget_confirmed)",
+          "attribute(budget_points)",
+          "attribute(company_size)",
+          "attribute(decision_maker)",
+          "attribute(decision_maker_points)",
+          "attribute(engagement)",
+          "attribute(enterprise_points)",
+          "attribute(high_engagement_points)",
+          "attribute(hot_threshold)",
+          "attribute(med_engagement_points)",
+          "attribute(mid_market_points)",
+          "attribute(q1_timeline_points)",
+          "attribute(q2_timeline_points)",
+          "attribute(timeline)",
+          "attribute(warm_threshold)"
+        ],
+        "disqualified/2": [
+          "attribute(budget_confirmed)",
+          "attribute(competitor)",
+          "attribute(student)"
+        ],
+        "scoring_factor/3": [
+          "attribute(budget_confirmed)",
+          "attribute(budget_points)",
+          "attribute(company_size)",
+          "attribute(decision_maker)",
+          "attribute(decision_maker_points)",
+          "attribute(engagement)",
+          "attribute(enterprise_points)",
+          "attribute(high_engagement_points)",
+          "attribute(med_engagement_points)",
+          "attribute(mid_market_points)",
+          "attribute(q1_timeline_points)",
+          "attribute(q2_timeline_points)",
+          "attribute(timeline)"
+        ]
+      }
     },
     {
       "id": "invoice-rules",
@@ -411,7 +483,74 @@
           },
           "note": "Days overdue at which the escalation level becomes collections."
         }
-      ]
+      ],
+      "reads": {
+        "invoice_overdue/1": [
+          "attribute(absolute_days)",
+          "attribute(day)",
+          "attribute(due_absolute_days)",
+          "attribute(due_day)",
+          "attribute(due_month)",
+          "attribute(due_year)",
+          "attribute(month)",
+          "attribute(paid)",
+          "attribute(year)"
+        ],
+        "days_overdue/2": [
+          "attribute(absolute_days)",
+          "attribute(day)",
+          "attribute(due_absolute_days)",
+          "attribute(due_day)",
+          "attribute(due_month)",
+          "attribute(due_year)",
+          "attribute(month)",
+          "attribute(paid)",
+          "attribute(year)"
+        ],
+        "late_fee/2": [
+          "attribute(absolute_days)",
+          "attribute(amount)",
+          "attribute(day)",
+          "attribute(due_absolute_days)",
+          "attribute(due_day)",
+          "attribute(due_month)",
+          "attribute(due_year)",
+          "attribute(late_fee_cap)",
+          "attribute(late_fee_flat)",
+          "attribute(late_fee_pct)",
+          "attribute(month)",
+          "attribute(paid)",
+          "attribute(year)"
+        ],
+        "escalation_level/2": [
+          "attribute(absolute_days)",
+          "attribute(collections_days)",
+          "attribute(day)",
+          "attribute(due_absolute_days)",
+          "attribute(due_day)",
+          "attribute(due_month)",
+          "attribute(due_year)",
+          "attribute(month)",
+          "attribute(paid)",
+          "attribute(warning_days)",
+          "attribute(year)"
+        ],
+        "payment_due_amount/2": [
+          "attribute(absolute_days)",
+          "attribute(amount)",
+          "attribute(day)",
+          "attribute(due_absolute_days)",
+          "attribute(due_day)",
+          "attribute(due_month)",
+          "attribute(due_year)",
+          "attribute(late_fee_cap)",
+          "attribute(late_fee_flat)",
+          "attribute(late_fee_pct)",
+          "attribute(month)",
+          "attribute(paid)",
+          "attribute(year)"
+        ]
+      }
     },
     {
       "id": "approval-chains",
@@ -532,7 +671,56 @@
           "presence": "key",
           "note": "Someone whose approval counts as this approver's."
         }
-      ]
+      ],
+      "reads": {
+        "approval_required/2": [
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(request)",
+          "attribute(step)",
+          "attribute(threshold)"
+        ],
+        "approval_granted/2": [
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(request)",
+          "attribute(step)",
+          "attribute(threshold)",
+          "relation(approved_by)",
+          "relation(delegated_to)"
+        ],
+        "fully_approved/1": [
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(request)",
+          "attribute(step)",
+          "attribute(threshold)",
+          "relation(approved_by)",
+          "relation(delegated_to)",
+          "relation(rejected_by)"
+        ],
+        "next_approver/2": [
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(request)",
+          "attribute(step)",
+          "attribute(threshold)",
+          "relation(approved_by)",
+          "relation(delegated_to)",
+          "relation(rejected_by)"
+        ],
+        "approval_blocked/2": [
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(rejection_reason)",
+          "attribute(request)",
+          "attribute(step)",
+          "attribute(threshold)",
+          "relation(approved_by)",
+          "relation(delegated_to)",
+          "relation(rejected_by)"
+        ]
+      }
     },
     {
       "id": "inventory-mgmt",
@@ -625,7 +813,32 @@
           "presence": "key",
           "note": "true marks the supplier preferred_supplier returns ahead of the item's others."
         }
-      ]
+      ],
+      "reads": {
+        "needs_reorder/1": [
+          "attribute(critical_threshold)",
+          "attribute(reorder_threshold)",
+          "attribute(stock)"
+        ],
+        "reorder_quantity/2": [
+          "attribute(max_stock)",
+          "attribute(reorder_quantity)",
+          "attribute(stock)"
+        ],
+        "stock_level/2": [
+          "attribute(critical_threshold)",
+          "attribute(reorder_threshold)",
+          "attribute(stock)"
+        ],
+        "preferred_supplier/2": [
+          "attribute(preferred)",
+          "relation(supplied_by)"
+        ],
+        "days_of_stock/2": [
+          "attribute(daily_usage)",
+          "attribute(stock)"
+        ]
+      }
     },
     {
       "id": "pricing-rules",
@@ -754,7 +967,39 @@
           },
           "note": "Multiplier on the base price for VIPs (0.8 is 20% off)."
         }
-      ]
+      ],
+      "reads": {
+        "effective_price/3": [
+          "attribute(base_price)",
+          "attribute(flat_off)",
+          "attribute(member_multiplier)",
+          "attribute(pct_off)",
+          "attribute(pricing_tier)",
+          "attribute(requires_tier)",
+          "attribute(vip_multiplier)",
+          "relation(has_discount)"
+        ],
+        "discount_applicable/2": [
+          "attribute(requires_tier)",
+          "relation(has_discount)"
+        ],
+        "bulk_discount/3": [],
+        "price_tier/3": [
+          "attribute(pricing_tier)"
+        ],
+        "price_capped/3": [
+          "attribute(base_price)",
+          "attribute(flat_off)",
+          "attribute(member_multiplier)",
+          "attribute(pct_off)",
+          "attribute(price_ceil)",
+          "attribute(price_floor)",
+          "attribute(pricing_tier)",
+          "attribute(requires_tier)",
+          "attribute(vip_multiplier)",
+          "relation(has_discount)"
+        ]
+      }
     },
     {
       "id": "loyalty",
@@ -897,7 +1142,48 @@
           },
           "note": "Multiplier on a reward's points cost for silver customers; bronze always pays 1.0."
         }
-      ]
+      ],
+      "reads": {
+        "loyalty_tier/2": [
+          "attribute(gold_threshold)",
+          "attribute(lifetime_points)",
+          "attribute(platinum_threshold)",
+          "attribute(silver_threshold)"
+        ],
+        "points_balance/2": [
+          "attribute(lifetime_points)",
+          "attribute(redeemed_points)"
+        ],
+        "reward_eligible/2": [
+          "attribute(gold_redemption_multiplier)",
+          "attribute(gold_threshold)",
+          "attribute(lifetime_points)",
+          "attribute(platinum_redemption_multiplier)",
+          "attribute(platinum_threshold)",
+          "attribute(points_cost)",
+          "attribute(redeemed_points)",
+          "attribute(silver_redemption_multiplier)",
+          "attribute(silver_threshold)"
+        ],
+        "points_to_redeem/3": [
+          "attribute(gold_redemption_multiplier)",
+          "attribute(gold_threshold)",
+          "attribute(lifetime_points)",
+          "attribute(platinum_redemption_multiplier)",
+          "attribute(platinum_threshold)",
+          "attribute(points_cost)",
+          "attribute(silver_redemption_multiplier)",
+          "attribute(silver_threshold)"
+        ],
+        "tier_benefit/3": [
+          "attribute(benefit_value)",
+          "attribute(gold_threshold)",
+          "attribute(lifetime_points)",
+          "attribute(platinum_threshold)",
+          "attribute(silver_threshold)",
+          "relation(has_benefit)"
+        ]
+      }
     },
     {
       "id": "scheduling",
@@ -1014,7 +1300,45 @@
           "presence": "key",
           "note": "Today as a day count, a YYYYMMDD integer or an ISO atom, when absolute_days is absent."
         }
-      ]
+      ],
+      "reads": {
+        "slot_available/3": [
+          "attribute(date)",
+          "attribute(slot)",
+          "attribute(slots)",
+          "relation(booked_at)"
+        ],
+        "booking_conflict/3": [
+          "attribute(date)",
+          "attribute(slot)",
+          "relation(booked_at)"
+        ],
+        "can_book/4": [
+          "attribute(absolute_days)",
+          "attribute(advance_days)",
+          "attribute(date)",
+          "attribute(max_advance)",
+          "attribute(requires_role)",
+          "attribute(role)",
+          "attribute(slot)",
+          "attribute(slots)",
+          "relation(booked_at)"
+        ],
+        "next_available_slot/3": [
+          "attribute(absolute_days)",
+          "attribute(date)",
+          "attribute(max_advance)",
+          "attribute(slot)",
+          "attribute(slots)",
+          "relation(booked_at)"
+        ],
+        "resource_utilization/3": [
+          "attribute(date)",
+          "attribute(slot)",
+          "attribute(slots)",
+          "relation(booked_at)"
+        ]
+      }
     },
     {
       "id": "duty",
@@ -1265,7 +1589,106 @@
           "presence": "key",
           "note": "The role a worker must have to take the task; absent accepts any role."
         }
-      ]
+      ],
+      "reads": {
+        "duty_conflict/3": [
+          "attribute(end)",
+          "attribute(start)",
+          "relation(duty_period)"
+        ],
+        "unavailable/3": [
+          "attribute(end)",
+          "attribute(start)",
+          "relation(unavailable_during)"
+        ],
+        "duty_limit/3": [
+          "attribute(role)"
+        ],
+        "policy_gap/2": [
+          "attribute(role)"
+        ],
+        "duty_length_ok/3": [
+          "attribute(role)"
+        ],
+        "rest_before/3": [
+          "attribute(end)",
+          "relation(duty_period)"
+        ],
+        "rest_satisfied/2": [
+          "attribute(end)",
+          "attribute(role)",
+          "relation(duty_period)"
+        ],
+        "cumulative_duty/4": [
+          "attribute(end)",
+          "attribute(start)",
+          "relation(duty_period)"
+        ],
+        "rolling_limit_ok/3": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(start)",
+          "relation(duty_period)"
+        ],
+        "duty_headroom/3": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(start)",
+          "relation(duty_period)"
+        ],
+        "qualified_for/3": [
+          "attribute(expires)",
+          "attribute(kind)",
+          "relation(holds)",
+          "relation(requires)"
+        ],
+        "missing_qualification/4": [
+          "attribute(expires)",
+          "attribute(kind)",
+          "relation(holds)",
+          "relation(requires)"
+        ],
+        "role_matches/2": [
+          "attribute(needs_role)",
+          "attribute(role)"
+        ],
+        "fit_for_duty/4": [
+          "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(needs_role)",
+          "attribute(role)",
+          "attribute(start)",
+          "relation(duty_period)",
+          "relation(holds)",
+          "relation(requires)",
+          "relation(unavailable_during)"
+        ],
+        "unfit_reason/5": [
+          "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(needs_role)",
+          "attribute(role)",
+          "attribute(start)",
+          "relation(duty_period)",
+          "relation(holds)",
+          "relation(requires)",
+          "relation(unavailable_during)"
+        ],
+        "available_staff/4": [
+          "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(needs_role)",
+          "attribute(role)",
+          "attribute(start)",
+          "relation(duty_period)",
+          "relation(holds)",
+          "relation(requires)",
+          "relation(unavailable_during)"
+        ]
+      }
     },
     {
       "id": "rostering",
@@ -1401,7 +1824,156 @@
           },
           "note": "Last ranking key; higher ranks earlier."
         }
-      ]
+      ],
+      "reads": {
+        "coverage/3": [
+          "attribute(role)",
+          "attribute(seat)",
+          "relation(assigned)",
+          "relation(needs)"
+        ],
+        "coverage_gap/3": [
+          "attribute(count)",
+          "attribute(role)",
+          "attribute(seat)",
+          "relation(assigned)",
+          "relation(needs)"
+        ],
+        "understaffed/1": [
+          "attribute(count)",
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(needs)"
+        ],
+        "overstaffed/3": [
+          "attribute(count)",
+          "attribute(role)",
+          "attribute(seat)",
+          "relation(assigned)",
+          "relation(needs)"
+        ],
+        "incompatible_shifts/3": [
+          "attribute(end)",
+          "attribute(start)"
+        ],
+        "roster_violation/3": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(needs)"
+        ],
+        "roster_valid/1": [
+          "attribute(count)",
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(needs)"
+        ],
+        "candidates/3": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(start)",
+          "relation(assigned)"
+        ],
+        "candidate_score/3": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seniority)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(avoids)",
+          "relation(prefers)"
+        ],
+        "rank_candidates/3": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seniority)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(avoids)",
+          "relation(prefers)"
+        ],
+        "fill_shift/3": [
+          "attribute(count)",
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(seniority)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(avoids)",
+          "relation(needs)",
+          "relation(prefers)"
+        ],
+        "propose_roster/2": [
+          "attribute(count)",
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(seniority)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(avoids)",
+          "relation(needs)",
+          "relation(prefers)"
+        ],
+        "propose_roster/3": [
+          "attribute(count)",
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(seniority)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(avoids)",
+          "relation(needs)",
+          "relation(prefers)"
+        ],
+        "replacement_for/3": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seniority)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(avoids)",
+          "relation(prefers)"
+        ],
+        "swap_valid/4": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(needs)"
+        ],
+        "assigned_load/4": [
+          "attribute(end)",
+          "attribute(start)",
+          "relation(assigned)"
+        ],
+        "load_imbalance/5": [
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(start)",
+          "relation(assigned)"
+        ],
+        "roster_model/2": [
+          "attribute(count)",
+          "attribute(end)",
+          "attribute(role)",
+          "attribute(seat)",
+          "attribute(start)",
+          "relation(assigned)",
+          "relation(needs)"
+        ]
+      }
     },
     {
       "id": "compliance",
@@ -1491,7 +2063,27 @@
           "presence": "key",
           "note": "A consent type the customer has granted."
         }
-      ]
+      ],
+      "reads": {
+        "compliant/2": [
+          "relation(requires)"
+        ],
+        "violation/3": [
+          "relation(requires)"
+        ],
+        "data_retention_ok/2": [
+          "attribute(absolute_days)",
+          "attribute(created_day)",
+          "attribute(date)",
+          "attribute(retention_days)"
+        ],
+        "consent_required/2": [
+          "attribute(requires_consent)"
+        ],
+        "consent_given/2": [
+          "relation(granted_consent)"
+        ]
+      }
     },
     {
       "id": "bom-policy",
@@ -1850,7 +2442,80 @@
           "presence": "key",
           "note": "Today as an ISO date, a YYYYMMDD integer or a day count, when absolute_days is absent."
         }
-      ]
+      ],
+      "reads": {
+        "bom_violation/4": [
+          "attribute(absolute_days)",
+          "attribute(date)",
+          "attribute(eol_day)",
+          "attribute(eol_horizon_days)",
+          "attribute(lifecycle)",
+          "attribute(ltb_day)",
+          "attribute(min_sources)",
+          "relation(blocks_lifecycle)",
+          "relation(includes)",
+          "relation(requires)",
+          "relation(sourced_from)",
+          "relation(warns_lifecycle)"
+        ],
+        "bom_compliant/2": [
+          "attribute(absolute_days)",
+          "attribute(date)",
+          "attribute(lifecycle)",
+          "attribute(ltb_day)",
+          "relation(blocks_lifecycle)",
+          "relation(includes)",
+          "relation(requires)"
+        ],
+        "part_risk/3": [
+          "attribute(absolute_days)",
+          "attribute(date)",
+          "attribute(eol_day)",
+          "attribute(eol_horizon_days)",
+          "attribute(lifecycle)",
+          "attribute(ltb_day)",
+          "attribute(min_sources)",
+          "relation(blocks_lifecycle)",
+          "relation(requires)",
+          "relation(sourced_from)",
+          "relation(warns_lifecycle)"
+        ],
+        "part_alternate/3": [
+          "attribute(absolute_days)",
+          "attribute(date)",
+          "attribute(lifecycle)",
+          "attribute(ltb_day)",
+          "relation(blocks_lifecycle)",
+          "relation(cross)",
+          "relation(requires)"
+        ],
+        "last_time_buy_due/4": [
+          "attribute(absolute_days)",
+          "attribute(date)",
+          "attribute(eol_day)",
+          "attribute(eol_horizon_days)",
+          "attribute(ltb_day)",
+          "relation(includes)"
+        ],
+        "bom_risk_summary/5": [
+          "attribute(absolute_days)",
+          "attribute(date)",
+          "attribute(eol_day)",
+          "attribute(eol_horizon_days)",
+          "attribute(lifecycle)",
+          "attribute(ltb_day)",
+          "attribute(min_sources)",
+          "relation(blocks_lifecycle)",
+          "relation(includes)",
+          "relation(requires)",
+          "relation(sourced_from)",
+          "relation(warns_lifecycle)"
+        ],
+        "source_count/2": [
+          "relation(sourced_from)"
+        ],
+        "part_exempt/2": []
+      }
     }
   ]
 }

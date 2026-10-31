@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-29",
+  "updated_at": "2026-10-30",
   "category": "games",
   "modules": [
     {
@@ -394,7 +394,32 @@
           "presence": "key",
           "note": "A permission whose holders may access the resource; with no owner, public or requires_permission, nobody may."
         }
-      ]
+      ],
+      "reads": {
+        "has_role/2": [
+          "relation(has_role)"
+        ],
+        "role_grants/2": [
+          "relation(grants_permission)",
+          "relation(inherits_from)"
+        ],
+        "is_owner/2": [
+          "attribute(owner)"
+        ],
+        "permission_granted/2": [
+          "relation(grants_permission)",
+          "relation(has_role)",
+          "relation(inherits_from)"
+        ],
+        "can_access/2": [
+          "attribute(owner)",
+          "attribute(public)",
+          "attribute(requires_permission)",
+          "relation(grants_permission)",
+          "relation(has_role)",
+          "relation(inherits_from)"
+        ]
+      }
     },
     {
       "id": "ai-director",
@@ -539,7 +564,25 @@
           "presence": "required",
           "note": "Damage dealt per turn; the player's must be above 0, and kills_to_exhaust also needs the enemy's above 0."
         }
-      ]
+      ],
+      "reads": {
+        "survival_probability/4": [
+          "attribute(base_damage)",
+          "attribute(hp)"
+        ],
+        "recommended_action/3": [
+          "attribute(base_damage)",
+          "attribute(hp)"
+        ],
+        "kills_to_exhaust/4": [
+          "attribute(base_damage)",
+          "attribute(hp)"
+        ],
+        "fight_outcome_summary/5": [
+          "attribute(base_damage)",
+          "attribute(hp)"
+        ]
+      }
     }
   ]
 }

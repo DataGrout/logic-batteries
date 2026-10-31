@@ -22,13 +22,22 @@ $ battery remove prob-decide --dir my-app/
 ✓ removed prob-decide
 ```
 
-Then in your app:
+Then in your app, load them all through the generated `batteries.pl`:
 
 ```prolog
-:- consult('prob_core_iso.pl').
-:- consult('prob_decide.pl').
+:- consult('batteries.pl').
 % assert your model, query eu/2, best_action/2, psuccess/2, ...
 ```
+
+`install` and `remove` rewrite `batteries.pl` to include every installed
+battery, and delete it with the last one. Every battery file states its own
+manifest (`battery_module/3`, `battery_export/3`) and input contract
+(`battery_input/6`); consulted one by one, each file redefines those
+predicates and the earlier batteries' clauses are lost. Included into one file
+and declared discontiguous, they are all kept, in SWI-Prolog and in Scryer.
+Scryer resolves `include/1` against the working directory, so start it from
+the install directory. A `batteries.pl` you wrote yourself is never
+overwritten.
 
 ## Where batteries come from
 

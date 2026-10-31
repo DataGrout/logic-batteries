@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-10-30
+
+### Registry
+
+Each battery with an input contract now carries `reads`: for every exported
+predicate, the contract facts it can read through the battery's own clauses
+(`check_inputs.reads_for`). A default is not a fact, so a proof that falls back
+on one leaves nothing to point at; with `reads`, a host reports only the
+defaults and gaps a question's predicates can reach, not the whole contract on
+every answer.
+
+### CLI
+
+`battery install` and `battery remove` keep a `batteries.pl` loader that
+includes every installed battery. Consulting battery files one by one
+redefined `battery_module/3`, `battery_export/3` and `battery_input/6` with each
+file, so only the last battery's manifest and contract survived; included and
+declared discontiguous, every battery's are kept, in SWI-Prolog and Scryer. A
+user-written `batteries.pl` is left alone.
+
+The seven batteries whose id is hyphenated while their directory is not
+(`invoice-rules` in `invoice_rules/`, `pricing-rules`, `lead-scoring`,
+`approval-chains`, `inventory-mgmt`, `bom-policy`, `ai-director`) were missing
+from `battery list` and could not be installed; they are found now.
+
 ## 2026-10-28
 
 ### Modules
