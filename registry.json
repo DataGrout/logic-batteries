@@ -3485,7 +3485,8 @@
           "type": {
             "enum": [
               "enterprise",
-              "mid_market"
+              "mid_market",
+              "smb"
             ]
           },
           "presence": "key",
@@ -3498,7 +3499,8 @@
           "type": {
             "enum": [
               "high",
-              "medium"
+              "medium",
+              "low"
             ]
           },
           "presence": "key",
@@ -3529,7 +3531,11 @@
           "type": {
             "enum": [
               "q1",
-              "q2"
+              "q2",
+              "q3",
+              "q4",
+              "later",
+              "unknown"
             ]
           },
           "presence": "optional",

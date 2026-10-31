@@ -17,15 +17,15 @@ battery_export(lead_scoring, 'scoring_factor/3', 'scoring_factor(Lead, Factor, P
 %% record carries a size or an engagement level. Weights and thresholds all
 %% live on the fixed subject `scoring` and all have defaults.
 
-battery_input(lead_scoring, lead, attribute(company_size), enum([enterprise, mid_market]), key,
+battery_input(lead_scoring, lead, attribute(company_size), enum([enterprise, mid_market, smb]), key,
     'Company size: enterprise or mid_market score points; any other size (smb) scores nothing.').
-battery_input(lead_scoring, lead, attribute(engagement), enum([high, medium]), key,
+battery_input(lead_scoring, lead, attribute(engagement), enum([high, medium, low]), key,
     'Engagement level: high or medium score points; low or absent scores nothing.').
 battery_input(lead_scoring, lead, attribute(budget_confirmed), bool, optional,
     'true scores budget_points; false disqualifies the lead (no_budget); absent does neither.').
 battery_input(lead_scoring, lead, attribute(decision_maker), bool, default(false),
     'true when the contact can sign; scores decision_maker_points.').
-battery_input(lead_scoring, lead, attribute(timeline), enum([q1, q2]), optional,
+battery_input(lead_scoring, lead, attribute(timeline), enum([q1, q2, q3, q4, later, unknown]), optional,
     'Quarter the lead expects to buy in: q1 or q2 score points; later or unknown scores nothing.').
 battery_input(lead_scoring, lead, attribute(competitor), bool, default(false),
     'true when the lead works for a competitor; disqualifies it.').

@@ -31,6 +31,11 @@ before the fix:
 - d20-combat: a petrified creature could attack, and attacks against a
   restrained or petrified target got no advantage.
 
+lead-scoring's contract accepts the values its data model documents:
+`company_size` smb, `engagement` low, `timeline` q3, q4, later and unknown. They
+score nothing, as before; the narrower enums made a lead with low engagement a
+bad value, so every answer about it was unknown instead of cold.
+
 ### Contract checker
 
 `check_inputs.py` reads lookups from rule bodies only, so facts a battery ships
