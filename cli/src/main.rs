@@ -36,6 +36,10 @@ fn main() {
         "remove" => cmd_remove(&rest),
         "installed" => cmd_installed(&rest),
         "list" => cmd_list(&rest),
+        "version" | "--version" | "-V" => {
+            println!("battery {}", env!("CARGO_PKG_VERSION"));
+            Ok(())
+        }
         "help" | "--help" | "-h" => {
             usage();
             Ok(())
@@ -58,6 +62,7 @@ USAGE:
   battery remove  <id>... [--dir DIR] [-f]
   battery installed       [--dir DIR]
   battery list            [--repo REPO]
+  battery version
 
   --dir DIR    target project directory (default: current directory)
   --repo REPO  logic-batteries checkout (default: $LB_REPO, else walk up from cwd)
@@ -186,7 +191,7 @@ fn load_registry(repo: &Path) -> Result<Vec<Battery>, String> {
             };
 
             out.push(Battery {
-                requires: requires_of(&dir),
+                requires: requires_of(m, &dir),
                 id,
                 version: m["version"].as_str().unwrap_or("0.0.0").to_string(),
                 title: m["title"].as_str().unwrap_or_default().to_string(),
@@ -199,8 +204,20 @@ fn load_registry(repo: &Path) -> Result<Vec<Battery>, String> {
     Ok(out)
 }
 
+/// The registry's `requires` list. The `%% Requires: a, b` header in the
+/// battery's files is the fallback for a registry without one: some headers
+/// are prose ("d20-core AND d20-conditions in same namespace"), which made the
+/// install hint name batteries that do not exist.
+fn requires_of(entry: &serde_json::Value, dir: &Path) -> Vec<String> {
+    if let Some(list) = entry["requires"].as_array() {
+        return list.iter().filter_map(|v| v.as_str().map(str::to_string)).collect();
+    }
+
+    requires_from_header(dir)
+}
+
 /// Parse the `%% Requires: a, b` manifest header from the battery's .pl files.
-fn requires_of(dir: &Path) -> Vec<String> {
+fn requires_from_header(dir: &Path) -> Vec<String> {
     for file in pl_files(dir) {
         if let Ok(text) = fs::read_to_string(&file) {
             for line in text.lines().take(10) {
