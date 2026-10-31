@@ -21,6 +21,17 @@ battery_export('d20-conditions', 'condition_blocks_reaction/1',             'con
 battery_export('d20-conditions', 'condition_grants_advantage_on_attack/2',  'condition_grants_advantage_on_attack(Attacker, Target) — condition gives adv').
 battery_export('d20-conditions', 'condition_imposes_disadvantage_on_attack/2','condition_imposes_disadvantage_on_attack(Attacker, Target) — condition gives disadv').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A creature is
+%% anything with an active condition; exhaustion is a level on the same
+%% creature, and the effect tables are built in.
+
+battery_input('d20-conditions', creature, attribute(condition), enum([blinded, charmed, deafened, exhaustion, frightened, grappled, incapacitated, invisible, paralyzed, petrified, poisoned, prone, restrained, stunned, unconscious]), key,
+    'One fact per active SRD condition; any other name is active but has no effect.').
+battery_input('d20-conditions', creature, attribute(exhaustion), integer, default(0),
+    'Exhaustion level 1 to 6; each level carries the effects of the levels below it.').
+
 %% ── Applying Conditions ──────────────────────────────────────────────────────
 %%
 %% Apply a condition:   attribute(entity, condition, blinded)

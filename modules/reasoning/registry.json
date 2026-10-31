@@ -294,7 +294,81 @@
       "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/reasoning/temporal/temporal.pl",
       "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/reasoning/temporal",
       "install": "batteries.install_many",
-      "tests_file": "test/reasoning/temporal_test.pl"
+      "tests_file": "test/reasoning/temporal_test.pl",
+      "inputs": [
+        {
+          "role": "event",
+          "kind": "attribute",
+          "name": "timestamp",
+          "type": "number",
+          "presence": "key",
+          "note": "When the point event happened, on the caller's one time scale."
+        },
+        {
+          "role": "interval",
+          "kind": "attribute",
+          "name": "start",
+          "type": "number",
+          "presence": "key",
+          "note": "When the interval begins, for event_concurrent and gap_between."
+        },
+        {
+          "role": "interval",
+          "kind": "attribute",
+          "name": "end",
+          "type": "number",
+          "presence": "required",
+          "note": "When the interval ends; without it the interval overlaps nothing and has no gap."
+        },
+        {
+          "role": "task",
+          "kind": "attribute",
+          "name": "deadline",
+          "type": "number",
+          "presence": "key",
+          "note": "When the task is due, compared with the Now the caller passes."
+        }
+      ],
+      "reads": {
+        "event_before/2": [
+          "attribute(timestamp)"
+        ],
+        "event_after/2": [
+          "attribute(timestamp)"
+        ],
+        "event_within/3": [
+          "attribute(timestamp)"
+        ],
+        "event_concurrent/2": [
+          "attribute(end)",
+          "attribute(start)"
+        ],
+        "deadline_passed/2": [
+          "attribute(deadline)"
+        ],
+        "deadline_imminent/3": [
+          "attribute(deadline)"
+        ],
+        "duration_between/3": [
+          "attribute(timestamp)"
+        ],
+        "gap_between/3": [
+          "attribute(end)",
+          "attribute(start)"
+        ],
+        "events_in_order/1": [
+          "attribute(timestamp)"
+        ],
+        "next_event/3": [
+          "attribute(timestamp)"
+        ],
+        "latest_event/2": [
+          "attribute(timestamp)"
+        ],
+        "earliest_event/2": [
+          "attribute(timestamp)"
+        ]
+      }
     },
     {
       "id": "taxonomy",
@@ -447,21 +521,30 @@
         "hier_descendants/2": [
           "relation(child_of)"
         ],
-        "hier_own/2": [],
-        "hier_own/3": [],
+        "hier_own/2": [
+          "metric(amount)"
+        ],
+        "hier_own/3": [
+          "metric(amount)"
+        ],
         "hier_subtotal/2": [
+          "metric(amount)",
           "relation(child_of)"
         ],
         "hier_subtotal/3": [
+          "metric(amount)",
           "relation(child_of)"
         ],
         "hier_subtotals/1": [
+          "metric(amount)",
           "relation(child_of)"
         ],
         "hier_subtotals/2": [
+          "metric(amount)",
           "relation(child_of)"
         ],
         "hier_depth/2": [
+          "metric(amount)",
           "relation(child_of)"
         ],
         "hier_path/3": [

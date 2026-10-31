@@ -16,6 +16,31 @@ battery_export('prob-economy', 'market_volatility/3',
 battery_export('prob-economy', 'expected_price/2',
     'expected_price(Item, Price) — expected buy price factoring in probable supply/demand shifts').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). With Item unbound
+%% the accessors list items that are import-dependent, perishable or have a
+%% category, which is why those are the keys; the base price comes from the
+%% `economy` battery. World conditions sit on the fixed subject `world`, whose
+%% weather and season are open-ended (the `world` battery validates neither).
+
+battery_input('prob-economy', item, attribute(import_dependent), bool, key,
+    'true when the item relies on imports: storms, a blocked route and winter disrupt its supply.').
+battery_input('prob-economy', item, attribute(perishable), bool, key,
+    'true when the item spoils: storms and summer disrupt its supply.').
+battery_input('prob-economy', item, attribute(category), atom, key,
+    'healing, weapons, food or tools pick the demand rules that apply; any other category never spikes.').
+battery_input('prob-economy', fixed(world), attribute(weather), atom, optional,
+    'storm disrupts import-dependent and perishable supply; other weather does nothing here.').
+battery_input('prob-economy', fixed(world), attribute(season), atom, optional,
+    'winter disrupts imports and raises food demand, summer disrupts perishables; absent, no season rule applies.').
+battery_input('prob-economy', fixed(world), attribute(trade_route_blocked), bool, default(false),
+    'true disrupts import-dependent supply and raises demand for tools.').
+battery_input('prob-economy', fixed(world), attribute(recent_conflict), bool, default(false),
+    'true raises demand for healing items and weapons.').
+battery_input('prob-economy', fixed(world), attribute(threat_rising), bool, default(false),
+    'true raises demand for healing items and weapons.').
+
 %% ── Probabilistic supply disruption rules ─────────────────────────────────
 %% Assert world state to drive market uncertainty:
 %%   attribute(world, weather, storm)

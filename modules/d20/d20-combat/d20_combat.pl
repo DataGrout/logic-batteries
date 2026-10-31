@@ -31,6 +31,52 @@ battery_export('d20-combat', 'd20_attack_roll_mode/3',  'd20_attack_roll_mode(At
 battery_export('d20-combat', 'd20_death_save/2',        'd20_death_save(Roll, Outcome) — critical_failure|failure|success|critical_success').
 battery_export('d20-combat', 'd20_instant_death/2',     'd20_instant_death(Entity, RemainingDamage) — remaining damage at 0 HP meets or exceeds HP max').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A creature is
+%% anything with hit points; attacker and target are both creatures. Ability
+%% scores, level, attack_bonus and the proficiency flags are d20-core's
+%% inputs and condition is d20-conditions', read through their predicates.
+%% The damage flags immune_<type>, resist_<type> and vulnerable_<type> are
+%% built from the damage type (or its category, physical) at query time, so
+%% they cannot be declared here: any value turns the flag on, for a factor of
+%% 0, 0.5 or 2.0 in that order of precedence.
+
+battery_input('d20-combat', creature, attribute(hp), integer, key,
+    'Current hit points; at 0 or below the creature is defeated, and without them it never is.').
+battery_input('d20-combat', creature, attribute(hp_max), integer, optional,
+    'Hit point maximum, the bar for instant death; without it there is none.').
+battery_input('d20-combat', creature, attribute(ac), integer, optional,
+    'Stated armor class that overrides the derived one.').
+battery_input('d20-combat', creature, attribute(armor_base_ac), integer, optional,
+    'Armor base for derived AC; without it the base is 10 and dex always adds.').
+battery_input('d20-combat', creature, attribute(no_dex_to_ac), bool, default(false),
+    'true stops dex adding to armor_base_ac (heavy armor).').
+battery_input('d20-combat', creature, attribute(shield), bool, default(false),
+    'true adds 2 to derived AC.').
+battery_input('d20-combat', creature, attribute(initiative), integer, optional,
+    'Rolled initiative; without it the dex modifier orders the creature.').
+battery_input('d20-combat', creature, attribute(damage_type), atom, default(bludgeoning),
+    'Damage type the creature deals, matched against the target''s damage flags.').
+battery_input('d20-combat', creature, attribute(damage_bonus), integer, optional,
+    'Stated flat damage bonus that overrides the ability modifier.').
+battery_input('d20-combat', creature, attribute(damage_ability), enum([str, dex, con, int, wis, cha]), optional,
+    'Ability whose modifier adds to damage; absent, str or the finesse best of str and dex.').
+battery_input('d20-combat', creature, attribute(finesse_attack), bool, default(false),
+    'true makes damage use the better of the str and dex modifiers.').
+battery_input('d20-combat', creature, relation(adjacent_to), ref(creature), optional,
+    'Within reach of the target: a prone target gives advantage, otherwise disadvantage.').
+battery_input('d20-combat', creature, relation(can_see), ref(creature), optional,
+    'Sees the target; a frightened attacker that does has disadvantage.').
+battery_input('d20-combat', creature, relation(flanking), ref(creature), optional,
+    'Flanks the target, for advantage.').
+battery_input('d20-combat', creature, relation(has_high_ground_vs), ref(creature), optional,
+    'Holds high ground over the target, for advantage.').
+battery_input('d20-combat', creature, relation(has_cover_vs), ref(creature), optional,
+    'Cover stands between this attacker and the target, so the attacker has disadvantage.').
+battery_input('d20-combat', creature, relation(out_of_range), ref(creature), optional,
+    'The target is out of range, so the attacker cannot attack it.').
+
 %% ── Damage Categories ────────────────────────────────────────────────────────
 %%
 %% Physical damage subtypes group under `physical` so that resist_physical /
@@ -231,6 +277,8 @@ d20_action_blocked(Entity) :-
     d20_condition_active(Entity, unconscious).
 d20_action_blocked(Entity) :-
     d20_condition_active(Entity, incapacitated).
+d20_action_blocked(Entity) :-
+    d20_condition_active(Entity, petrified).
 
 %% ── Advantage / Disadvantage ─────────────────────────────────────────────────
 %%
@@ -253,6 +301,8 @@ advantage_on_attack(_Attacker, Target) :-
     ( d20_condition_active(Target, paralyzed)
     ; d20_condition_active(Target, unconscious)
     ; d20_condition_active(Target, stunned)
+    ; d20_condition_active(Target, restrained)
+    ; d20_condition_active(Target, petrified)
     ), !.
 advantage_on_attack(Attacker, Target) :-
     d20_condition_active(Target, prone),

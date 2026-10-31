@@ -10,6 +10,58 @@ battery_export(progression, 'stat_at_level/3',    'stat_at_level(Stat, Level, Va
 battery_export(progression, 'unlock_available/2', 'unlock_available(Player, Unlock) — Unlock is available to Player at their current level').
 battery_export(progression, 'can_prestige/1',     'can_prestige(Player) — Player meets all configured prestige conditions').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). The curve lives on
+%% the fixed subject `xp_curve`, prestige rules on `prestige`; a breakpoint is a
+%% subject named `level_<N>`. Two names are built at query time and so cannot
+%% be declared here: a stat's per-level override is an attribute named
+%% `level_<N>` on the stat (`attribute(hp, level_5, 150)`), and it wins over
+%% the stat's formula.
+
+battery_input(progression, player, attribute(xp), number, key,
+    'Total experience; the level is derived from it when no level is set, and absent reads as 0.').
+battery_input(progression, player, attribute(level), integer, key,
+    'Explicit level; wins over the level xp would give.').
+battery_input(progression, player, attribute(class), atom, optional,
+    'The player''s class, matched against an unlock''s class gate; without it a class-gated unlock is unavailable.').
+battery_input(progression, player, relation(completed_quest), atom, optional,
+    'A quest the player has finished, matched against prestige''s requires_quest.').
+battery_input(progression, fixed(xp_curve), attribute(type), enum([linear, exponential, custom]), default(linear),
+    'Which XP formula sets levels without a breakpoint; custom applies none, so the level_<N> breakpoints are the ceiling.').
+battery_input(progression, fixed(xp_curve), attribute(base_xp), number, default(100),
+    'XP from level 1 to level 2, the first step of either formula.').
+battery_input(progression, fixed(xp_curve), attribute(increment), number, default(50),
+    'Linear curve: how much more each further level costs than the one before.').
+battery_input(progression, fixed(xp_curve), attribute(multiplier), number, default(1.5),
+    'Exponential curve: how many times more each further level costs than the one before.').
+battery_input(progression, fixed(xp_curve), attribute(max_level), integer, default(100),
+    'The highest level; level_for_xp stops here and can_prestige may require it.').
+battery_input(progression, breakpoint, attribute(xp_required), number, key,
+    'Cumulative XP to reach level N, on a subject named level_<N>; overrides the formula for that level.').
+battery_input(progression, stat, attribute(base_value), number, key,
+    'The stat at level 1; absent reads as 0 on a linear stat and as 1 on an exponential one.').
+battery_input(progression, stat, attribute(per_level), number, key,
+    'Linear stat: added per level above 1; absent reads as 0.').
+battery_input(progression, stat, attribute(scale), enum([linear, exponential]), default(linear),
+    'exponential makes the stat base_value * multiplier^(level-1); any other value is linear.').
+battery_input(progression, stat, attribute(multiplier), number, default(1.1),
+    'Exponential stat: growth factor per level.').
+battery_input(progression, unlock, attribute(unlock_at_level), integer, key,
+    'The player level at which the unlock becomes available.').
+battery_input(progression, unlock, attribute(requires_level), integer, key,
+    'Alias for unlock_at_level, read only when unlock_at_level is absent.').
+battery_input(progression, unlock, attribute(unlock_requires_class), atom, optional,
+    'The class the player must have for this unlock.').
+battery_input(progression, unlock, attribute(requires_class), atom, optional,
+    'Alias for unlock_requires_class, read only when unlock_requires_class is absent.').
+battery_input(progression, fixed(prestige), attribute(requires_max_level), bool, default(false),
+    'true makes prestige need the player at max_level; it wins over requires_level.').
+battery_input(progression, fixed(prestige), attribute(requires_level), integer, optional,
+    'The level prestige needs when requires_max_level is not true; with neither, nobody can prestige.').
+battery_input(progression, fixed(prestige), attribute(requires_quest), atom, optional,
+    'A quest the player must have completed to prestige.').
+
 %% ── XP Curve Configuration ───────────────────────────────────────────────────
 %%
 %% Linear (default):
@@ -87,7 +139,8 @@ player_total_xp(_, 0).
 
 %% player_level/2 — prefers explicit level attribute, falls back to XP derivation
 player_level(Player, Level) :-
-    attribute(Player, level, Level), !.
+    attribute(Player, level, Level0), !,
+    Level = Level0.
 player_level(Player, Level) :-
     player_total_xp(Player, XP),
     level_for_xp(XP, Level).
@@ -124,7 +177,8 @@ xp_to_next_level(Player, Needed) :-
 
 stat_at_level(Stat, Level, Value) :-
     atom_concat(level_, Level, Key),
-    attribute(Stat, Key, Value), !.
+    attribute(Stat, Key, Value0), !,
+    Value = Value0.
 stat_at_level(Stat, Level, Value) :-
     attribute(Stat, scale, exponential), !,
     ( attribute(Stat, base_value, Base) -> true ; Base = 1 ),
@@ -154,10 +208,11 @@ unlock_available(Player, Unlock) :-
 %% prestige entity itself is not an unlock, so it is excluded when the alias
 %% is what matched — otherwise `unlock_available(P, U)` would enumerate it.
 unlock_level_requirement(Unlock, L) :-
-    attribute(Unlock, unlock_at_level, L), !.
+    attribute(Unlock, unlock_at_level, L).
 unlock_level_requirement(Unlock, L) :-
     attribute(Unlock, requires_level, L),
-    Unlock \== prestige.
+    Unlock \== prestige,
+    \+ attribute(Unlock, unlock_at_level, _).
 
 unlock_class_requirement(Unlock, C) :-
     attribute(Unlock, unlock_requires_class, C), !.

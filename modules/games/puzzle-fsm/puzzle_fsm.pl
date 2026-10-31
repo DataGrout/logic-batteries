@@ -10,6 +10,34 @@ battery_export('puzzle-fsm', 'valid_sequence/2', 'valid_sequence(Puzzle, Moves) 
 battery_export('puzzle-fsm', 'hint_for/2',       'hint_for(Puzzle, Move) — Move is a valid next step toward solving Puzzle').
 battery_export('puzzle-fsm', 'blocked_by/2',     'blocked_by(Puzzle, Reason) — Reason explains why Puzzle cannot be solved from current state').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). A puzzle names its
+%% states; moves hang off states and lead to states. A winning state may be an
+%% attribute (one) or a relation (any number), and both are read; with neither,
+%% nothing is ever solved.
+
+battery_input('puzzle-fsm', puzzle, attribute(initial_state), ref(state), key,
+    'Where the puzzle starts and valid_sequence searches from; also the current state when current_state is absent.').
+battery_input('puzzle-fsm', puzzle, attribute(current_state), ref(state), optional,
+    'Where the puzzle is now; absent, it is at initial_state.').
+battery_input('puzzle-fsm', puzzle, attribute(solve_state), ref(state), optional,
+    'A winning state.').
+battery_input('puzzle-fsm', puzzle, relation(solve_state), ref(state), optional,
+    'A winning state; one fact per state.').
+battery_input('puzzle-fsm', puzzle, relation(player_has), atom, optional,
+    'An item available to this puzzle directly, satisfying a move''s requires_item.').
+battery_input('puzzle-fsm', puzzle, attribute(player), ref(player), optional,
+    'The player whose has_item facts satisfy a move''s requires_item.').
+battery_input('puzzle-fsm', state, relation(move), ref(move), key,
+    'A move available from this state; one fact per move.').
+battery_input('puzzle-fsm', move, attribute(leads_to), ref(state), key,
+    'The state the move goes to; a move without it is never taken.').
+battery_input('puzzle-fsm', move, attribute(requires_item), atom, optional,
+    'An item the move needs, through player_has or the named player''s has_item.').
+battery_input('puzzle-fsm', player, relation(has_item), atom, key,
+    'An item the player holds.').
+
 %% ── Puzzle Data Model ────────────────────────────────────────────────────────
 %%
 %% States and transitions:

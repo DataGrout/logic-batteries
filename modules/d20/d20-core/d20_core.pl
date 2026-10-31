@@ -22,6 +22,44 @@ battery_export('d20-core', 'd20_check/4',            'd20_check(Entity, Skill, R
 battery_export('d20-core', 'd20_save/4',             'd20_save(Entity, Ability, Roll, DC) — saving throw: Roll + save modifier meets DC').
 battery_export('d20-core', 'd20_contest/7',          'd20_contest(A, SkillA, RollA, B, SkillB, RollB, Outcome) — opposed check: a_wins | b_wins | tie').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). The rules never
+%% enumerate creatures; a creature is whatever the caller asks about, and its
+%% record carries ability scores. An ability score is read under the ability
+%% the query names, so con is declared though only a caller (a Constitution
+%% save) ever names it. Three more families of attributes are built from the
+%% skill or ability at query time, so they cannot be declared here:
+%% skill_<skill> (integer, a stated total that overrides the derivation),
+%% expertise_<skill> and proficient_<skill> (true adds double or single
+%% proficiency to that skill), and save_<ability> (true adds proficiency to
+%% that save), for the eighteen SRD skills and six abilities.
+
+battery_input('d20-core', creature, attribute(str), integer, key,
+    'Strength score; a missing score reads as 10, modifier 0.').
+battery_input('d20-core', creature, attribute(dex), integer, key,
+    'Dexterity score; a missing score reads as 10, modifier 0.').
+battery_input('d20-core', creature, attribute(con), integer, key,
+    'Constitution score; a missing score reads as 10, modifier 0.').
+battery_input('d20-core', creature, attribute(int), integer, key,
+    'Intelligence score; a missing score reads as 10, modifier 0.').
+battery_input('d20-core', creature, attribute(wis), integer, key,
+    'Wisdom score; a missing score reads as 10, modifier 0.').
+battery_input('d20-core', creature, attribute(cha), integer, key,
+    'Charisma score; a missing score reads as 10, modifier 0.').
+battery_input('d20-core', creature, attribute(level), integer, default(1),
+    'Character level, which sets the proficiency bonus.').
+battery_input('d20-core', creature, attribute(spellcasting_ability), enum([str, dex, con, int, wis, cha]), optional,
+    'Ability behind the spell save DC and spell attacks; without it neither exists.').
+battery_input('d20-core', creature, attribute(attack_bonus), integer, optional,
+    'Stated total attack bonus that overrides the derived one for every attack type.').
+battery_input('d20-core', creature, attribute(attack_ability), enum([str, dex, con, int, wis, cha]), optional,
+    'Ability for weapon attacks; absent, melee uses str and ranged uses dex.').
+battery_input('d20-core', creature, attribute(finesse_attack), bool, default(false),
+    'true makes melee attacks use the better of str and dex.').
+battery_input('d20-core', creature, attribute(proficient_attack), bool, default(false),
+    'true adds the proficiency bonus to melee and ranged attacks.').
+
 %% ── Ability Scores ───────────────────────────────────────────────────────────
 %%
 %% Assert the six ability scores as attributes:

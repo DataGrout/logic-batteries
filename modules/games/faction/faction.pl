@@ -10,6 +10,33 @@ battery_export(faction, 'faction_allied/2',     'faction_allied(F1, F2) — fact
 battery_export(faction, 'faction_at_war/2',     'faction_at_war(F1, F2) — factions are at war (symmetric)').
 battery_export(faction, 'faction_access/2',     'faction_access(Player, Area) — Player meets the standing requirement to enter Area').
 
+%% Input contract (CONTRIBUTING, "Input contract"). A player's reputation with
+%% a faction sits on the composite subject <player>_<faction>; the thresholds
+%% sit on the fixed subject `faction`.
+battery_input(faction, player_faction, attribute(score), number, key,
+    'Reputation of <player> with <faction> on the subject <player>_<faction>; absent reads as 0.').
+battery_input(faction, faction, relation(allied_with), ref(faction), key,
+    'An ally; one edge in either direction makes the pair allied.').
+battery_input(faction, faction, relation(at_war_with), ref(faction), key,
+    'An enemy; one edge in either direction puts the pair at war.').
+battery_input(faction, area, attribute(requires_faction), ref(faction), key,
+    'The faction whose standing gates entry to the area.').
+battery_input(faction, area, attribute(requires_standing),
+    enum([hostile, unfriendly, neutral, friendly, honored, revered, exalted]), optional,
+    'Lowest standing that may enter; absent, any standing but hostile may.').
+battery_input(faction, fixed(faction), attribute(exalted_threshold), number, default(21000),
+    'Score at or above which a player is exalted.').
+battery_input(faction, fixed(faction), attribute(revered_threshold), number, default(12000),
+    'Score at or above which a player is revered.').
+battery_input(faction, fixed(faction), attribute(honored_threshold), number, default(9000),
+    'Score at or above which a player is honored.').
+battery_input(faction, fixed(faction), attribute(friendly_threshold), number, default(3000),
+    'Score at or above which a player is friendly; below it and above unfriendly_threshold is neutral.').
+battery_input(faction, fixed(faction), attribute(unfriendly_threshold), number, default(-3000),
+    'Score at or below which a player is unfriendly.').
+battery_input(faction, fixed(faction), attribute(hostile_threshold), number, default(-6000),
+    'Score at or below which a player is hostile.').
+
 %% ── Reputation Data Model ─────────────────────────────────────────────────────
 %%
 %% Reputation keyed as player_faction:
@@ -35,11 +62,13 @@ faction_rep_key(Player, Faction, Key) :-
     atom_concat(Player, '_', Tmp),
     atom_concat(Tmp, Faction, Key).
 
-%% faction_reputation(+Player, +Faction, -Rep)
+%% faction_reputation(+Player, +Faction, ?Rep)
+%% Rep is computed before it is compared, so a bound Rep cannot skip the score
+%% and match the 0 default.
 faction_reputation(Player, Faction, Rep) :-
     faction_rep_key(Player, Faction, Key),
-    attribute(Key, score, Rep), !.
-faction_reputation(_, _, 0).
+    ( attribute(Key, score, Rep0) -> true ; Rep0 = 0 ),
+    Rep = Rep0.
 
 %% ── Standing thresholds ───────────────────────────────────────────────────────
 
@@ -77,10 +106,13 @@ rep_to_standing(Rep, hostile)    :- threshold(hostile,    T), Rep =< T, !.
 rep_to_standing(Rep, unfriendly) :- threshold(unfriendly, T), Rep =< T, !.
 rep_to_standing(_, neutral).
 
-%% faction_standing(+Player, +Faction, -Standing)
+%% faction_standing(+Player, +Faction, ?Standing)
+%% rep_to_standing/2 picks a tier by trying them in order, so it only works
+%% with the tier unbound: bound, every tier the score clears would match.
 faction_standing(Player, Faction, Standing) :-
     faction_reputation(Player, Faction, Rep),
-    rep_to_standing(Rep, Standing).
+    rep_to_standing(Rep, Standing0),
+    Standing = Standing0.
 
 %% faction_allied(?F1, ?F2)  (symmetric)
 %% Either argument may be unbound: every ally in either direction, each pair

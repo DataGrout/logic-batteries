@@ -36,7 +36,8 @@
           "type": {
             "enum": [
               "enterprise",
-              "mid_market"
+              "mid_market",
+              "smb"
             ]
           },
           "presence": "key",
@@ -49,7 +50,8 @@
           "type": {
             "enum": [
               "high",
-              "medium"
+              "medium",
+              "low"
             ]
           },
           "presence": "key",
@@ -80,7 +82,11 @@
           "type": {
             "enum": [
               "q1",
-              "q2"
+              "q2",
+              "q3",
+              "q4",
+              "later",
+              "unknown"
             ]
           },
           "presence": "optional",
@@ -983,7 +989,17 @@
           "attribute(requires_tier)",
           "relation(has_discount)"
         ],
-        "bulk_discount/3": [],
+        "bulk_discount/3": [
+          "attribute(base_price)",
+          "attribute(flat_off)",
+          "attribute(member_multiplier)",
+          "attribute(pct_off)",
+          "attribute(price_ceil)",
+          "attribute(price_floor)",
+          "attribute(pricing_tier)",
+          "attribute(requires_tier)",
+          "attribute(vip_multiplier)"
+        ],
         "price_tier/3": [
           "attribute(pricing_tier)"
         ],
@@ -1602,13 +1618,40 @@
           "relation(unavailable_during)"
         ],
         "duty_limit/3": [
-          "attribute(role)"
+          "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
+          "attribute(needs_role)",
+          "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
+          "attribute(start)"
         ],
         "policy_gap/2": [
-          "attribute(role)"
+          "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
+          "attribute(needs_role)",
+          "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
+          "attribute(start)"
         ],
         "duty_length_ok/3": [
-          "attribute(role)"
+          "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
+          "attribute(needs_role)",
+          "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
+          "attribute(start)"
         ],
         "rest_before/3": [
           "attribute(end)",
@@ -1616,7 +1659,15 @@
         ],
         "rest_satisfied/2": [
           "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
+          "attribute(needs_role)",
           "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
+          "attribute(start)",
           "relation(duty_period)"
         ],
         "cumulative_duty/4": [
@@ -1626,13 +1677,27 @@
         ],
         "rolling_limit_ok/3": [
           "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
+          "attribute(needs_role)",
           "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
           "attribute(start)",
           "relation(duty_period)"
         ],
         "duty_headroom/3": [
           "attribute(end)",
+          "attribute(expires)",
+          "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
+          "attribute(needs_role)",
           "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
           "attribute(start)",
           "relation(duty_period)"
         ],
@@ -1656,8 +1721,12 @@
           "attribute(end)",
           "attribute(expires)",
           "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
           "attribute(needs_role)",
           "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
           "attribute(start)",
           "relation(duty_period)",
           "relation(holds)",
@@ -1668,8 +1737,12 @@
           "attribute(end)",
           "attribute(expires)",
           "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
           "attribute(needs_role)",
           "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
           "attribute(start)",
           "relation(duty_period)",
           "relation(holds)",
@@ -1680,8 +1753,12 @@
           "attribute(end)",
           "attribute(expires)",
           "attribute(kind)",
+          "attribute(max_duty)",
+          "attribute(min_rest)",
           "attribute(needs_role)",
           "attribute(role)",
+          "attribute(rolling_limit)",
+          "attribute(rolling_window)",
           "attribute(start)",
           "relation(duty_period)",
           "relation(holds)",
@@ -2066,9 +2143,19 @@
       ],
       "reads": {
         "compliant/2": [
+          "attribute(absolute_days)",
+          "attribute(created_day)",
+          "attribute(date)",
+          "attribute(requires_consent)",
+          "attribute(retention_days)",
           "relation(requires)"
         ],
         "violation/3": [
+          "attribute(absolute_days)",
+          "attribute(created_day)",
+          "attribute(date)",
+          "attribute(requires_consent)",
+          "attribute(retention_days)",
           "relation(requires)"
         ],
         "data_retention_ok/2": [
@@ -2461,8 +2548,11 @@
         "bom_compliant/2": [
           "attribute(absolute_days)",
           "attribute(date)",
+          "attribute(eol_day)",
+          "attribute(eol_horizon_days)",
           "attribute(lifecycle)",
           "attribute(ltb_day)",
+          "attribute(min_sources)",
           "relation(blocks_lifecycle)",
           "relation(includes)",
           "relation(requires)"
@@ -2483,8 +2573,11 @@
         "part_alternate/3": [
           "attribute(absolute_days)",
           "attribute(date)",
+          "attribute(eol_day)",
+          "attribute(eol_horizon_days)",
           "attribute(lifecycle)",
           "attribute(ltb_day)",
+          "attribute(min_sources)",
           "relation(blocks_lifecycle)",
           "relation(cross)",
           "relation(requires)"

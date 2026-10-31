@@ -361,3 +361,34 @@ test(prestige_entity_is_not_enumerated_as_an_unlock, [setup(setup_prog_fix_prest
     assertion(member(double_jump, Us)).
 
 :- end_tests(progression_unlock_aliases).
+
+%% ── answers checked against a bound value, and unlock enumeration ───────────
+
+setup_prog_fix_two_unlocks :-
+    assertz(attribute(fireball, unlock_at_level, 1)),
+    assertz(attribute(dash, unlock_at_level, 1)),
+    assertz(attribute(double_jump, requires_level, 1)),
+    assertz(attribute(alice, level, 5)).
+
+%% Explicit level 4; xp 700 alone would make level 5, the max.
+setup_prog_fix_level_wins_over_xp :-
+    assertz(attribute(xp_curve, max_level, 5)),
+    assertz(attribute(prestige, requires_max_level, true)),
+    assertz(attribute(alice, level, 4)),
+    assertz(attribute(alice, xp, 700)).
+
+:- begin_tests(progression_bound_answers).
+
+test(every_unlock_is_enumerated, [setup(setup_prog_fix_two_unlocks), cleanup(clear_facts)]) :-
+    findall(U, unlock_available(alice, U), Us0),
+    msort(Us0, Us),
+    assertion(Us == [dash, double_jump, fireball]).
+
+test(stat_override_is_not_second_guessed_by_the_formula, [setup(setup_hp_with_override), cleanup(clear_facts)]) :-
+    %% the override says 200 at level 5; the linear formula's 140 is not the answer
+    assertion(\+ stat_at_level(hp, 5, 140)).
+
+test(explicit_level_wins_for_prestige, [setup(setup_prog_fix_level_wins_over_xp), cleanup(clear_facts)]) :-
+    assertion(\+ can_prestige(alice)).
+
+:- end_tests(progression_bound_answers).

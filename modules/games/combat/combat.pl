@@ -11,6 +11,40 @@ battery_export(combat, 'turn_order/2',          'turn_order(Combatants, Ordered)
 battery_export(combat, 'is_defeated/1',         'is_defeated(Entity) — Entity has 0 or fewer HP').
 battery_export(combat, 'resistance/3',          'resistance(Entity, DamageType, Factor) — Factor (0.0–2.0) applied to DamageType against Entity').
 
+%% ── Input contract ───────────────────────────────────────────────────────────
+%%
+%% What the rules read (see CONTRIBUTING, "Input contract"). Attacker and
+%% target are one kind of subject, a combatant, as in risk-assessment. The
+%% per-type resistances are attributes named from the damage type at query
+%% time, so they cannot be declared here: `immune_<type>` (any value; damage
+%% of that type does 0, first in precedence), then `resist_<type>` and
+%% `weak_<type>` (the factor itself), then the type chart, then 1.0.
+
+battery_input(combat, combatant, attribute(hp), number, key,
+    'Current hit points; at 0 or below the combatant is defeated, and absent it never is.').
+battery_input(combat, combatant, attribute(speed), number, default(0),
+    'Turn order key, highest first; ties go by name.').
+battery_input(combat, combatant, attribute(status), atom, optional,
+    'An active status effect, one fact per effect; stunned, frozen and sleeping stop the combatant attacking.').
+battery_input(combat, combatant, relation(out_of_range), ref(combatant), optional,
+    'A target this combatant cannot reach this turn.').
+battery_input(combat, combatant, attribute(damage_type), atom, default(physical),
+    'The damage type this combatant deals as an attacker.').
+battery_input(combat, combatant, attribute(buff_damage), number, default(1.0),
+    'Multiplier on the damage this combatant deals.').
+battery_input(combat, combatant, attribute(debuff_damage), number, default(1.0),
+    'A second multiplier on the damage this combatant deals; both apply.').
+battery_input(combat, combatant, attribute(element), atom, optional,
+    'The combatant''s own element, looked up in the type chart when it is the target.').
+battery_input(combat, combatant, attribute(armor), number, default(0),
+    'Flat reduction to damage taken, after multipliers and resistance.').
+battery_input(combat, combatant, attribute(armor_type), atom, optional,
+    'The only damage type armor blocks; absent, armor blocks every type.').
+battery_input(combat, damage_type, relation(strong_against), atom, key,
+    'An element this damage type does double damage to, when no resistance attribute applies.').
+battery_input(combat, damage_type, relation(weak_against), atom, key,
+    'An element this damage type does half damage to, when no resistance attribute or strong_against applies.').
+
 %% ── Damage Types ─────────────────────────────────────────────────────────────
 %%
 %% Elemental type chart:
@@ -37,10 +71,12 @@ resistance(Entity, DType, Factor) :-
     Factor = 0.
 resistance(Entity, DType, Factor) :-
     atom_concat(resist_, DType, Attr),
-    attribute(Entity, Attr, Factor), !.
+    attribute(Entity, Attr, Factor0), !,
+    Factor = Factor0.
 resistance(Entity, DType, Factor) :-
     atom_concat(weak_, DType, Attr),
-    attribute(Entity, Attr, Factor), !.
+    attribute(Entity, Attr, Factor0), !,
+    Factor = Factor0.
 resistance(Entity, DType, Factor) :-
     %% Type-chart: check entity's element vs damage type
     attribute(Entity, element, Element),

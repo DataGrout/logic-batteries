@@ -11,6 +11,30 @@ battery_export(quests, 'next_objective/3',    'next_objective(Player, Quest, Obj
 battery_export(quests, 'quest_blocked_by/3',  'quest_blocked_by(Player, Quest, Reason) — Quest is not available due to Reason').
 battery_export(quests, 'can_turn_in/2',       'can_turn_in(Player, Quest) — all objectives met, ready to complete').
 
+%% Input contract (CONTRIBUTING, "Input contract"). Progress sits on composite
+%% subjects: a player's status on a quest is on the atom <player>_<quest>, and
+%% a finished objective on <player>_<objective>.
+battery_input(quests, fixed(world), relation(quest_exists), ref(quest), key,
+    'One edge per quest on offer; only these can be available.').
+battery_input(quests, quest, attribute(requires_quest), ref(quest), key,
+    'A quest the player must have completed first; several are all required.').
+battery_input(quests, quest, attribute(requires_level), integer, key,
+    'Minimum player level; a player with no level never meets it.').
+battery_input(quests, quest, attribute(requires_item), atom, key,
+    'An item the player must hold (has_item); several are all required.').
+battery_input(quests, objective, attribute(quest), ref(quest), key,
+    'The quest this objective belongs to.').
+battery_input(quests, objective, attribute(order), integer, required,
+    'Position within the quest; lower comes first, and an objective without one is ignored.').
+battery_input(quests, player, attribute(level), integer, key,
+    'The player''s level, checked against requires_level; absent, no level requirement is met.').
+battery_input(quests, player, relation(has_item), atom, key,
+    'An item the player holds, checked against requires_item.').
+battery_input(quests, player_quest, attribute(status), enum([in_progress, complete]), key,
+    'The player''s status on the quest, on the subject <player>_<quest>; absent means not started.').
+battery_input(quests, player_objective, attribute(complete), bool, key,
+    'true on <player>_<objective> once the player has done that objective.').
+
 %% ── Quest state ──────────────────────────────────────────────────────────────
 %% Assert state facts as the player progresses:
 %%   { type:"relation", subject:"alice", relation:"quest_status", object:"slay_dragon" }
@@ -102,10 +126,11 @@ quest_blocked_by(Player, Quest, 'already complete') :-
 quest_blocked_by(Player, Quest, requires_quest(ReqQ)) :-
     attribute(Quest, requires_quest, ReqQ),
     \+ quest_complete(Player, ReqQ).
+%% Unmet the same way prerequisite_met/2 reads it: a player with no level does
+%% not meet the requirement, so it is a reason too.
 quest_blocked_by(Player, Quest, requires_level(ReqL)) :-
     attribute(Quest, requires_level, ReqL),
-    attribute(Player, level, L),
-    L < ReqL.
+    \+ ( attribute(Player, level, L), L >= ReqL ).
 quest_blocked_by(Player, Quest, requires_item(ReqItem)) :-
     attribute(Quest, requires_item, ReqItem),
     \+ relation(Player, has_item, ReqItem).

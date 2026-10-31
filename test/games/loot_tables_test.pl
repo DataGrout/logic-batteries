@@ -146,6 +146,13 @@ test(explicit_drop_chance_overrides_rarity, [setup(setup_special_item_50pct),
     loot_chance(_, special, C),
     assertion(C == 50).
 
+%% Bound, the chance is compared with drop_chance, not with the tier's: a
+%% legendary item at 50% used to match 1 as well.
+test(bound_chance_checks_drop_chance, [setup(setup_special_item_50pct),
+                                       cleanup(clear_facts)]) :-
+    assertion(loot_chance(_, special, 50)),
+    assertion(\+ loot_chance(_, special, 1)).
+
 :- end_tests(loot_chance).
 
 %% ── condition_met ─────────────────────────────────────────────────────────────

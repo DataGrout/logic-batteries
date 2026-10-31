@@ -196,6 +196,26 @@ def code_only(source):
     return "\n".join(kept)
 
 
+# A lookup whose name is a variable (d20-core's `attribute(C, Ability, V)`,
+# lead_scoring's settings helper) reads whichever name the caller binds.
+DYNAMIC = re.compile(r"\b(attribute|relation|metric)\(\s*[^,()]+,\s*[A-Z_][A-Za-z0-9_]*\s*,")
+
+
+def rule_bodies(source):
+    """The bodies of the rules, without the facts a battery ships as data
+    (d20-monsters' stat blocks are provided, not read)."""
+    return [
+        clause.partition(":-")[2]
+        for clause in clause_texts(code_only(source))
+        if ":-" in clause and not clause.startswith(":-")
+    ]
+
+
+def dynamic_kinds(code):
+    """Kinds of fact the code looks up under a name chosen at query time."""
+    return {m.group(1) for m in DYNAMIC.finditer(code)}
+
+
 def names_read(source):
     """(kind, name) pairs the rules look up, from clause bodies, not comments."""
     code = code_only(source)
@@ -268,6 +288,9 @@ def reads_for(path, inputs, predicates):
             continue
         reads, calls = graph.setdefault(m.group(1), (set(), set()))
         reads |= names_read(body) & declared
+        # A lookup by a bound-at-query-time name can read any declared fact of
+        # that kind; over-reporting a reach is safe, missing one is not.
+        reads |= {d for d in declared if d[0] in dynamic_kinds(body)}
         calls |= set(CALL.findall(body)) | set(CALL_BY_NAME.findall(body))
     out = {}
     for spec in predicates:
@@ -300,7 +323,9 @@ def problems_for(path):
         if not isinstance(json.loads(role), dict) and not any(e["presence"] == "key" for e in entries):
             problems.append(f"role {json.loads(role)} has no key fact, so its subjects cannot be found")
     declared = {(i["kind"], i["name"]) for i in inputs}
-    read = names_read(source)
+    bodies = rule_bodies(source)
+    read = set().union(*(names_read(b) for b in bodies)) if bodies else set()
+    dynamic = set().union(*(dynamic_kinds(b) for b in bodies)) if bodies else set()
     for kind, name in sorted(read - declared):
         problems.append(f"reads {kind}({name}) but the contract does not declare it")
     # A name passed in as a parameter (hier_own/2 asks for metric `amount`
@@ -308,6 +333,9 @@ def problems_for(path):
     # name only has to occur somewhere in the code.
     code = code_only(source)
     for kind, name in sorted(declared - read):
+        # Read through a variable name (a Constitution save asks for `con`).
+        if kind in dynamic:
+            continue
         if not re.search(rf"\b{re.escape(name)}\b", code):
             problems.append(f"declares {kind}({name}) but no clause mentions it")
     return problems

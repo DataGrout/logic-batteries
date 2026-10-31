@@ -14,6 +14,25 @@ battery_export(inventory, 'has_item/2',        'has_item(Player, Item) — true 
 battery_export(inventory, 'item_in_slot/3',    'item_in_slot(Player, Slot, Item) — Item is equipped in Slot').
 battery_export(inventory, 'slot_available/2',  'slot_available(Player, Slot) — Slot is empty for Player').
 
+%% Input contract (CONTRIBUTING, "Input contract"). An item's only fact is its
+%% weight, so the weight is its key even though the rules fall back to 1.
+battery_input(inventory, player, relation(has_item), ref(item), key,
+    'An item the player carries; each counts once toward weight and slots.').
+battery_input(inventory, player, attribute(max_carry_weight), number, default(50),
+    'Total weight the player can carry.').
+battery_input(inventory, player, attribute(max_slots), integer, default(20),
+    'How many items the player can carry.').
+battery_input(inventory, player, relation(owns_slot), ref(slot), optional,
+    'An equipment slot the player has; slot_available only reports owned slots.').
+battery_input(inventory, player, relation(equipped_in), ref(slot), optional,
+    'A slot the player has equipped; item_in_slot reads what it contains.').
+battery_input(inventory, item, attribute(weight), number, key,
+    'Carry weight of one item; an item without one weighs 1.').
+battery_input(inventory, slot, attribute(slot_type), atom, key,
+    'The kind of slot (head, hand, ...); a slot without one is never available.').
+battery_input(inventory, slot, relation(contains), ref(item), optional,
+    'The item in the slot; none means the slot is empty.').
+
 %% ── Defaults (override by asserting attribute facts) ─────────────────────────
 
 %% Max carry weight defaults to 50 unless overridden:

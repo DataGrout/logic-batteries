@@ -102,6 +102,16 @@ setup_invisible_and_poisoned :-
 setup_hp_max_7 :-
     assertz(attribute(g2, hp_max, 7)).
 
+setup_petrified_alice :-
+    setup_combatants,
+    assertz(attribute(alice, condition, petrified)).
+
+setup_restrained_target :-
+    assertz(attribute(t1, condition, restrained)).
+
+setup_petrified_target :-
+    assertz(attribute(t1, condition, petrified)).
+
 :- begin_tests(d20_combat).
 
 %% ── armor class derivation ───────────────────────────────────────────────────
@@ -200,6 +210,12 @@ test(paralyzed_cannot_attack,
      [setup((clear_facts, setup_paralyzed_alice)), fail]) :-
     d20_can_attack(alice, goblin).
 
+%% SRD: a petrified creature is incapacitated, as d20-conditions'
+%% condition_blocks_action/1 already says.
+test(petrified_cannot_attack,
+     [setup((clear_facts, setup_petrified_alice)), fail]) :-
+    d20_can_attack(alice, goblin).
+
 test(out_of_range_cannot_attack,
      [setup((clear_facts, setup_out_of_range)), fail]) :-
     d20_can_attack(alice, goblin).
@@ -239,6 +255,16 @@ test(cover_imposes_disadvantage, [setup((clear_facts, setup_cover))]) :-
 
 test(high_ground_grants_advantage, [setup((clear_facts, setup_high_ground))]) :-
     advantage_on_attack(a1, t1).
+
+%% SRD: attack rolls against a restrained or petrified creature have
+%% advantage (d20-conditions' attack_rolls_incoming).
+test(restrained_target_advantage,
+     [setup((clear_facts, setup_restrained_target))]) :-
+    d20_attack_roll_mode(a1, t1, advantage).
+
+test(petrified_target_advantage,
+     [setup((clear_facts, setup_petrified_target))]) :-
+    d20_attack_roll_mode(a1, t1, advantage).
 
 %% ── net roll mode (RAW cancellation) ─────────────────────────────────────────
 
