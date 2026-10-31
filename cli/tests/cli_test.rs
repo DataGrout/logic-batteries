@@ -211,3 +211,63 @@ fn unknown_battery_is_a_clean_error() {
     assert!(!out.status.success());
     assert!(stderr(&out).contains("unknown battery"));
 }
+
+#[test]
+fn a_hyphenated_id_finds_its_underscored_directory() {
+    let repo = repo_root();
+    let dir = temp_dir();
+
+    // invoice-rules lives in modules/business/invoice_rules/.
+    let out = battery(&[
+        "install", "invoice-rules",
+        "--repo", repo.to_str().unwrap(),
+        "--dir", dir.to_str().unwrap(),
+    ]);
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert!(dir.join("invoice_rules.pl").is_file());
+}
+
+#[test]
+fn the_loader_includes_every_installed_battery_and_follows_removes() {
+    let repo = repo_root();
+    let dir = temp_dir();
+    let loader = dir.join("batteries.pl");
+
+    let out = battery(&[
+        "install", "invoice-rules", "pricing-rules",
+        "--repo", repo.to_str().unwrap(),
+        "--dir", dir.to_str().unwrap(),
+    ]);
+    assert!(out.status.success(), "{}", stderr(&out));
+
+    // Included, not consulted one by one, so each battery's battery_input/6
+    // clauses add to the other's instead of replacing them.
+    let text = fs::read_to_string(&loader).unwrap();
+    assert!(text.contains(":- discontiguous(battery_input/6)."), "{text}");
+    assert!(text.contains(":- include(\"invoice_rules.pl\")."), "{text}");
+    assert!(text.contains(":- include(\"pricing_rules.pl\")."), "{text}");
+
+    battery(&["remove", "pricing-rules", "--dir", dir.to_str().unwrap()]);
+    let text = fs::read_to_string(&loader).unwrap();
+    assert!(text.contains("invoice_rules.pl") && !text.contains("pricing_rules.pl"), "{text}");
+
+    battery(&["remove", "invoice-rules", "--dir", dir.to_str().unwrap()]);
+    assert!(!loader.exists(), "the loader outlived the last battery");
+}
+
+#[test]
+fn a_batteries_pl_the_user_wrote_is_left_alone() {
+    let repo = repo_root();
+    let dir = temp_dir();
+    let loader = dir.join("batteries.pl");
+    fs::write(&loader, "% mine\n").unwrap();
+
+    let out = battery(&[
+        "install", "explain",
+        "--repo", repo.to_str().unwrap(),
+        "--dir", dir.to_str().unwrap(),
+    ]);
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert_eq!(fs::read_to_string(&loader).unwrap(), "% mine\n");
+    assert!(stdout(&out).contains("was not written by battery"), "{}", stdout(&out));
+}
