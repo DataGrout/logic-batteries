@@ -209,6 +209,81 @@ def names_read(source):
     }
 
 
+# ── What each exported predicate reads ───────────────────────────────────────
+
+HEAD = re.compile(r"^([a-z][A-Za-z0-9_]*)")
+CALL = re.compile(r"\b([a-z][A-Za-z0-9_]*)\(")
+# A predicate passed by name (maplist(late, Is), findall(X, overdue(X), L)
+# is caught by CALL; the bare-atom form is not).
+CALL_BY_NAME = re.compile(
+    r"\b(?:maplist|foldl|include|exclude|partition|call|forall|aggregate_all)\(\s*([a-z][A-Za-z0-9_]*)\s*[,)]"
+)
+
+
+def clause_texts(code):
+    """Top-level clauses of `code` (comments already gone), split on the full
+    stop that ends each one. A full stop inside quotes, brackets or a number
+    (0.015) does not end a clause."""
+    out, start, depth, quoted, i = [], 0, 0, False, 0
+    while i < len(code):
+        c = code[i]
+        if quoted:
+            if c == "\\":
+                i += 1
+            elif c == "'":
+                if code[i + 1:i + 2] == "'":
+                    i += 1
+                else:
+                    quoted = False
+        elif c == "'":
+            quoted = True
+        elif c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c == "." and depth == 0 and (i + 1 == len(code) or code[i + 1].isspace()):
+            out.append(code[start:i].strip())
+            start = i + 1
+        i += 1
+    return [c for c in out if c]
+
+
+def reads_for(path, inputs, predicates):
+    """For each exported predicate, the contract facts it can read through the
+    battery's own clauses, as "kind(name)" strings.
+
+    A default is not a fact, so a proof that falls back on one leaves nothing
+    to point at; this is how a host tells which defaults (and which gaps) bear
+    on a question instead of reporting the whole contract on every answer."""
+    if not inputs:
+        return {}
+    declared = {(i["kind"], i["name"]) for i in inputs}
+    graph = {}
+    for clause in clause_texts(code_only(pathlib.Path(path).read_text())):
+        if clause.startswith(":-"):
+            continue
+        head, _, body = clause.partition(":-")
+        m = HEAD.match(head.strip())
+        if not m:
+            continue
+        reads, calls = graph.setdefault(m.group(1), (set(), set()))
+        reads |= names_read(body) & declared
+        calls |= set(CALL.findall(body)) | set(CALL_BY_NAME.findall(body))
+    out = {}
+    for spec in predicates:
+        seen, stack, found = set(), [spec.split("/")[0]], set()
+        while stack:
+            name = stack.pop()
+            if name in seen or name not in graph:
+                continue
+            seen.add(name)
+            reads, calls = graph[name]
+            found |= reads
+            stack.extend(calls)
+        out[spec] = sorted(f"{kind}({name})" for kind, name in found)
+    return out
+
+
 def problems_for(path):
     source = pathlib.Path(path).read_text()
     try:
