@@ -41,7 +41,7 @@
             ]
           },
           "presence": "key",
-          "note": "Company size: enterprise or mid_market score points; any other size (smb) scores nothing."
+          "note": "Company size: smb under 100 employees, mid_market 100 to 999, enterprise 1,000 or more. enterprise or mid_market score points; smb scores nothing."
         },
         {
           "role": "lead",
@@ -73,7 +73,7 @@
           "presence": {
             "default": "false"
           },
-          "note": "true when the contact can sign; scores decision_maker_points."
+          "note": "true when the contact makes, approves or signs off on the buying decision; scores decision_maker_points."
         },
         {
           "role": "lead",
@@ -100,7 +100,7 @@
           "presence": {
             "default": "false"
           },
-          "note": "true when the lead works for a competitor; disqualifies it."
+          "note": "true when the lead works for or sells for a competitor; disqualifies it."
         },
         {
           "role": "lead",
@@ -110,7 +110,7 @@
           "presence": {
             "default": "false"
           },
-          "note": "true when the lead is a student; disqualifies it."
+          "note": "true when the contact is a student or the purchase is a student project; disqualifies it."
         },
         {
           "role": {
