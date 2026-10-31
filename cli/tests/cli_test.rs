@@ -271,3 +271,31 @@ fn a_batteries_pl_the_user_wrote_is_left_alone() {
     assert_eq!(fs::read_to_string(&loader).unwrap(), "% mine\n");
     assert!(stdout(&out).contains("was not written by battery"), "{}", stdout(&out));
 }
+
+#[test]
+fn the_install_hint_names_the_registry_requires_not_header_prose() {
+    let repo = repo_root();
+    let dir = temp_dir();
+
+    // d20-combat's header says "d20-core AND d20-conditions in same namespace";
+    // the registry says ["d20-core", "d20-conditions"].
+    let out = battery(&[
+        "install", "d20-combat",
+        "--repo", repo.to_str().unwrap(),
+        "--dir", dir.to_str().unwrap(),
+    ]);
+    assert!(out.status.success(), "{}", stderr(&out));
+    let text = stdout(&out);
+    assert!(
+        text.contains("battery install d20-core d20-conditions"),
+        "hint does not name the registry's requires:\n{text}"
+    );
+    assert!(!text.contains("AND"), "hint repeats the header's prose:\n{text}");
+}
+
+#[test]
+fn version_prints_the_crate_version() {
+    let out = battery(&["--version"]);
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert_eq!(stdout(&out).trim(), format!("battery {}", env!("CARGO_PKG_VERSION")));
+}

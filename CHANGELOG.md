@@ -11,7 +11,7 @@ on one leaves nothing to point at; with `reads`, a host reports only the
 defaults and gaps a question's predicates can reach, not the whole contract on
 every answer.
 
-### CLI
+### CLI 0.2.0
 
 `battery install` and `battery remove` keep a `batteries.pl` loader that
 includes every installed battery. Consulting battery files one by one
@@ -24,6 +24,12 @@ The seven batteries whose id is hyphenated while their directory is not
 (`invoice-rules` in `invoice_rules/`, `pricing-rules`, `lead-scoring`,
 `approval-chains`, `inventory-mgmt`, `bom-policy`, `ai-director`) were missing
 from `battery list` and could not be installed; they are found now.
+
+The install hint for missing dependencies reads the registry's `requires`
+rather than the `%% Requires:` comment in the battery file, whose prose in
+three batteries (`d20-combat`, `d20-spells`, `risk-assessment`) turned into
+battery names that do not exist. `battery version` (or `--version`) prints the
+installed version.
 
 ## 2026-10-28
 

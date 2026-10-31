@@ -71,6 +71,7 @@ share a battery's filename unless you pass `-f`.
 | `battery remove <id>... [--dir D] [-f]` | Delete a battery's unmodified files, update the lock |
 | `battery installed [--dir D]` | What's installed here, with modification flags |
 | `battery list [--repo R]` | All batteries in the registry |
+| `battery version` | Print the CLI's version |
 
 ## License
 
