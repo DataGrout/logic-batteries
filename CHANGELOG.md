@@ -2,6 +2,17 @@
 
 ## 2026-11-02
 
+### Docs
+
+- `fixpoint`: the README and module header said tabling isn't available in
+  logic cells. Cells honor `:- table` on both engines, and batteries may now
+  declare it: an install keeps `:- table` and still drops every other
+  directive. Reworded there, in the registry description and in an fsm test
+  comment that also said tabling doesn't exist on Scryer.
+- `CONTRIBUTING` and `make lint`: `:- table` is no longer a forbidden
+  directive. Pair it with `:- use_module(library(tabling))` so a standalone
+  Scryer consult tables too.
+
 ### Modules
 
 - `approval-chains` 1.0.1: `fully_approved/1` no longer holds for a request

@@ -649,7 +649,7 @@
       "id": "fixpoint",
       "version": "1.0.1",
       "title": "Fixpoint Evaluation",
-      "description": "Bottom-up (Datalog-style) saturation of stored rules: tabling's termination benefit without tabling. Textbook recursive rules \u2014 transitive closure, left-recursive ancestry \u2014 work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Pure ISO \u2014 runs on SWI and Scryer alike, including ISO-pinned cells where :- table is unavailable.",
+      "description": "Bottom-up (Datalog-style) saturation of stored rules: tabling's termination benefit without a tabling declaration. Textbook recursive rules \u2014 transitive closure, left-recursive ancestry \u2014 work verbatim on cyclic data where plain resolution loops; recursive subgoals are looked up in the growing answer set, each answer derived exactly once. Pure ISO \u2014 runs on SWI and Scryer alike with no declaration; an alternative to :- table, which logic cells honor on both engines.",
       "category": "reasoning",
       "license": "Elastic-2.0",
       "tags": [

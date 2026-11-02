@@ -3,10 +3,9 @@
 %% Exports: fixpoint_solve/1, fixpoint_solve/2, fixpoint_answers/2, fixpoint_answers/3
 %%
 %% Bottom-up (Datalog-style) evaluation of stored rules: tabling's TERMINATION
-%% benefit without tabling. Pure ISO — runs on SWI and Scryer alike, including
-%% ISO-pinned cells, where `:- table` is unavailable by design: tabling is a
-%% directive-enabled extension on both engines (SWI natively, Scryer via
-%% library(tabling)), and directives are stripped at cell install.
+%% benefit without a tabling declaration. Pure ISO — runs on SWI and Scryer
+%% alike. Logic cells honor `:- table` on both engines too; this is the
+%% alternative that needs no declaration.
 %%
 %% Instead of proving a recursive goal top-down (where left/cyclic recursion
 %% loops forever under plain SLD), fixpoint_solve/1 saturates: it derives every

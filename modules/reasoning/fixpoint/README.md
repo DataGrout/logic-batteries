@@ -1,12 +1,12 @@
 # Module: fixpoint v1.0.1
 
 Bottom-up (Datalog-style) evaluation of stored rules: **tabling's termination
-benefit without tabling**. Pure ISO — runs on SWI and Scryer alike, including
-ISO-pinned cells, where `:- table` is unavailable by design: tabling is a
-directive-enabled extension on both engines (SWI natively, Scryer via
-[`library(tabling)`](https://www.scryer.pl/tabling)), directives are stripped
-at cell install, and tabling isn't part of the ISO standard an ISO pin
-guarantees.
+benefit without a tabling declaration**. Pure ISO — runs on SWI and Scryer
+alike, with no declarations and no library imports. Logic cells honor
+`:- table` on both engines (SWI natively, Scryer via
+[`library(tabling)`](https://www.scryer.pl/tabling)), for rules you add with
+`logic.constrain` and for batteries that declare it, so this battery is an
+alternative to tabling rather than a substitute for a missing feature.
 
 **Requires:** nothing.
 
@@ -20,9 +20,8 @@ reach(X, Y) :- reach(X, Z), edge(Z, Y).
 ```
 
 loops forever under plain top-down resolution the moment your graph has a
-cycle — which is why textbooks reach for `:- table`. Inside logic cells
-tabling isn't available (the directive that enables it is stripped at
-install), so this battery changes the *evaluation strategy* instead: `fixpoint_solve/1` derives every fact provable from the goal's rules,
+cycle — which is why textbooks reach for `:- table`. This battery changes
+the *evaluation strategy* instead: `fixpoint_solve/1` derives every fact provable from the goal's rules,
 round by round, until nothing new appears (a least fixpoint), then answers
 from that set. Recursive subgoals are looked up in the growing answer set
 rather than re-proven, so cycles and left recursion cannot loop. Rules work
@@ -96,15 +95,12 @@ Bodies may freely mix derived subgoals, base facts, builtins
   `fixpoint_answers(reach(a, X), As), length(As, N)`. `call/N` over a derived
   predicate is fine — it is unwrapped and looked up in the answer set.
 - **No cross-query caching.** Each call recomputes the saturation (naive
-  iteration). At logic-cell scale this is rarely noticeable; a memoizing
-  layer with write-through invalidation is on the platform roadmap, as is
-  host-side tabling that will honor `:- table` declarations directly.
-  DataGrout already records `:- table` declarations as namespace metadata
-  rather than rejecting them, so rules that declare tabling today will be
-  honored automatically when that ships — no rework.
-- **Standalone users: real tabling may serve you better.** Outside cells,
-  directives work, and both engines table — SWI's built-in `:- table` and
-  Scryer's [`library(tabling)`](https://www.scryer.pl/tabling). Engine
-  tabling caches across queries and handles more than the Datalog class;
-  this battery is for the environments where directives can't reach (cells)
-  or where you want the same evaluation on every ISO engine.
+  iteration). At logic-cell scale this is rarely noticeable. A `:- table`
+  declaration gives you cached answers instead, and logic cells honor it on
+  both engines.
+- **Engine tabling may serve you better.** Both engines table — SWI's
+  built-in `:- table` and Scryer's
+  [`library(tabling)`](https://www.scryer.pl/tabling) — standalone and inside
+  logic cells. Engine tabling caches across queries and handles more than the
+  Datalog class; this battery is for when you want the same evaluation on
+  every ISO engine with no declaration at all.

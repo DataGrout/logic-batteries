@@ -6,7 +6,8 @@
 # that writes 'smoke_ok' as its last line on success and halts. The script
 # concatenates the batteries and the facts into one file — the same shape a
 # cell install produces — stripping the batteries' directives (module headers,
-# use_module, dynamic) the way an install does; the common dynamics are
+# use_module, dynamic) the way an install does, except tabling, which an
+# install keeps (with library(tabling), which a Scryer cell loads); the common dynamics are
 # declared once in the header so later clause blocks are not redefinitions.
 #
 # Usage: ./scripts/scryer_smoke.sh [spec ...]
@@ -20,10 +21,12 @@ if [[ ! -x "$SCRYER" ]]; then
 fi
 
 # Drop every directive from a battery file — one-liners and the multi-line
-# `:- module(name, [ ... ]).` header alike — which is what a cell install does.
+# `:- module(name, [ ... ]).` header alike — except one-line `:- table` and
+# `:- use_module(library(tabling))`, which is what a cell install does.
 strip_directives() {
   awk '
     skip { if ($0 ~ /\.[ \t]*$/) skip = 0; next }
+    /^:-[ \t]*(table[ \t(]|use_module\(library\(tabling\)\))/ && /\.[ \t]*$/ { print; next }
     /^:-/ { if ($0 !~ /\.[ \t]*$/) skip = 1; next }
     { print }
   ' "$1"

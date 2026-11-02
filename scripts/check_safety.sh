@@ -48,20 +48,17 @@ DANGEROUS_PATTERNS=(
 ALLOWED_PATTERN="^[[:space:]]*:-[[:space:]]*use_module("
 
 # Directives that must not carry load-bearing semantics: the DataGrout
-# installer strips ALL directives at cell install (a deliberate security
-# boundary — directives are arbitrary goal execution at load time), so a
-# battery relying on one behaves differently in cells than standalone.
-#   - table:           relying on tabling for TERMINATION is the proven bug
-#                      class (fsm_reachable hung on cyclic machines in every
-#                      cell for months) — use visited-set walks or BFS
-#                      fixpoints instead
+# installer drops every directive at cell install except `:- table` (a
+# deliberate security boundary — directives are arbitrary goal execution at
+# load time), so a battery relying on one behaves differently in cells than
+# standalone. `:- table` is a declaration the cell applies itself, so it is
+# allowed; pair it with `:- use_module(library(tabling))` for Scryer.
 #   - initialization:  arbitrary code execution at load — never acceptable
 #   - set_prolog_flag: global engine mutation in a shared process
 # (`:- dynamic`/`discontiguous` are fine — they exist FOR the standalone
 # path and the cell bridge supplies equivalents. `:- op` is tolerated where
 # it documents standalone reader behavior, e.g. prob-core-iso/transform.pl.)
 FORBIDDEN_DIRECTIVES=(
-  "table"
   "initialization"
   "set_prolog_flag"
 )
