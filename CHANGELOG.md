@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-02
+
+### Modules
+
+- `approval-chains` 1.0.1: `fully_approved/1` no longer holds for a request
+  with no approval required of anyone. With no approval step or threshold rule
+  loaded, "every required approval was received" was true of nothing, so a
+  request was reported fully approved on no evidence. It now needs at least one
+  required approval; `next_approver/2` and `approval_blocked/2` are unchanged.
+
 ## 2026-10-30
 
 ### Input contracts for 25 more batteries

@@ -1,8 +1,8 @@
-%% Battery: approval_chains v1.0.0
+%% Battery: approval_chains v1.0.1
 %% Exports: approval_required/2, approval_granted/2, fully_approved/1,
 %%          next_approver/2, approval_blocked/2
 
-battery_module(approval_chains, '1.0.0', auto).
+battery_module(approval_chains, '1.0.1', auto).
 
 battery_export(approval_chains, 'approval_required/2', 'approval_required(Request, Approver) — Approver must approve Request').
 battery_export(approval_chains, 'approval_granted/2',  'approval_granted(Request, Approver) — Approver has approved Request').

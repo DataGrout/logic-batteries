@@ -1,4 +1,4 @@
-# Module: approval-chains v1.0.0
+# Module: approval-chains v1.0.1
 
 Multi-step approval workflows with ordered steps, delegation, rejection tracking, and automatic amount-based escalation. Models the approval state as facts; rules derive whether requests are blocked, pending, or fully approved.
 
@@ -19,7 +19,7 @@ client.perform("data-grout@1/batteries.install_many@1", {
 |---|---|
 | `approval_required(Request, Approver)` | Approver must approve Request |
 | `approval_granted(Request, Approver)` | Approver has approved (including via delegation) |
-| `fully_approved(Request)` | All required approvals received and no rejections |
+| `fully_approved(Request)` | At least one approval is required, all required approvals are received, and there are no rejections |
 | `next_approver(Request, Approver)` | Next pending approver in the ordered chain |
 | `approval_blocked(Request, Reason)` | Approval cannot proceed; Reason is `rejected(By, Why)` or `awaiting(Approver)` |
 

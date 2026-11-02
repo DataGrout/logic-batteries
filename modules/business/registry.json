@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-10-30",
+  "updated_at": "2026-11-02",
   "category": "business",
   "modules": [
     {
@@ -560,7 +560,7 @@
     },
     {
       "id": "approval-chains",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Approval Chains",
       "description": "Multi-step approval workflows with delegation, rejection tracking, and automatic amount-based approver escalation. Finds next pending approver, checks full approval, and surfaces blocking reasons.",
       "category": "business",
