@@ -95,7 +95,11 @@ approval_granted_by(Request, Approver) :-
     relation(Request, approved_by, Delegate).
 
 %% fully_approved(+Request)
+%% A request with no approval required of anyone is not approved: with no
+%% chain or threshold rule loaded, "every required approval received" holds
+%% of nothing and would prove approval on no evidence.
 fully_approved(Request) :-
+    approval_required(Request, _), !,
     \+ relation(Request, rejected_by, _),
     \+ ( approval_required(Request, Approver),
          \+ approval_granted(Request, Approver) ).
