@@ -99,6 +99,9 @@ test(not_fully_approved_pending, [setup(setup_chain_with_manager_approved), clea
 test(not_fully_approved_when_rejected, [setup(setup_chain_rejected), cleanup(clear_facts)]) :-
     assertion(\+ fully_approved(req_001)).
 
+test(not_fully_approved_with_no_chain, [setup(setup_manager_approved), cleanup(clear_facts)]) :-
+    assertion(\+ fully_approved(req_001)).
+
 :- end_tests(fully_approved).
 
 %% ── next_approver/2 ──────────────────────────────────────────────────────────
