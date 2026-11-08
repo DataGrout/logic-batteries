@@ -174,6 +174,33 @@ def inputs_for(path):
     return out
 
 
+def needs_for(path):
+    """The roles a battery's decisions need loaded (battery_needs/4), as dicts.
+
+    `battery_needs(Battery, Role, How, Note)`: How is `any` (the role must have
+    a member) or `attribute(Name)`, a key of Role that refers to the subject's
+    role (the subject needs a member of Role referring to it). A failed decision
+    with a need unmet is unknown, not no."""
+    source = pathlib.Path(path).read_text()
+    out = []
+    for text in clauses(source, "battery_needs"):
+        term, _ = parse_term(tokens(text))
+        args = term["args"]
+        if len(args) != 4:
+            raise ValueError(f"battery_needs needs 4 arguments: {text[:60]}")
+        _battery, role, how, note = args
+        if not isinstance(role, str):
+            raise ValueError(f"battery_needs role must be a name: {role!r}")
+        if how == "any":
+            via = None
+        elif isinstance(how, dict) and how["f"] == "attribute" and len(how["args"]) == 1:
+            via = how["args"][0]
+        else:
+            raise ValueError(f"battery_needs how must be any or attribute(Name): {how!r}")
+        out.append({"role": role, "via": via, "note": note if isinstance(note, str) else ""})
+    return out
+
+
 READ = {
     "attribute": re.compile(r"\battribute\(\s*[^,()]+,\s*'?([a-z][a-z0-9_]*)'?\s*,"),
     "relation": re.compile(r"\brelation\(\s*[^,()]+,\s*'?([a-z][a-z0-9_]*)'?\s*,"),
@@ -187,7 +214,7 @@ def code_only(source):
     kept, skipping = [], False
     for line in source.splitlines():
         stripped = line.lstrip()
-        if stripped.startswith(("battery_input(", "battery_fact_shape(", "battery_export(", "battery_module(")):
+        if stripped.startswith(("battery_input(", "battery_needs(", "battery_fact_shape(", "battery_export(", "battery_module(")):
             skipping = True
         if not skipping:
             kept.append(line.split("%", 1)[0])
@@ -322,6 +349,20 @@ def problems_for(path):
     for role, entries in roles.items():
         if not isinstance(json.loads(role), dict) and not any(e["presence"] == "key" for e in entries):
             problems.append(f"role {json.loads(role)} has no key fact, so its subjects cannot be found")
+    try:
+        needs = needs_for(path)
+    except (ValueError, IndexError, KeyError) as e:
+        return [f"battery_needs does not parse: {e}"]
+    for n in needs:
+        entries = roles.get(json.dumps(n["role"]), [])
+        if not entries:
+            problems.append(f"battery_needs names role {n['role']}, which the contract does not declare")
+        elif n["via"] is not None and not any(
+            e["kind"] == "attribute" and e["name"] == n["via"] and e["presence"] == "key"
+            and isinstance(e["type"], dict) and "ref" in e["type"]
+            for e in entries
+        ):
+            problems.append(f"battery_needs {n['role']} via {n['via']}: not a ref key of that role")
     declared = {(i["kind"], i["name"]) for i in inputs}
     bodies = rule_bodies(source)
     read = set().union(*(names_read(b) for b in bodies)) if bodies else set()

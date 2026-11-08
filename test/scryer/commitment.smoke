@@ -1,0 +1,25 @@
+# commitment battery on scryer-prolog: the three ways to a due day, overdue
+# days, due soon, and done late.
+modules/business/commitment/commitment.pl
+---
+attribute(today, absolute_days, 20765).
+attribute(c1, owner, ravi).
+attribute(c1, due, 20756).
+attribute(c2, owner, mei).
+attribute(c2, made_on, 20746).
+attribute(c2, due_in_days, 30).
+attribute(c4, owner, jordan).
+attribute(c4, event_on, 20828).
+attribute(c4, days_before, 60).
+attribute(c6, owner, ravi).
+attribute(c6, due, 20756).
+attribute(c6, done, true).
+attribute(c6, done_on, 20757).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(c1_overdue, (overdue(c1), overdue_days(c1, 9))),
+    check(c2_relative, (due_on(c2, 20776), \+ overdue(c2), overdue_days(c2, 0))),
+    check(c4_notice, (due_on(c4, 20768), due_soon(c4))),
+    check(c6_late, (done_late(c6), \+ outstanding(c6))),
+    check(enumerate, (findall(C, overdue(C), Cs), Cs == [c1])),
+    write(smoke_ok), nl.

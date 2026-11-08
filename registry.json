@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-11-02",
+  "updated_at": "2026-11-07",
   "modules": [
     {
       "id": "core",
@@ -6058,6 +6058,703 @@
         ],
         "part_exempt/2": []
       }
+    },
+    {
+      "id": "approval",
+      "version": "1.0.0",
+      "title": "Approval",
+      "description": "Decides whether an item was approved from the statements made about it: who approved, rejected or withdrew, when, with what limit or condition, and whether they had the authority to. Authority is supplied as records, and a decision the facts cannot support is unknown rather than no.",
+      "category": "business",
+      "license": "Elastic-2.0",
+      "tags": [
+        "approvals",
+        "authority",
+        "decisions",
+        "business"
+      ],
+      "predicates": [
+        "approved/1",
+        "approved_by/3",
+        "conditions/2",
+        "withdrawn/1",
+        "rejected/1",
+        "authorized/2",
+        "unauthorized_approval/2",
+        "unauthorized_withdrawal/2",
+        "limited_approval/3"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/approval/approval.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/approval",
+      "install": "batteries.install_many",
+      "inputs": [
+        {
+          "role": "statement",
+          "kind": "attribute",
+          "name": "about",
+          "type": {
+            "ref": "item"
+          },
+          "presence": "key",
+          "note": "The item the statement is about."
+        },
+        {
+          "role": "statement",
+          "kind": "attribute",
+          "name": "act",
+          "type": {
+            "enum": [
+              "approve",
+              "reject",
+              "withdraw"
+            ]
+          },
+          "presence": "required",
+          "note": "What the statement does. A question (\"approved, pending legal?\") is not an approval, and statements that only ask or discuss are not supplied."
+        },
+        {
+          "role": "statement",
+          "kind": "attribute",
+          "name": "by",
+          "type": {
+            "ref": "person"
+          },
+          "presence": "required",
+          "note": "Who made the statement."
+        },
+        {
+          "role": "statement",
+          "kind": "attribute",
+          "name": "on",
+          "type": "days",
+          "presence": "required",
+          "note": "The day it was made."
+        },
+        {
+          "role": "statement",
+          "kind": "attribute",
+          "name": "order",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Position in the thread, for statements made on the same day; the later one wins."
+        },
+        {
+          "role": "statement",
+          "kind": "attribute",
+          "name": "limit",
+          "type": "number",
+          "presence": "optional",
+          "note": "An amount the approval is limited to (\"approved up to 5,000\")."
+        },
+        {
+          "role": "statement",
+          "kind": "attribute",
+          "name": "condition",
+          "type": "atom",
+          "presence": "optional",
+          "note": "A condition the approval is subject to, in a few words (\"after legal review\"). A question is not a condition."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "title",
+          "type": "atom",
+          "presence": "key",
+          "note": "What is being approved, in a few words."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "amount",
+          "type": "number",
+          "presence": "key",
+          "note": "The amount at stake, checked against the approver's and the statement's limits."
+        },
+        {
+          "role": "item",
+          "kind": "attribute",
+          "name": "category",
+          "type": "atom",
+          "presence": "key",
+          "note": "The kind of item, matched against an authority's covers_category."
+        },
+        {
+          "role": "person",
+          "kind": "attribute",
+          "name": "role",
+          "type": "atom",
+          "presence": "key",
+          "note": "The person's role, matched against an authority's approver_role."
+        },
+        {
+          "role": "authority",
+          "kind": "attribute",
+          "name": "approver_role",
+          "type": "atom",
+          "presence": "key",
+          "note": "A role whose holders may approve."
+        },
+        {
+          "role": "authority",
+          "kind": "attribute",
+          "name": "approver",
+          "type": {
+            "ref": "person"
+          },
+          "presence": "key",
+          "note": "Or one named person who may approve."
+        },
+        {
+          "role": "authority",
+          "kind": "attribute",
+          "name": "covers_category",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The kind of item this authority covers; absent covers every kind."
+        },
+        {
+          "role": "authority",
+          "kind": "attribute",
+          "name": "up_to",
+          "type": "number",
+          "presence": "optional",
+          "note": "The largest amount this authority covers; absent means no limit."
+        }
+      ],
+      "reads": {
+        "approved/1": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(approver_role)",
+          "attribute(by)",
+          "attribute(category)",
+          "attribute(covers_category)",
+          "attribute(limit)",
+          "attribute(on)",
+          "attribute(order)",
+          "attribute(role)",
+          "attribute(title)",
+          "attribute(up_to)"
+        ],
+        "approved_by/3": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(approver_role)",
+          "attribute(by)",
+          "attribute(category)",
+          "attribute(covers_category)",
+          "attribute(limit)",
+          "attribute(on)",
+          "attribute(order)",
+          "attribute(role)",
+          "attribute(title)",
+          "attribute(up_to)"
+        ],
+        "conditions/2": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(approver_role)",
+          "attribute(by)",
+          "attribute(category)",
+          "attribute(condition)",
+          "attribute(covers_category)",
+          "attribute(limit)",
+          "attribute(on)",
+          "attribute(order)",
+          "attribute(role)",
+          "attribute(title)",
+          "attribute(up_to)"
+        ],
+        "withdrawn/1": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(approver_role)",
+          "attribute(by)",
+          "attribute(category)",
+          "attribute(covers_category)",
+          "attribute(limit)",
+          "attribute(on)",
+          "attribute(order)",
+          "attribute(role)",
+          "attribute(title)",
+          "attribute(up_to)"
+        ],
+        "rejected/1": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(approver_role)",
+          "attribute(by)",
+          "attribute(category)",
+          "attribute(covers_category)",
+          "attribute(limit)",
+          "attribute(on)",
+          "attribute(order)",
+          "attribute(role)",
+          "attribute(title)",
+          "attribute(up_to)"
+        ],
+        "authorized/2": [
+          "attribute(about)",
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(approver_role)",
+          "attribute(category)",
+          "attribute(covers_category)",
+          "attribute(role)",
+          "attribute(title)",
+          "attribute(up_to)"
+        ],
+        "unauthorized_approval/2": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(amount)",
+          "attribute(approver)",
+          "attribute(approver_role)",
+          "attribute(by)",
+          "attribute(category)",
+          "attribute(covers_category)",
+          "attribute(role)",
+          "attribute(title)",
+          "attribute(up_to)"
+        ],
+        "unauthorized_withdrawal/2": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(by)",
+          "attribute(title)"
+        ],
+        "limited_approval/3": [
+          "attribute(about)",
+          "attribute(act)",
+          "attribute(amount)",
+          "attribute(by)",
+          "attribute(limit)",
+          "attribute(title)"
+        ]
+      },
+      "needs": [
+        {
+          "role": "authority",
+          "via": null,
+          "note": "Who may approve what, supplied as records. Without it no approval can be judged."
+        },
+        {
+          "role": "statement",
+          "via": "about",
+          "note": "At least one statement about the item. An item nobody has decided on is unknown, not unapproved."
+        }
+      ],
+      "tests_file": "test/business/approval_test.pl"
+    },
+    {
+      "id": "commitment",
+      "version": "1.0.0",
+      "title": "Commitments",
+      "description": "Tracks commitments such as action items, promises and contract notice dates: when each falls due (stated, relative to when it was made, or measured back from an event), and whether it is open, overdue, due soon or done late.",
+      "category": "business",
+      "license": "Elastic-2.0",
+      "tags": [
+        "commitments",
+        "deadlines",
+        "action items",
+        "notice periods",
+        "business"
+      ],
+      "predicates": [
+        "due_on/2",
+        "outstanding/1",
+        "overdue/1",
+        "overdue_days/2",
+        "due_soon/1",
+        "done_late/1",
+        "owner_of/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/commitment/commitment.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/commitment",
+      "install": "batteries.install_many",
+      "inputs": [
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "owner",
+          "type": "atom",
+          "presence": "required",
+          "note": "Who committed."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "due",
+          "type": "days",
+          "presence": "key",
+          "note": "The day it is due, when stated as a date."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "due_in_days",
+          "type": "integer",
+          "presence": "key",
+          "note": "Due this many days after made_on (\"within 30 days\")."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "made_on",
+          "type": "days",
+          "presence": "optional",
+          "note": "The day the commitment was made; due_in_days counts from it."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "event_on",
+          "type": "days",
+          "presence": "key",
+          "note": "The day of an event the commitment is measured against, such as a renewal date."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "days_before",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Due this many days before event_on (\"give notice 60 days before renewal\"); absent, it is due on event_on."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "done",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true once done."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "done_on",
+          "type": "days",
+          "presence": "optional",
+          "note": "The day it was done."
+        },
+        {
+          "role": "commitment",
+          "kind": "attribute",
+          "name": "cancelled",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true once released or cancelled; a cancelled commitment is never overdue."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "absolute_days",
+          "type": "days",
+          "presence": "key",
+          "note": "Today as a day count from 1970-01-01, the shared convention."
+        },
+        {
+          "role": {
+            "fixed": "commitments"
+          },
+          "kind": "attribute",
+          "name": "due_soon_days",
+          "type": "integer",
+          "presence": {
+            "default": 7
+          },
+          "note": "Days ahead within which an open commitment counts as due soon."
+        }
+      ],
+      "reads": {
+        "due_on/2": [
+          "attribute(days_before)",
+          "attribute(due)",
+          "attribute(due_in_days)",
+          "attribute(event_on)",
+          "attribute(made_on)"
+        ],
+        "outstanding/1": [
+          "attribute(cancelled)",
+          "attribute(done)",
+          "attribute(due)",
+          "attribute(due_in_days)",
+          "attribute(event_on)"
+        ],
+        "overdue/1": [
+          "attribute(absolute_days)",
+          "attribute(cancelled)",
+          "attribute(days_before)",
+          "attribute(done)",
+          "attribute(due)",
+          "attribute(due_in_days)",
+          "attribute(event_on)",
+          "attribute(made_on)"
+        ],
+        "overdue_days/2": [
+          "attribute(absolute_days)",
+          "attribute(cancelled)",
+          "attribute(days_before)",
+          "attribute(done)",
+          "attribute(due)",
+          "attribute(due_in_days)",
+          "attribute(event_on)",
+          "attribute(made_on)"
+        ],
+        "due_soon/1": [
+          "attribute(absolute_days)",
+          "attribute(cancelled)",
+          "attribute(days_before)",
+          "attribute(done)",
+          "attribute(due)",
+          "attribute(due_in_days)",
+          "attribute(due_soon_days)",
+          "attribute(event_on)",
+          "attribute(made_on)"
+        ],
+        "done_late/1": [
+          "attribute(days_before)",
+          "attribute(done)",
+          "attribute(done_on)",
+          "attribute(due)",
+          "attribute(due_in_days)",
+          "attribute(event_on)",
+          "attribute(made_on)"
+        ],
+        "owner_of/2": [
+          "attribute(due)",
+          "attribute(due_in_days)",
+          "attribute(event_on)",
+          "attribute(owner)"
+        ]
+      },
+      "tests_file": "test/business/commitment_test.pl"
+    },
+    {
+      "id": "request-policy",
+      "version": "1.0.0",
+      "title": "Request Policy",
+      "description": "Checks expense and purchase requests against a spending policy supplied as data: maximum amounts, receipt and pre-approval thresholds, and a submission window, set per category with policy-wide values and defaults beneath.",
+      "category": "business",
+      "license": "Elastic-2.0",
+      "tags": [
+        "expenses",
+        "purchasing",
+        "policy",
+        "compliance",
+        "business"
+      ],
+      "predicates": [
+        "request_compliant/1",
+        "request_violation/2",
+        "needs_receipt/1",
+        "needs_preapproval/1"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/business/request_policy/request_policy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/business/request_policy",
+      "install": "batteries.install_many",
+      "inputs": [
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "amount",
+          "type": "number",
+          "presence": "key",
+          "note": "The amount requested."
+        },
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "category",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The kind of request, matched against a limit row's applies_to."
+        },
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "receipt",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true when a receipt is attached."
+        },
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "pre_approved",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true when the spend was approved before it was made. A host can set it from an approval decision about the same request."
+        },
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "incurred_on",
+          "type": "days",
+          "presence": "optional",
+          "note": "The day the cost was incurred."
+        },
+        {
+          "role": "request",
+          "kind": "attribute",
+          "name": "submitted_on",
+          "type": "days",
+          "presence": "optional",
+          "note": "The day the request was submitted."
+        },
+        {
+          "role": "limit",
+          "kind": "attribute",
+          "name": "applies_to",
+          "type": "atom",
+          "presence": "key",
+          "note": "The category these limits apply to."
+        },
+        {
+          "role": "limit",
+          "kind": "attribute",
+          "name": "max_amount",
+          "type": "number",
+          "presence": "optional",
+          "note": "The most a request in this category may be."
+        },
+        {
+          "role": "limit",
+          "kind": "attribute",
+          "name": "receipt_over",
+          "type": "number",
+          "presence": "optional",
+          "note": "A receipt is needed above this amount in this category."
+        },
+        {
+          "role": "limit",
+          "kind": "attribute",
+          "name": "preapproval_over",
+          "type": "number",
+          "presence": "optional",
+          "note": "Pre-approval is needed above this amount in this category."
+        },
+        {
+          "role": {
+            "fixed": "policy"
+          },
+          "kind": "attribute",
+          "name": "max_amount",
+          "type": "number",
+          "presence": "optional",
+          "note": "The most any request may be, unless its category says otherwise."
+        },
+        {
+          "role": {
+            "fixed": "policy"
+          },
+          "kind": "attribute",
+          "name": "receipt_over",
+          "type": "number",
+          "presence": {
+            "default": 25
+          },
+          "note": "A receipt is needed above this amount, unless its category says otherwise."
+        },
+        {
+          "role": {
+            "fixed": "policy"
+          },
+          "kind": "attribute",
+          "name": "preapproval_over",
+          "type": "number",
+          "presence": {
+            "default": 1000
+          },
+          "note": "Pre-approval is needed above this amount, unless its category says otherwise."
+        },
+        {
+          "role": {
+            "fixed": "policy"
+          },
+          "kind": "attribute",
+          "name": "submit_within_days",
+          "type": "integer",
+          "presence": {
+            "default": 30
+          },
+          "note": "Days after incurred_on within which a request must be submitted."
+        }
+      ],
+      "reads": {
+        "request_compliant/1": [
+          "attribute(amount)",
+          "attribute(applies_to)",
+          "attribute(category)",
+          "attribute(incurred_on)",
+          "attribute(max_amount)",
+          "attribute(pre_approved)",
+          "attribute(preapproval_over)",
+          "attribute(receipt)",
+          "attribute(receipt_over)",
+          "attribute(submit_within_days)",
+          "attribute(submitted_on)"
+        ],
+        "request_violation/2": [
+          "attribute(amount)",
+          "attribute(applies_to)",
+          "attribute(category)",
+          "attribute(incurred_on)",
+          "attribute(max_amount)",
+          "attribute(pre_approved)",
+          "attribute(preapproval_over)",
+          "attribute(receipt)",
+          "attribute(receipt_over)",
+          "attribute(submit_within_days)",
+          "attribute(submitted_on)"
+        ],
+        "needs_receipt/1": [
+          "attribute(amount)",
+          "attribute(applies_to)",
+          "attribute(category)",
+          "attribute(incurred_on)",
+          "attribute(max_amount)",
+          "attribute(pre_approved)",
+          "attribute(preapproval_over)",
+          "attribute(receipt)",
+          "attribute(receipt_over)",
+          "attribute(submit_within_days)",
+          "attribute(submitted_on)"
+        ],
+        "needs_preapproval/1": [
+          "attribute(amount)",
+          "attribute(applies_to)",
+          "attribute(category)",
+          "attribute(incurred_on)",
+          "attribute(max_amount)",
+          "attribute(pre_approved)",
+          "attribute(preapproval_over)",
+          "attribute(receipt)",
+          "attribute(receipt_over)",
+          "attribute(submit_within_days)",
+          "attribute(submitted_on)"
+        ]
+      },
+      "tests_file": "test/business/request_policy_test.pl"
     },
     {
       "id": "prob-loot",

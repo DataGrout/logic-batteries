@@ -112,6 +112,32 @@ or does not match the rules (a name they read that it omits, or one it declares
 that they never mention), and `build_registry.py` copies each contract into the
 registry entry's `inputs`.
 
+## Needed roles
+
+Some decisions can't be made at all without a role loaded, and failing then is
+not the same as "no". An approval can't be judged with no authority list, and
+an item nobody has said anything about hasn't been decided. Declare those
+roles, and a host answers unknown instead of no when one is missing:
+
+```prolog
+battery_needs(Battery, Role, How, Note).
+
+battery_needs(approval, authority, any,
+    'Who may approve what, supplied as records. Without it no approval can be judged.').
+battery_needs(approval, statement, attribute(about),
+    'At least one statement about the item. An item nobody has decided on is unknown, not unapproved.').
+```
+
+- **How** is `any` (the role must have at least one subject) or
+  `attribute(Name)`, a `key` of Role typed `ref(OtherRole)`: a subject of
+  OtherRole that a question names must have a subject of Role referring to it.
+- It applies only when a question fails. A role that is legitimately empty
+  (a threshold rule that doesn't apply) should not be declared.
+
+`check_inputs.py` checks that the role is in the contract and that
+`attribute(Name)` is a reference key of it; `build_registry.py` copies the
+declarations into the registry entry's `needs`.
+
 ## Dates
 
 Every battery that reads a date uses one convention, so batteries installed in

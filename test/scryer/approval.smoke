@@ -1,0 +1,56 @@
+# approval battery on scryer-prolog: statements fold in time order (keysort on
+# k(Day, Order)), a later approve supersedes a reject, a withdraw counts only
+# from the approver, and a limited authority with no amount is neither.
+modules/business/approval/approval.pl
+---
+attribute(priya, role, manager).
+attribute(omar, role, finance_director).
+attribute(dana, role, sales_lead).
+attribute(auth_mgr, approver_role, manager).
+attribute(auth_mgr, up_to, 5000).
+attribute(auth_fd, approver_role, finance_director).
+attribute(booth, amount, 4500).
+attribute(trade_show, amount, 4800).
+attribute(laptop_bag, amount, 150).
+attribute(team_offsite, title, offsite).
+attribute(a3_s1, about, booth).
+attribute(a3_s1, act, approve).
+attribute(a3_s1, by, omar).
+attribute(a3_s1, on, 20759).
+attribute(a3_s1, order, 1).
+attribute(a3_s2, about, booth).
+attribute(a3_s2, act, reject).
+attribute(a3_s2, by, priya).
+attribute(a3_s2, on, 20759).
+attribute(a3_s2, order, 2).
+attribute(a4_s1, about, trade_show).
+attribute(a4_s1, act, reject).
+attribute(a4_s1, by, priya).
+attribute(a4_s1, on, 20760).
+attribute(a4_s1, order, 1).
+attribute(a4_s2, about, trade_show).
+attribute(a4_s2, act, approve).
+attribute(a4_s2, by, omar).
+attribute(a4_s2, on, 20760).
+attribute(a4_s2, order, 2).
+attribute(a13_s1, about, laptop_bag).
+attribute(a13_s1, act, approve).
+attribute(a13_s1, by, priya).
+attribute(a13_s1, on, 20760).
+attribute(a13_s2, about, laptop_bag).
+attribute(a13_s2, act, withdraw).
+attribute(a13_s2, by, dana).
+attribute(a13_s2, on, 20762).
+attribute(a12_s1, about, team_offsite).
+attribute(a12_s1, act, approve).
+attribute(a12_s1, by, priya).
+attribute(a12_s1, on, 20762).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(a3_rejected, (rejected(booth), \+ approved(booth))),
+    check(a4_approved, (approved(trade_show), \+ rejected(trade_show))),
+    check(a13_withdraw_ignored, (approved(laptop_bag), \+ withdrawn(laptop_bag),
+        unauthorized_withdrawal(laptop_bag, dana))),
+    check(a12_neither, (\+ approved(team_offsite), \+ unauthorized_approval(team_offsite, priya))),
+    check(enumerate, (findall(I, approved(I), Is0), sort(Is0, Is), Is == [laptop_bag, trade_show])),
+    write(smoke_ok), nl.

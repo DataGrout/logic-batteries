@@ -1,0 +1,24 @@
+# request_policy battery on scryer-prolog: category rows over policy over
+# defaults, and every violation at once.
+modules/business/request_policy/request_policy.pl
+---
+attribute(lim_travel, applies_to, travel).
+attribute(lim_travel, max_amount, 2000).
+attribute(lim_travel, preapproval_over, 1000).
+attribute(p4, amount, 300).
+attribute(p4, category, software).
+attribute(p5, amount, 40).
+attribute(p5, category, travel).
+attribute(p5, receipt, true).
+attribute(p5, incurred_on, 20711).
+attribute(p5, submitted_on, 20762).
+attribute(p9, amount, 2500).
+attribute(p9, category, travel).
+attribute(p9, receipt, true).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(p4_receipt, (findall(R, request_violation(p4, R), V4), V4 == [missing_receipt])),
+    check(p5_late, (findall(R, request_violation(p5, R), V5), V5 == [late_submission])),
+    check(p9_two, (findall(R, request_violation(p9, R), V0), sort(V0, V9), V9 == [needs_preapproval, over_limit])),
+    check(none_compliant, (findall(Q, request_compliant(Q), Qs), Qs == [])),
+    write(smoke_ok), nl.
