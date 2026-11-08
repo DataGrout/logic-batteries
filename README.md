@@ -59,6 +59,7 @@ Query exact probabilities instead of thresholds — zero LLM calls per tick. Wei
 | [permissions](./modules/games/permissions/) | 5 | Role-based access, inheritance, ownership |
 | [ai-director](./modules/games/ai_director/) | 5 | Pacing states, spawn eligibility, difficulty scaling |
 | [dungeon](./modules/games/dungeon/) | 5 | Room connectivity, key locks, clearance tracking |
+| [risk-assessment](./modules/games/risk-assessment/) | 4 | Survival probability, fight-or-flee recommendations and encounter breakdowns over the `hp` combat reads |
 
 ### Business
 
@@ -75,6 +76,9 @@ Query exact probabilities instead of thresholds — zero LLM calls per tick. Wei
 | [rostering](./modules/business/rostering/) | 18 | Coverage, violations, ranked candidates, greedy fill, replacements, swaps, load balance; assign model for exact fill |
 | [compliance](./modules/business/compliance/) | 5 | Policy checks, retention windows, consent registry |
 | [bom-policy](./modules/business/bom_policy/) | 8 | Bill-of-materials policy over part lifecycle, end-of-life and last-time-buy dates, compliance flags, sources and alternates; blocking and warning reasons kept apart |
+| [approval](./modules/business/approval/) | 9 | Whether an item was approved, from the statements made about it in time order: authority by role, person, category and amount limit (supplied as records), conditions, withdrawals, rejections; declares the authority list and a statement about the item as needed, so a host answers unknown rather than no without them |
+| [commitment](./modules/business/commitment/) | 7 | Action items, promises and notice dates: due days stated, relative to when made, or before an event; outstanding, overdue, due soon, done late |
+| [request-policy](./modules/business/request_policy/) | 4 | Expense and purchase requests against a policy held as data: maximum amounts, receipt and pre-approval thresholds, submission window, per category over policy defaults |
 
 ### d20
 
