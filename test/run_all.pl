@@ -38,6 +38,9 @@
     'business/rostering_test',
     'business/compliance_test',
     'business/bom_policy_test',
+    'business/approval_test',
+    'business/commitment_test',
+    'business/request_policy_test',
     %% Reasoning
     'reasoning/taxonomy_test',
     'reasoning/hierarchy_test',

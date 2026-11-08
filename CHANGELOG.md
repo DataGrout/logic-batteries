@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-11-08
+
+### Modules
+
+Three batteries for decisions people make in conversations and documents,
+generic by decision type: none of them knows where the material came from.
+
+- `approval` 1.0.0: whether an item was approved, from the statements made
+  about it, in time order. An approval counts when its author has authority
+  (a role or named person, a category, an amount limit, supplied as records)
+  and the amount is within the statement's own limit. A later approval
+  supersedes a rejection, and a withdrawal counts only from the approver.
+  Also reports approvals given without authority, withdrawals from someone who
+  never approved, and approvals limited below the amount.
+- `commitment` 1.0.0: action items, promises and notice dates. The due day is
+  stated, relative to when the commitment was made ("within 30 days"), or
+  measured back from an event ("60 days before renewal"); then outstanding,
+  overdue, due soon and done late.
+- `request-policy` 1.0.0: expense and purchase requests against a policy
+  supplied as data: maximum amount, receipt and pre-approval thresholds, and a
+  submission window, per category with policy-wide values and defaults.
+
+### Contracts
+
+- `battery_needs/4` declares a role a decision can't be made without, so a
+  host answers unknown rather than no when it is missing (CONTRIBUTING,
+  "Needed roles"). `approval` is the first battery to use it.
+
 ## 2026-11-02
 
 ### Docs

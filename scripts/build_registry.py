@@ -23,6 +23,9 @@ Normalisation, per category file:
   * `reads` maps each exported predicate to the contract facts it can read
     through the battery's own clauses (check_inputs.reads_for), so a host can
     report only the defaults and gaps a question's predicates reach.
+  * `needs` lists the roles a battery's decisions need loaded
+    (battery_needs/4), so a host answers unknown rather than no when one is
+    missing; it is dropped when the battery declares none.
   * `updated_at` is bumped to today when the category's module list differs
     from what the top-level registry last recorded for it.
 """
@@ -33,7 +36,7 @@ import sys
 from datetime import date
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from check_inputs import inputs_for, reads_for  # noqa: E402
+from check_inputs import inputs_for, needs_for, reads_for  # noqa: E402
 
 ROOT = pathlib.Path(__file__).parent.parent
 MODULES_DIR = ROOT / "modules"
@@ -91,6 +94,11 @@ def normalise(cat, data, previous_modules):
         else:
             m.pop("inputs", None)
             m.pop("reads", None)
+        needs = needs_for(path) if path else []
+        if needs:
+            m["needs"] = needs
+        else:
+            m.pop("needs", None)
         tests = tests_file_for(cat, m["id"])
         if tests:
             m["tests_file"] = tests

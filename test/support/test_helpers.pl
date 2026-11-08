@@ -13,6 +13,7 @@
 :- multifile battery_export/3.
 :- multifile battery_fact_shape/4.
 :- multifile battery_input/6.
+:- multifile battery_needs/4.
 :- multifile (::)/2.
 :- multifile setup_standard_customer/0.
 
