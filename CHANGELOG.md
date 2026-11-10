@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-10
+
+### Contracts
+
+- New presence `conditional` for `battery_input/6`: a fact only some
+  decisions about the subject need. Absent, an answer is unknown when it turns
+  on the fact and stands when it does not; `optional` now means a fact whose
+  absence says there is none. `scripts/check_inputs.py` accepts it, and
+  CONTRIBUTING.md describes all four.
+- `commitment`: `made_on` is `conditional`. A commitment due "within 30 days"
+  of a day nobody recorded is unknown, not outstanding; one with a stated due
+  date never needed it.
+
 ## 2026-11-08
 
 ### Modules

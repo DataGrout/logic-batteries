@@ -101,8 +101,13 @@ battery_input(invoice_rules, fixed(today), attribute(absolute_days), days, key,
   a subject of Role).
 - **Presence** is `key` (having it makes a subject one of Role; every entity
   role needs at least one key, and several keys are alternatives), `required`
-  (every subject of the role needs it), `optional`, or `default(V)` (absent
-  reads as V). On a `fixed` role, `key` means at least one of those facts must
+  (every decision about the subject needs it: absent, the answer is unknown),
+  `conditional` (only some decisions need it, such as a start date that only a
+  relative due date counts from: absent, an answer is unknown when it turns on
+  the fact and stands when it does not), `optional` (it records something that
+  may not exist at all, such as a cancellation or a waiver: absent means there
+  is none, and never makes an answer unknown), or `default(V)` (absent reads as
+  V). On a `fixed` role, `key` means at least one of those facts must
   exist.
 - **Note** says what the value means, for the person or agent supplying it.
 
