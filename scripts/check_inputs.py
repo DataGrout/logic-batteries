@@ -29,7 +29,7 @@ MODULES = ROOT / "modules"
 
 KINDS = {"attribute", "relation", "metric"}
 SIMPLE_TYPES = {"number", "integer", "days", "date", "bool", "atom", "list"}
-SIMPLE_PRESENCE = {"key", "required", "optional"}
+SIMPLE_PRESENCE = {"key", "required", "conditional", "optional"}
 
 
 # ── A small reader for the terms a contract uses ─────────────────────────────

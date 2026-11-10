@@ -36,7 +36,7 @@ battery_input(commitment, commitment, attribute(due), days, key,
     'The day it is due, when stated as a date.').
 battery_input(commitment, commitment, attribute(due_in_days), integer, key,
     'Due this many days after made_on ("within 30 days").').
-battery_input(commitment, commitment, attribute(made_on), days, optional,
+battery_input(commitment, commitment, attribute(made_on), days, conditional,
     'The day the commitment was made; due_in_days counts from it.').
 battery_input(commitment, commitment, attribute(event_on), days, key,
     'The day of an event the commitment is measured against, such as a renewal date.').

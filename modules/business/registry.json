@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-11-07",
+  "updated_at": "2026-11-10",
   "category": "business",
   "modules": [
     {
@@ -2962,7 +2962,7 @@
           "kind": "attribute",
           "name": "made_on",
           "type": "days",
-          "presence": "optional",
+          "presence": "conditional",
           "note": "The day the commitment was made; due_in_days counts from it."
         },
         {
