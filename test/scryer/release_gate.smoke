@@ -1,0 +1,51 @@
+# release_gate battery on scryer-prolog: the latest re-run counts, a result
+# for an older commit does not, and a comment leaves a request for changes.
+modules/engineering/release_gate/release_gate.pl
+---
+attribute(rc_test, requires_check, 'ci/test').
+attribute(rc_lint, requires_check, lint).
+attribute(gate, min_coverage, 80).
+attribute(pr_1, head, h1).
+attribute(pr_1, coverage, 86.5).
+attribute(pr_2, head, h2).
+attribute(pr_2, coverage, 71.2).
+attribute(k1, check_of, pr_1).
+attribute(k1, check_name, 'ci/test').
+attribute(k1, outcome, failure).
+attribute(k1, on_commit, h1).
+attribute(k1, order, 1).
+attribute(k2, check_of, pr_1).
+attribute(k2, check_name, 'ci/test').
+attribute(k2, outcome, success).
+attribute(k2, on_commit, h1).
+attribute(k2, order, 2).
+attribute(k3, check_of, pr_1).
+attribute(k3, check_name, lint).
+attribute(k3, outcome, success).
+attribute(k3, on_commit, h1).
+attribute(k4, check_of, pr_2).
+attribute(k4, check_name, 'ci/test').
+attribute(k4, outcome, success).
+attribute(k4, on_commit, h0).
+attribute(k5, check_of, pr_2).
+attribute(k5, check_name, lint).
+attribute(k5, outcome, success).
+attribute(k5, on_commit, h2).
+attribute(v1, review_of, pr_1).
+attribute(v1, reviewer, ana).
+attribute(v1, verdict, approved).
+attribute(v2, review_of, pr_2).
+attribute(v2, reviewer, raj).
+attribute(v2, verdict, changes_requested).
+attribute(v2, order, 1).
+attribute(v3, review_of, pr_2).
+attribute(v3, reviewer, raj).
+attribute(v3, verdict, commented).
+attribute(v3, order, 2).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(pr_1_ready, release_ready(pr_1)),
+    check(pr_2_blockers, (findall(B, gate_blocker(pr_2, B), Bs), length(Bs, 4),
+        memberchk(approvals_short(0, 1), Bs), memberchk(changes_requested(raj), Bs),
+        memberchk(check_missing('ci/test'), Bs), memberchk(coverage_below(71.2, 80), Bs))),
+    write(smoke_ok), nl.

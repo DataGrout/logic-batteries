@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-11-15
+
+### Modules
+
+A new `engineering` category: questions asked about a change before it ships,
+over CI results, the code graph and repository policy supplied as facts.
+
+- `release-gate` 1.0.0: whether a change can ship. Every required check must
+  have passed on the head commit (the latest re-run counts, and a result for
+  an older commit does not), enough reviewers must approve with none
+  requesting changes (a comment leaves an earlier verdict standing), coverage
+  must reach the gate's minimum, and no change freeze may be on unless the
+  change is an emergency. A required check limited to an app counts only
+  that app's result. The head commit is required, the required-check list
+  and a check result for the change are needed roles, and today and
+  coverage are conditional.
+- `dependency-policy` 1.0.0: dependencies a change adds or updates against a
+  licence allow-list (SPDX identifiers and expressions, compared ignoring
+  case, with SPDX precedence) and pinned major versions read from common
+  version requirement forms; a requirement that fixes no major is a
+  violation unless the policy allows it and the package is not pinned. A dependency's licence is required, and the allow-list is a needed role.
+- `change-risk` 1.0.0: the blast radius of a change, every code unit outside
+  it that reaches the files it touches through calls, against a limit, and
+  CODEOWNERS coverage of its changed files (last matching rule wins). The
+  code graph, the owner rules and a changed file are needed roles.
+
 ## 2026-11-10
 
 ### Contracts

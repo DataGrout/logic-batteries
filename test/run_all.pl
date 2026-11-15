@@ -41,6 +41,10 @@
     'business/approval_test',
     'business/commitment_test',
     'business/request_policy_test',
+    %% Engineering
+    'engineering/release_gate_test',
+    'engineering/dependency_policy_test',
+    'engineering/change_risk_test',
     %% Reasoning
     'reasoning/taxonomy_test',
     'reasoning/hierarchy_test',
