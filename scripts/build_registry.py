@@ -43,7 +43,7 @@ MODULES_DIR = ROOT / "modules"
 TEST_DIR = ROOT / "test"
 TOP_LEVEL = ROOT / "registry.json"
 
-CATEGORY_ORDER = ["core", "reasoning", "games", "business", "probabilistic", "d20"]
+CATEGORY_ORDER = ["core", "reasoning", "games", "business", "engineering", "probabilistic", "d20"]
 DROPPED_FIELDS = ("installs",)
 
 

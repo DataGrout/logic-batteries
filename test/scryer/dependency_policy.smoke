@@ -1,0 +1,29 @@
+# dependency_policy battery on scryer-prolog: SPDX expressions, pinned majors
+# and open requirements, all read from atoms character by character.
+modules/engineering/dependency_policy/dependency_policy.pl
+---
+attribute(lic_mit, allows_license, 'MIT').
+attribute(lic_apache, allows_license, 'Apache-2.0').
+attribute(pin_react, pins_package, react).
+attribute(pin_react, major, 18).
+attribute(d1, dependency_of, pr_1).
+attribute(d1, package, lodash).
+attribute(d1, license, 'MIT OR GPL-2.0-only').
+attribute(d1, version, '^4.17.21').
+attribute(d2, dependency_of, pr_1).
+attribute(d2, package, react).
+attribute(d2, license, 'mit').
+attribute(d2, version, '~> 19.0').
+attribute(d3, dependency_of, pr_1).
+attribute(d3, package, chalk).
+attribute(d3, license, 'MIT AND GPL-2.0-only').
+attribute(d3, version, '>= 4').
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(d1_allowed, dependency_allowed(d1)),
+    check(d2_major, (findall(R, dependency_violation(d2, R), R2), R2 == [major_mismatch(19, 18)])),
+    check(d3_both, (findall(R, dependency_violation(d3, R), R3), length(R3, 2),
+        memberchk(license_not_allowed('MIT AND GPL-2.0-only'), R3),
+        memberchk(unpinned_major('>= 4'), R3))),
+    check(pr_1_not_compliant, \+ dependencies_compliant(pr_1)),
+    write(smoke_ok), nl.

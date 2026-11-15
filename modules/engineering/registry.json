@@ -1,0 +1,751 @@
+{
+  "version": "1",
+  "updated_at": "2026-11-15",
+  "category": "engineering",
+  "modules": [
+    {
+      "id": "release-gate",
+      "version": "1.0.0",
+      "title": "Release Gate",
+      "description": "Whether a change can ship: every required check passed on its head commit, enough reviewers approve with no outstanding request for changes, coverage meets the minimum, and no change freeze is on. Stale results and approvals for older commits are told apart.",
+      "category": "engineering",
+      "license": "Elastic-2.0",
+      "tags": [
+        "release",
+        "ci",
+        "code-review",
+        "change-freeze",
+        "engineering"
+      ],
+      "predicates": [
+        "release_ready/1",
+        "gate_blocker/2",
+        "check_outcome/3",
+        "approval_count/2",
+        "approved_by/2",
+        "in_freeze/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/engineering/release_gate/release_gate.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/engineering/release_gate",
+      "install": "batteries.install_many",
+      "inputs": [
+        {
+          "role": "change",
+          "kind": "attribute",
+          "name": "number",
+          "type": "integer",
+          "presence": "key",
+          "note": "The change's number in its repository."
+        },
+        {
+          "role": "change",
+          "kind": "attribute",
+          "name": "head",
+          "type": "atom",
+          "presence": "required",
+          "note": "The commit the change would merge (its head SHA). Results and approvals for another commit are stale, and without it none can be told fresh."
+        },
+        {
+          "role": "change",
+          "kind": "attribute",
+          "name": "coverage",
+          "type": "number",
+          "presence": "conditional",
+          "note": "Test coverage of the head commit, in percent. Needed when the gate sets min_coverage."
+        },
+        {
+          "role": "change",
+          "kind": "attribute",
+          "name": "emergency",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true for a change cleared to ship through a change freeze."
+        },
+        {
+          "role": "check",
+          "kind": "attribute",
+          "name": "check_of",
+          "type": {
+            "ref": "change"
+          },
+          "presence": "key",
+          "note": "The change the result is for."
+        },
+        {
+          "role": "check",
+          "kind": "attribute",
+          "name": "check_name",
+          "type": "atom",
+          "presence": "required",
+          "note": "The check's name as the required list spells it (ci/test, lint)."
+        },
+        {
+          "role": "check",
+          "kind": "attribute",
+          "name": "outcome",
+          "type": {
+            "enum": [
+              "success",
+              "failure",
+              "neutral",
+              "skipped",
+              "cancelled",
+              "timed_out",
+              "action_required",
+              "stale",
+              "pending"
+            ]
+          },
+          "presence": "required",
+          "note": "How it ended; pending while queued or running. success, neutral and skipped pass."
+        },
+        {
+          "role": "check",
+          "kind": "attribute",
+          "name": "on_commit",
+          "type": "atom",
+          "presence": "required",
+          "note": "The commit it ran on. Only a result for the change's head counts."
+        },
+        {
+          "role": "check",
+          "kind": "attribute",
+          "name": "order",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Position among results of the same check; the highest is the latest re-run."
+        },
+        {
+          "role": "check",
+          "kind": "attribute",
+          "name": "app_id",
+          "type": "integer",
+          "presence": "optional",
+          "note": "The app that reported the result. Counts against a required check limited to an app."
+        },
+        {
+          "role": "review",
+          "kind": "attribute",
+          "name": "review_of",
+          "type": {
+            "ref": "change"
+          },
+          "presence": "key",
+          "note": "The change the review is of."
+        },
+        {
+          "role": "review",
+          "kind": "attribute",
+          "name": "reviewer",
+          "type": "atom",
+          "presence": "required",
+          "note": "Who reviewed."
+        },
+        {
+          "role": "review",
+          "kind": "attribute",
+          "name": "verdict",
+          "type": {
+            "enum": [
+              "approved",
+              "changes_requested",
+              "commented",
+              "dismissed"
+            ]
+          },
+          "presence": "required",
+          "note": "What the review said. A comment-only review leaves the reviewer's earlier verdict standing."
+        },
+        {
+          "role": "review",
+          "kind": "attribute",
+          "name": "on_commit",
+          "type": "atom",
+          "presence": "optional",
+          "note": "The commit reviewed. When the gate dismisses stale approvals, only an approval of the head counts."
+        },
+        {
+          "role": "review",
+          "kind": "attribute",
+          "name": "order",
+          "type": "integer",
+          "presence": "optional",
+          "note": "Position among the reviewer's reviews; the highest is the latest."
+        },
+        {
+          "role": "required_check",
+          "kind": "attribute",
+          "name": "requires_check",
+          "type": "atom",
+          "presence": "key",
+          "note": "A check every change must pass."
+        },
+        {
+          "role": "required_check",
+          "kind": "attribute",
+          "name": "requires_app",
+          "type": "integer",
+          "presence": "optional",
+          "note": "The app whose result counts for this check; absent, a result from any app counts."
+        },
+        {
+          "role": "freeze",
+          "kind": "attribute",
+          "name": "freeze_from",
+          "type": "days",
+          "presence": "key",
+          "note": "The first day of a change freeze."
+        },
+        {
+          "role": "freeze",
+          "kind": "attribute",
+          "name": "freeze_until",
+          "type": "days",
+          "presence": "required",
+          "note": "The last day of the freeze, inclusive."
+        },
+        {
+          "role": {
+            "fixed": "today"
+          },
+          "kind": "attribute",
+          "name": "absolute_days",
+          "type": "days",
+          "presence": "conditional",
+          "note": "Today as a day count from 1970-01-01, the shared convention. Needed when a freeze is recorded."
+        },
+        {
+          "role": {
+            "fixed": "gate"
+          },
+          "kind": "attribute",
+          "name": "min_approvals",
+          "type": "integer",
+          "presence": {
+            "default": 1
+          },
+          "note": "Approving reviewers a change needs."
+        },
+        {
+          "role": {
+            "fixed": "gate"
+          },
+          "kind": "attribute",
+          "name": "min_coverage",
+          "type": "number",
+          "presence": "optional",
+          "note": "Coverage, in percent, the head commit must reach. Absent, coverage is not checked."
+        },
+        {
+          "role": {
+            "fixed": "gate"
+          },
+          "kind": "attribute",
+          "name": "dismiss_stale_approvals",
+          "type": "bool",
+          "presence": {
+            "default": "false"
+          },
+          "note": "true when an approval of an earlier commit no longer counts once new commits are pushed."
+        }
+      ],
+      "reads": {
+        "release_ready/1": [
+          "attribute(absolute_days)",
+          "attribute(app_id)",
+          "attribute(check_name)",
+          "attribute(check_of)",
+          "attribute(coverage)",
+          "attribute(dismiss_stale_approvals)",
+          "attribute(emergency)",
+          "attribute(freeze_from)",
+          "attribute(freeze_until)",
+          "attribute(head)",
+          "attribute(min_approvals)",
+          "attribute(min_coverage)",
+          "attribute(number)",
+          "attribute(on_commit)",
+          "attribute(order)",
+          "attribute(outcome)",
+          "attribute(requires_app)",
+          "attribute(requires_check)",
+          "attribute(review_of)",
+          "attribute(reviewer)",
+          "attribute(verdict)"
+        ],
+        "gate_blocker/2": [
+          "attribute(absolute_days)",
+          "attribute(app_id)",
+          "attribute(check_name)",
+          "attribute(check_of)",
+          "attribute(coverage)",
+          "attribute(dismiss_stale_approvals)",
+          "attribute(emergency)",
+          "attribute(freeze_from)",
+          "attribute(freeze_until)",
+          "attribute(head)",
+          "attribute(min_approvals)",
+          "attribute(min_coverage)",
+          "attribute(number)",
+          "attribute(on_commit)",
+          "attribute(order)",
+          "attribute(outcome)",
+          "attribute(requires_app)",
+          "attribute(requires_check)",
+          "attribute(review_of)",
+          "attribute(reviewer)",
+          "attribute(verdict)"
+        ],
+        "check_outcome/3": [
+          "attribute(app_id)",
+          "attribute(check_name)",
+          "attribute(check_of)",
+          "attribute(head)",
+          "attribute(number)",
+          "attribute(on_commit)",
+          "attribute(order)",
+          "attribute(outcome)",
+          "attribute(requires_app)",
+          "attribute(requires_check)",
+          "attribute(review_of)"
+        ],
+        "approval_count/2": [
+          "attribute(absolute_days)",
+          "attribute(app_id)",
+          "attribute(check_name)",
+          "attribute(check_of)",
+          "attribute(coverage)",
+          "attribute(dismiss_stale_approvals)",
+          "attribute(emergency)",
+          "attribute(freeze_from)",
+          "attribute(freeze_until)",
+          "attribute(head)",
+          "attribute(min_approvals)",
+          "attribute(min_coverage)",
+          "attribute(number)",
+          "attribute(on_commit)",
+          "attribute(order)",
+          "attribute(outcome)",
+          "attribute(requires_app)",
+          "attribute(requires_check)",
+          "attribute(review_of)",
+          "attribute(reviewer)",
+          "attribute(verdict)"
+        ],
+        "approved_by/2": [
+          "attribute(absolute_days)",
+          "attribute(app_id)",
+          "attribute(check_name)",
+          "attribute(check_of)",
+          "attribute(coverage)",
+          "attribute(dismiss_stale_approvals)",
+          "attribute(emergency)",
+          "attribute(freeze_from)",
+          "attribute(freeze_until)",
+          "attribute(head)",
+          "attribute(min_approvals)",
+          "attribute(min_coverage)",
+          "attribute(number)",
+          "attribute(on_commit)",
+          "attribute(order)",
+          "attribute(outcome)",
+          "attribute(requires_app)",
+          "attribute(requires_check)",
+          "attribute(review_of)",
+          "attribute(reviewer)",
+          "attribute(verdict)"
+        ],
+        "in_freeze/2": [
+          "attribute(absolute_days)",
+          "attribute(check_of)",
+          "attribute(emergency)",
+          "attribute(freeze_from)",
+          "attribute(freeze_until)",
+          "attribute(head)",
+          "attribute(number)",
+          "attribute(review_of)"
+        ]
+      },
+      "needs": [
+        {
+          "role": "required_check",
+          "via": null,
+          "note": "The checks a change must pass, supplied as records (a branch protection rule). Without them no change can be judged ready."
+        },
+        {
+          "role": "check",
+          "via": "check_of",
+          "note": "At least one check result for the change. A change whose results were never loaded is unknown, not failing."
+        }
+      ],
+      "tests_file": "test/engineering/release_gate_test.pl"
+    },
+    {
+      "id": "dependency-policy",
+      "version": "1.0.0",
+      "title": "Dependency Policy",
+      "description": "Dependencies a change adds or updates against a policy held as data: a licence allow-list (SPDX expressions with OR and AND) and pinned major versions, with open version requirements flagged.",
+      "category": "engineering",
+      "license": "Elastic-2.0",
+      "tags": [
+        "dependencies",
+        "licenses",
+        "supply-chain",
+        "policy",
+        "engineering"
+      ],
+      "predicates": [
+        "dependency_allowed/1",
+        "dependency_violation/2",
+        "dependencies_compliant/1",
+        "change_violation/3",
+        "major_version/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/engineering/dependency_policy/dependency_policy.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/engineering/dependency_policy",
+      "install": "batteries.install_many",
+      "inputs": [
+        {
+          "role": "dependency",
+          "kind": "attribute",
+          "name": "package",
+          "type": "atom",
+          "presence": "key",
+          "note": "The package name as its ecosystem spells it."
+        },
+        {
+          "role": "dependency",
+          "kind": "attribute",
+          "name": "dependency_of",
+          "type": {
+            "ref": "change"
+          },
+          "presence": "key",
+          "note": "The change that adds, updates or removes it."
+        },
+        {
+          "role": "dependency",
+          "kind": "attribute",
+          "name": "license",
+          "type": "atom",
+          "presence": "required",
+          "note": "Its licence as an SPDX identifier or expression (MIT, Apache-2.0, MIT OR Apache-2.0). Leave it out when unknown rather than guessing."
+        },
+        {
+          "role": "dependency",
+          "kind": "attribute",
+          "name": "version",
+          "type": "atom",
+          "presence": "required",
+          "note": "The version, or the requirement the manifest states (4.17.21, ^4.17, ~> 1.7, >= 2)."
+        },
+        {
+          "role": "dependency",
+          "kind": "attribute",
+          "name": "change_type",
+          "type": {
+            "enum": [
+              "added",
+              "updated",
+              "removed"
+            ]
+          },
+          "presence": {
+            "default": "added"
+          },
+          "note": "What the change does to it. A removed dependency is not checked."
+        },
+        {
+          "role": "change",
+          "kind": "attribute",
+          "name": "dependency_review",
+          "type": {
+            "enum": [
+              "true"
+            ]
+          },
+          "presence": "key",
+          "note": "true once the change's dependency comparison was fetched, so a change that touches no dependency is compliant rather than unknown. There is no false: a change whose comparison was not fetched has no marker."
+        },
+        {
+          "role": "allowed_license",
+          "kind": "attribute",
+          "name": "allows_license",
+          "type": "atom",
+          "presence": "key",
+          "note": "A licence identifier dependencies may carry."
+        },
+        {
+          "role": "pin",
+          "kind": "attribute",
+          "name": "pins_package",
+          "type": "atom",
+          "presence": "key",
+          "note": "A package whose major version is pinned."
+        },
+        {
+          "role": "pin",
+          "kind": "attribute",
+          "name": "major",
+          "type": "integer",
+          "presence": "required",
+          "note": "The major version it must stay on."
+        },
+        {
+          "role": {
+            "fixed": "dependency_policy"
+          },
+          "kind": "attribute",
+          "name": "require_pinned_major",
+          "type": "bool",
+          "presence": {
+            "default": "true"
+          },
+          "note": "true when every version must fix its major: an open requirement (*, latest, >= 2) is a violation. A pinned package must fix its major either way."
+        }
+      ],
+      "reads": {
+        "dependency_allowed/1": [
+          "attribute(allows_license)",
+          "attribute(license)",
+          "attribute(major)",
+          "attribute(package)",
+          "attribute(pins_package)",
+          "attribute(version)"
+        ],
+        "dependency_violation/2": [
+          "attribute(allows_license)",
+          "attribute(license)",
+          "attribute(major)",
+          "attribute(package)",
+          "attribute(pins_package)",
+          "attribute(version)"
+        ],
+        "dependencies_compliant/1": [
+          "attribute(allows_license)",
+          "attribute(change_type)",
+          "attribute(dependency_of)",
+          "attribute(dependency_review)",
+          "attribute(license)",
+          "attribute(major)",
+          "attribute(package)",
+          "attribute(pins_package)",
+          "attribute(version)"
+        ],
+        "change_violation/3": [
+          "attribute(allows_license)",
+          "attribute(change_type)",
+          "attribute(dependency_of)",
+          "attribute(dependency_review)",
+          "attribute(license)",
+          "attribute(major)",
+          "attribute(package)",
+          "attribute(pins_package)",
+          "attribute(version)"
+        ],
+        "major_version/2": [
+          "attribute(package)",
+          "attribute(version)"
+        ]
+      },
+      "needs": [
+        {
+          "role": "allowed_license",
+          "via": null,
+          "note": "The licence allow-list, supplied as records. Without it no licence can be judged."
+        }
+      ],
+      "tests_file": "test/engineering/dependency_policy_test.pl"
+    },
+    {
+      "id": "change-risk",
+      "version": "1.0.0",
+      "title": "Change Risk",
+      "description": "How far a change reaches and who owns it: the code units that call into the files it touches, directly or through other callers, against a blast-radius limit, and CODEOWNERS coverage of its changed files.",
+      "category": "engineering",
+      "license": "Elastic-2.0",
+      "tags": [
+        "code-graph",
+        "blast-radius",
+        "codeowners",
+        "risk",
+        "engineering"
+      ],
+      "predicates": [
+        "low_risk/1",
+        "risk_reason/2",
+        "change_blast_radius/2",
+        "affected_unit/2",
+        "unowned_file/2",
+        "owner_coverage/3",
+        "owners_of/2"
+      ],
+      "rules_url": "https://raw.githubusercontent.com/datagrout/logic-batteries/main/modules/engineering/change_risk/change_risk.pl",
+      "readme_url": "https://github.com/datagrout/logic-batteries/tree/main/modules/engineering/change_risk",
+      "install": "batteries.install_many",
+      "inputs": [
+        {
+          "role": "changed_file",
+          "kind": "attribute",
+          "name": "file_of",
+          "type": {
+            "ref": "change"
+          },
+          "presence": "key",
+          "note": "The change the file is part of."
+        },
+        {
+          "role": "changed_file",
+          "kind": "attribute",
+          "name": "path",
+          "type": "atom",
+          "presence": "required",
+          "note": "The file's path from the repository root (lib/billing.ex)."
+        },
+        {
+          "role": "code_unit",
+          "kind": "attribute",
+          "name": "defined_in",
+          "type": "atom",
+          "presence": "key",
+          "note": "The path of the file the unit is defined in, spelled as changed files spell theirs."
+        },
+        {
+          "role": "code_unit",
+          "kind": "attribute",
+          "name": "calls",
+          "type": {
+            "ref": "code_unit"
+          },
+          "presence": "optional",
+          "note": "A unit this one calls; one fact per callee."
+        },
+        {
+          "role": "owner_rule",
+          "kind": "attribute",
+          "name": "owns_pattern",
+          "type": "atom",
+          "presence": "key",
+          "note": "A CODEOWNERS pattern: *, *.ext, a directory (docs/, /lib/billing/) or a path."
+        },
+        {
+          "role": "owner_rule",
+          "kind": "attribute",
+          "name": "owner",
+          "type": "atom",
+          "presence": "optional",
+          "note": "An owner of the files the pattern matches; one fact per owner. A rule with none leaves its files unowned."
+        },
+        {
+          "role": "owner_rule",
+          "kind": "attribute",
+          "name": "line",
+          "type": "integer",
+          "presence": "optional",
+          "note": "The rule's line in the file. When several match, the last one decides."
+        },
+        {
+          "role": {
+            "fixed": "risk_policy"
+          },
+          "kind": "attribute",
+          "name": "max_blast_radius",
+          "type": "integer",
+          "presence": {
+            "default": 25
+          },
+          "note": "The most affected units a low-risk change may have."
+        },
+        {
+          "role": {
+            "fixed": "risk_policy"
+          },
+          "kind": "attribute",
+          "name": "require_owners",
+          "type": "bool",
+          "presence": {
+            "default": "true"
+          },
+          "note": "true when every changed file must have an owner."
+        }
+      ],
+      "reads": {
+        "low_risk/1": [
+          "attribute(calls)",
+          "attribute(defined_in)",
+          "attribute(file_of)",
+          "attribute(line)",
+          "attribute(max_blast_radius)",
+          "attribute(owner)",
+          "attribute(owns_pattern)",
+          "attribute(path)",
+          "attribute(require_owners)"
+        ],
+        "risk_reason/2": [
+          "attribute(calls)",
+          "attribute(defined_in)",
+          "attribute(file_of)",
+          "attribute(line)",
+          "attribute(max_blast_radius)",
+          "attribute(owner)",
+          "attribute(owns_pattern)",
+          "attribute(path)",
+          "attribute(require_owners)"
+        ],
+        "change_blast_radius/2": [
+          "attribute(calls)",
+          "attribute(defined_in)",
+          "attribute(file_of)",
+          "attribute(path)"
+        ],
+        "affected_unit/2": [
+          "attribute(calls)",
+          "attribute(defined_in)",
+          "attribute(file_of)",
+          "attribute(path)"
+        ],
+        "unowned_file/2": [
+          "attribute(file_of)",
+          "attribute(line)",
+          "attribute(owner)",
+          "attribute(owns_pattern)",
+          "attribute(path)"
+        ],
+        "owner_coverage/3": [
+          "attribute(file_of)",
+          "attribute(line)",
+          "attribute(owner)",
+          "attribute(owns_pattern)",
+          "attribute(path)"
+        ],
+        "owners_of/2": [
+          "attribute(file_of)",
+          "attribute(line)",
+          "attribute(owner)",
+          "attribute(owns_pattern)",
+          "attribute(path)"
+        ]
+      },
+      "needs": [
+        {
+          "role": "code_unit",
+          "via": null,
+          "note": "The code graph: where each unit is defined and what it calls. Without it no blast radius can be measured."
+        },
+        {
+          "role": "owner_rule",
+          "via": null,
+          "note": "Who owns which paths (a CODEOWNERS file, as records). Without it ownership cannot be judged."
+        },
+        {
+          "role": "changed_file",
+          "via": "file_of",
+          "note": "At least one changed file of the change."
+        }
+      ],
+      "tests_file": "test/engineering/change_risk_test.pl"
+    }
+  ]
+}

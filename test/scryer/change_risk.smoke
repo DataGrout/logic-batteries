@@ -1,0 +1,28 @@
+# change_risk battery on scryer-prolog: transitive callers and CODEOWNERS
+# patterns over atom paths.
+modules/engineering/change_risk/change_risk.pl
+---
+attribute(charge_1, defined_in, 'lib/billing/charge.ex').
+attribute(checkout_2, defined_in, 'lib/checkout.ex').
+attribute(show_1, defined_in, 'lib/api.ex').
+attribute(checkout_2, calls, charge_1).
+attribute(show_1, calls, checkout_2).
+attribute(f1, file_of, pr_1).
+attribute(f1, path, 'lib/billing/charge.ex').
+attribute(f2, file_of, pr_1).
+attribute(f2, path, 'docs/guide.md').
+attribute(o1, owns_pattern, '*').
+attribute(o1, owner, '@acme/core').
+attribute(o1, line, 1).
+attribute(o2, owns_pattern, '/lib/billing/').
+attribute(o2, owner, '@acme/billing').
+attribute(o2, line, 2).
+attribute(o3, owns_pattern, 'docs/').
+attribute(o3, line, 3).
+check(Name, Goal) :- ( call(Goal) -> true ; write(fail(Name)), nl, halt(1) ).
+smoke :-
+    check(blast, change_blast_radius(pr_1, 2)),
+    check(unowned, (findall(P, unowned_file(pr_1, P), Ps), Ps == ['docs/guide.md'])),
+    check(coverage, owner_coverage(pr_1, 1, 2)),
+    check(not_low, \+ low_risk(pr_1)),
+    write(smoke_ok), nl.

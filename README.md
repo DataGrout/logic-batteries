@@ -80,6 +80,16 @@ Query exact probabilities instead of thresholds — zero LLM calls per tick. Wei
 | [commitment](./modules/business/commitment/) | 7 | Action items, promises and notice dates: due days stated, relative to when made, or before an event; outstanding, overdue, due soon, done late |
 | [request-policy](./modules/business/request_policy/) | 4 | Expense and purchase requests against a policy held as data: maximum amounts, receipt and pre-approval thresholds, submission window, per category over policy defaults |
 
+### Engineering
+
+Questions an engineering lead asks about a change, over CI results, the code graph and the repository's policies supplied as facts.
+
+| Module | Predicates | Description |
+|---|---|---|
+| [release-gate](./modules/engineering/release_gate/) | 6 | Whether a change can ship: required checks passed on its head commit, approvals with no outstanding request for changes, minimum coverage, change freezes; stale results and approvals told apart |
+| [dependency-policy](./modules/engineering/dependency_policy/) | 5 | Dependencies a change adds or updates against a licence allow-list (SPDX expressions) and pinned major versions; open version requirements flagged |
+| [change-risk](./modules/engineering/change_risk/) | 7 | Blast radius from the code graph (transitive callers of the touched files) against a limit, and CODEOWNERS coverage of the changed files |
+
 ### d20
 
 The SRD 5.1 rules layer as composing batteries. All stat blocks and mechanics from the **Systems Reference Document 5.1**, published under **CC BY 4.0** by Wizards of the Coast LLC. Dice stay client-side — the cell adjudicates, the caller rolls. Pure ISO: runs on SWI and Scryer alike.
