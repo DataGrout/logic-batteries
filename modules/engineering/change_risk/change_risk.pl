@@ -1,11 +1,11 @@
-%% Battery: change_risk v1.0.0
+%% Battery: change_risk v1.0.1
 %% Requires: (nothing)
 %% Exports: low_risk/1, risk_reason/2, change_blast_radius/2, affected_unit/2,
 %%          unowned_file/2, owner_coverage/3, owners_of/2
 
 :- dynamic(attribute/3).
 
-battery_module(change_risk, '1.0.0', auto).
+battery_module(change_risk, '1.0.1', auto).
 
 battery_export(change_risk, 'low_risk/1',
     'low_risk(Change) — the code calling into what the change touches stays within the policy''s blast radius, and every changed file has an owner').

@@ -561,7 +561,7 @@
     },
     {
       "id": "change-risk",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Change Risk",
       "description": "How far a change reaches and who owns it: the code units that call into the files it touches, directly or through other callers, against a blast-radius limit, and CODEOWNERS coverage of its changed files.",
       "category": "engineering",
