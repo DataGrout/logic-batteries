@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-11-15",
+  "updated_at": "2026-11-25",
   "category": "engineering",
   "modules": [
     {
@@ -737,6 +737,11 @@
         {
           "role": "owner_rule",
           "via": null,
+          "when": {
+            "kind": "attribute",
+            "name": "require_owners",
+            "value": "true"
+          },
           "note": "Who owns which paths (a CODEOWNERS file, as records). Without it ownership cannot be judged."
         },
         {

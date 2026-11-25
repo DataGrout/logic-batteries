@@ -49,7 +49,7 @@ battery_input(change_risk, fixed(risk_policy), attribute(require_owners), bool, 
 
 battery_needs(change_risk, code_unit, any,
     'The code graph: where each unit is defined and what it calls. Without it no blast radius can be measured.').
-battery_needs(change_risk, owner_rule, any,
+battery_needs(change_risk, owner_rule, any, when(attribute(require_owners), true),
     'Who owns which paths (a CODEOWNERS file, as records). Without it ownership cannot be judged.').
 battery_needs(change_risk, changed_file, attribute(file_of),
     'At least one changed file of the change.').
