@@ -1,4 +1,4 @@
-# Module: change-risk v1.0.0
+# Module: change-risk v1.0.1
 
 How far a change reaches and who owns it. The blast radius is every code unit outside the change that calls into the files it touches, directly or through other callers, read from a code graph; ownership is a CODEOWNERS file read as records. A change is low risk when its blast radius is within the policy's limit and every changed file has an owner.
 

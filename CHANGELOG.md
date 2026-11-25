@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-25
+
+### Contracts
+
+- `battery_needs/5`: a needed role can depend on a setting,
+  `battery_needs(Battery, Role, How, when(Fact, Value), Note)`. The need
+  applies only while that fact of a fixed subject has that value, or its
+  default when unstated. `scripts/check_inputs.py` accepts and lints it, and
+  CONTRIBUTING.md describes it.
+
+### Modules
+
+- `change-risk` 1.0.1: owner rules are a needed role only while
+  `require_owners` is true. With owners not required and no CODEOWNERS
+  loaded, `low_risk` and the risk reasons were unknown for want of owner
+  rules the policy had said it didn't need; they now stand. With owners
+  required (the default), a missing CODEOWNERS still leaves them unknown.
+
 ## 2026-11-15
 
 ### Modules

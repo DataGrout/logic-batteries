@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-11-15",
+  "updated_at": "2026-11-25",
   "category": "engineering",
   "modules": [
     {
@@ -561,7 +561,7 @@
     },
     {
       "id": "change-risk",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": "Change Risk",
       "description": "How far a change reaches and who owns it: the code units that call into the files it touches, directly or through other callers, against a blast-radius limit, and CODEOWNERS coverage of its changed files.",
       "category": "engineering",
@@ -737,6 +737,11 @@
         {
           "role": "owner_rule",
           "via": null,
+          "when": {
+            "kind": "attribute",
+            "name": "require_owners",
+            "value": "true"
+          },
           "note": "Who owns which paths (a CODEOWNERS file, as records). Without it ownership cannot be judged."
         },
         {

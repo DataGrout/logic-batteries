@@ -143,6 +143,21 @@ battery_needs(approval, statement, attribute(about),
 `attribute(Name)` is a reference key of it; `build_registry.py` copies the
 declarations into the registry entry's `needs`.
 
+A need that only some settings call for takes a fifth argument,
+`when(Fact, Value)`, and applies only while that fact of a fixed subject has
+that value (or, unstated, its default):
+
+```prolog
+battery_needs(change_risk, owner_rule, any, when(attribute(require_owners), true),
+    'Who owns which paths (a CODEOWNERS file, as records). Without it ownership cannot be judged.').
+```
+
+Fact is `attribute(Name)`, `relation(Name)` or `metric(Name)` of a fixed
+subject the contract declares, and Value an atom or number. A host waives the
+need only for decisions that read that setting: a decision that never reads it
+still needs the role. `check_inputs.py` checks the fact is declared, and the
+registry entry's need carries it as `when`.
+
 ## Dates
 
 Every battery that reads a date uses one convention, so batteries installed in

@@ -177,6 +177,10 @@ def inputs_for(path):
 def needs_for(path):
     """The roles a battery's decisions need loaded (battery_needs/4), as dicts.
 
+    `battery_needs(Battery, Role, How, when(Fact, Value), Note)` is a need that
+    applies only while the fixed subject's Fact is Value (or, unstated, its
+    default); it carries "when".
+
     `battery_needs(Battery, Role, How, Note)`: How is `any` (the role must have
     a member) or `attribute(Name)`, a key of Role that refers to the subject's
     role (the subject needs a member of Role referring to it). A failed decision
@@ -186,9 +190,20 @@ def needs_for(path):
     for text in clauses(source, "battery_needs"):
         term, _ = parse_term(tokens(text))
         args = term["args"]
-        if len(args) != 4:
+        condition = None
+        if len(args) == 5:
+            _battery, role, how, cond, note = args
+            if not (isinstance(cond, dict) and cond["f"] == "when" and len(cond["args"]) == 2):
+                raise ValueError(f"battery_needs condition must be when(attribute(Name), Value): {cond!r}")
+            fact, value = cond["args"]
+            if not (isinstance(fact, dict) and fact["f"] in ("attribute", "relation", "metric")
+                    and len(fact["args"]) == 1 and isinstance(value, (str, int, float))):
+                raise ValueError(f"battery_needs condition must be when(attribute(Name), Value): {cond!r}")
+            condition = {"kind": fact["f"], "name": fact["args"][0], "value": value}
+        elif len(args) == 4:
+            _battery, role, how, note = args
+        else:
             raise ValueError(f"battery_needs needs 4 arguments: {text[:60]}")
-        _battery, role, how, note = args
         if not isinstance(role, str):
             raise ValueError(f"battery_needs role must be a name: {role!r}")
         if how == "any":
@@ -197,7 +212,11 @@ def needs_for(path):
             via = how["args"][0]
         else:
             raise ValueError(f"battery_needs how must be any or attribute(Name): {how!r}")
-        out.append({"role": role, "via": via, "note": note if isinstance(note, str) else ""})
+        need = {"role": role, "via": via}
+        if condition:
+            need["when"] = condition
+        need["note"] = note if isinstance(note, str) else ""
+        out.append(need)
     return out
 
 
@@ -363,6 +382,14 @@ def problems_for(path):
             for e in entries
         ):
             problems.append(f"battery_needs {n['role']} via {n['via']}: not a ref key of that role")
+        elif "when" in n and not any(
+            i["kind"] == n["when"]["kind"] and i["name"] == n["when"]["name"] and isinstance(i["role"], dict)
+            for i in inputs
+        ):
+            problems.append(
+                f"battery_needs {n['role']} when {n['when']['kind']}({n['when']['name']}): "
+                "not a fact of a fixed subject the contract declares"
+            )
     declared = {(i["kind"], i["name"]) for i in inputs}
     bodies = rule_bodies(source)
     read = set().union(*(names_read(b) for b in bodies)) if bodies else set()
